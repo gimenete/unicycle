@@ -1,0 +1,41 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+#component {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+}
+#editors {
+  display: flex;
+}
+.editor {
+  width: 33%
+}
+#preview {
+  height: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#preview-content {
+  all: initial;
+}
+
+.CodeMirror .error {
+  background-color: #FF7373;
+}
+
+#preview-markup .preview {
+  border: 1px dashed #eee;
+  margin: 10px;
+}
+
+#preview-markup .preview > p {
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 12px;
+  color: #aaa;
+}
