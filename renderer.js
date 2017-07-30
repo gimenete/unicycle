@@ -31,6 +31,7 @@ class Editor extends EventEmitter {
   constructor(element, options) {
     super()
     this.errors = []
+    this.widgets = []
     this.editor = CodeMirror(
       element,
       Object.assign(options, {
@@ -45,6 +46,15 @@ class Editor extends EventEmitter {
   addError(position, message) {
     this.errors.push({ position, message })
     this.doc.addLineClass(position.line, 'wrap', 'error')
+    const node = document.createElement('div')
+    node.className = 'error'
+    node.style.border = '1px solid #aaa'
+    node.style.padding = '3px'
+    node.innerText = message
+    const widget = this.doc.addLineWidget(position.line, node, {
+      noHScroll: true
+    })
+    this.widgets.push(widget)
   }
 
   clearErrors() {
@@ -52,6 +62,8 @@ class Editor extends EventEmitter {
       this.doc.removeLineClass(error.position.line, 'wrap', 'error')
     )
     this.errors.splice(0)
+    this.widgets.forEach(widget => widget.clear())
+    this.widgets.splice(0)
   }
 
   update() {}
@@ -119,8 +131,15 @@ class StyleEditor extends Editor {
       sass.compile(
         `#preview-markup .preview-content {${this.editor.getValue()}}`,
         result => {
-          const css = result.text
-          document.getElementById('preview-style').innerHTML = css
+          if (result.status === 0) {
+            const css = result.text
+            document.getElementById('preview-style').innerHTML = css
+          } else {
+            this.addError(
+              { line: result.line, ch: result.column },
+              result.message
+            )
+          }
         }
       )
       this.emitUpdate()
@@ -207,8 +226,8 @@ class ComponentEditor extends React.Component {
   }
 
   render() {
-    console.clear()
-    this.generateReact()
+    // console.clear()
+    // this.generateReact()
     // this.generateVuejs()
 
     const renderNode = (data, node, key) => {
@@ -247,7 +266,9 @@ class ComponentEditor extends React.Component {
           console.error(e)
         }
       }
-      const childNodes = node.childNodes.map((node, i) => renderNode(data, node, i))
+      const childNodes = node.childNodes.map((node, i) =>
+        renderNode(data, node, i)
+      )
       const mapping = {
         class: 'className'
       }

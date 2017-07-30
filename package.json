@@ -20,6 +20,7 @@
     "electron": "~1.6.2"
   },
   "dependencies": {
+    "camelcase": "^4.1.0",
     "codemirror": "^5.28.0",
     "dedent": "^0.7.0",
     "node-sass": "^4.5.3",
