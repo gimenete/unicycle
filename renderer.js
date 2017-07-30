@@ -5,6 +5,10 @@ const React = require('react')
 const ReactDOM = require('react-dom')
 const dedent = require('dedent')
 const prettier = require('prettier')
+const postcss = require('postcss')
+const { SourceMapConsumer } = require('source-map')
+
+const CSS_PREFIX = '#preview-markup .preview-content '
 
 const evaluate = (code, options) => {
   const keys = []
@@ -128,21 +132,20 @@ class StyleEditor extends Editor {
   update() {
     try {
       this.clearErrors()
-      sass.compile(
-        `#preview-markup .preview-content {${this.editor.getValue()}}`,
-        result => {
-          if (result.status === 0) {
-            const css = result.text
-            document.getElementById('preview-style').innerHTML = css
-          } else {
-            this.addError(
-              { line: result.line, ch: result.column },
-              result.message
-            )
-          }
+      const originalCss = `${CSS_PREFIX}{${this.editor.getValue()}}`
+      sass.compile(originalCss, result => {
+        if (result.status === 0) {
+          const css = result.text
+          document.getElementById('preview-style').innerHTML = css
+          this.lastResult = result
+          this.emitUpdate()
+        } else {
+          this.addError(
+            { line: result.line, ch: result.column },
+            result.message
+          )
         }
-      )
-      this.emitUpdate()
+      })
     } catch (e) {
       console.error('Wrong CSS', e, Object.keys(e))
     }
@@ -165,7 +168,8 @@ class ComponentEditor extends React.Component {
 
     this.styleEditor = new StyleEditor(
       document.getElementById('style'),
-      dedent`
+      'ul {}' ||
+        dedent`
       p {
         font-family: 'Lucida Grande';
         font-size: 30px;
@@ -305,6 +309,39 @@ class ComponentEditor extends React.Component {
           )
         )
     )
+  }
+
+  componentDidUpdate() {
+    try {
+      this.styleEditor.clearErrors()
+      const result = this.styleEditor.lastResult
+      if (!result.text) return
+      const ast = postcss.parse(result.text)
+      const smc = new SourceMapConsumer(result.map)
+      ast.nodes.forEach(node => {
+        if (!node.selector) return
+        const generatedPosition = node.source.start
+        let lastMapping = null
+        smc.eachMapping(m => {
+          if (m.generatedLine === generatedPosition.line) {
+            lastMapping = m
+          }
+        })
+        if (lastMapping) {
+          if (!document.querySelector(node.selector)) {
+            this.styleEditor.addError(
+              {
+                line: lastMapping.originalLine - 1,
+                ch: lastMapping.originalColumn
+              },
+              `Selector '${node.selector.substring(CSS_PREFIX.length)}' doesn't match any element`
+            )
+          }
+        }
+      })
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   generateReact() {

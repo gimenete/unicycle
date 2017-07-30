@@ -25,9 +25,11 @@
     "dedent": "^0.7.0",
     "node-sass": "^4.5.3",
     "parse5": "^3.0.2",
+    "postcss": "^6.0.8",
     "prettier": "^1.5.3",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
-    "sass.js": "^0.10.5"
+    "sass.js": "^0.10.5",
+    "source-map": "^0.5.6"
   }
 }
