@@ -293,7 +293,7 @@ class ComponentEditor extends React.Component {
     const data = this.dataEditor.latestJSON
     return React.createElement(
       'div',
-      { style: { display: 'flex' } },
+      null,
       Object.keys(data)
         .filter(key => !key.startsWith('!'))
         .map((key, i) =>
