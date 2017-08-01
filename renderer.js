@@ -22,6 +22,10 @@ const evaluate = (code, options) => {
   return f.apply({}, values)
 }
 
+const evaluateExpression = (code, options) => {
+  return evaluate(`return ${code}`, options)
+}
+
 const parseJSON = str => {
   try {
     return JSON.parse(str)
@@ -233,28 +237,25 @@ class ComponentEditor extends React.Component {
     // console.clear()
     // this.generateReact()
     // this.generateVuejs()
+    this.markupEditor.clearErrors()
 
     const renderNode = (data, node, key) => {
-      if (node.nodeName === '#text') {
-        return node.value.replace(/{([^}]+)?}/g, str =>
-          evaluate(`return ${str.substring(1, str.length - 1)}`, data)
-        )
-      }
-      if (!node.childNodes) return undefined
-      const _if = node.attrs.find(attr => attr.name === '@if')
-      if (_if) {
-        try {
-          const result = evaluate(`return ${_if.value}`, data)
-          if (!result) return undefined
-        } catch (e) {
-          console.error(e)
+      try {
+        if (node.nodeName === '#text') {
+          return node.value.replace(/{([^}]+)?}/g, str => {
+            return evaluateExpression(str.substring(1, str.length - 1), data)
+          })
         }
-      }
-      const loop = node.attrs.find(attr => attr.name === '@loop')
-      const as = node.attrs.find(attr => attr.name === '@as')
-      if (loop && as) {
-        try {
-          const collection = evaluate(`return ${loop.value}`, data)
+        if (!node.childNodes) return undefined
+        const _if = node.attrs.find(attr => attr.name === '@if')
+        if (_if) {
+          const result = evaluateExpression(_if.value, data)
+          if (!result) return undefined
+        }
+        const loop = node.attrs.find(attr => attr.name === '@loop')
+        const as = node.attrs.find(attr => attr.name === '@as')
+        if (loop && as) {
+          const collection = evaluateExpression(loop.value, data)
           if (!collection) return undefined
           const template = Object.assign({}, node, {
             attrs: node.attrs.filter(attr => !attr.name.startsWith('@'))
@@ -266,48 +267,70 @@ class ComponentEditor extends React.Component {
               i
             )
           )
-        } catch (e) {
-          console.error(e)
         }
-      }
-      const childNodes = node.childNodes.map((node, i) =>
-        renderNode(data, node, i)
-      )
-      const mapping = {
-        class: 'className'
-      }
-      const attrs = node.attrs
-        .filter(
-          attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
+        const childNodes = node.childNodes.map((node, i) =>
+          renderNode(data, node, i)
         )
-        .reduce((obj, attr) => {
-          obj[mapping[attr.name] || attr.name] = attr.value
-          return obj
-        }, {})
-      attrs.key = key
-      return React.createElement.apply(
-        null,
-        [node.nodeName, attrs].concat(childNodes)
-      )
+        const mapping = {
+          class: 'className'
+        }
+        const attrs = node.attrs
+          .filter(
+            attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
+          )
+          .reduce((obj, attr) => {
+            obj[mapping[attr.name] || attr.name] = attr.value
+            return obj
+          }, {})
+        attrs.key = key
+        return React.createElement.apply(
+          null,
+          [node.nodeName, attrs].concat(childNodes)
+        )
+      } catch (err) {
+        if (!err.handled) {
+          this.markupEditor.addError(
+            {
+              line: node.__location.line,
+              ch: node.__location.col
+            },
+            err.message
+          )
+          err.handled = true
+        }
+        throw err
+      }
     }
     const data = this.dataEditor.latestJSON
     return React.createElement(
       'div',
       null,
-      Object.keys(data)
-        .filter(key => !key.startsWith('!'))
-        .map((key, i) =>
+      Object.keys(data).filter(key => !key.startsWith('!')).map((key, i) => {
+        let preview
+        try {
+          preview = renderNode(
+            data[key],
+            this.markupEditor.latestDOM.childNodes[0]
+          )
+        } catch (err) {
+          if (!err.handled) console.error(err)
+          preview = React.createElement(
+            'p',
+            { className: 'error' },
+            err.message
+          )
+        }
+        return React.createElement(
+          'div',
+          { key: i, className: 'preview' },
+          React.createElement('p', null, key),
           React.createElement(
             'div',
-            { key: i, className: 'preview' },
-            React.createElement('p', null, key),
-            React.createElement(
-              'div',
-              { style: { margin: 20 }, className: 'preview-content' },
-              renderNode(data[key], this.markupEditor.latestDOM.childNodes[0])
-            )
+            { className: 'preview-content' },
+            preview
           )
         )
+      })
     )
   }
 
@@ -334,7 +357,9 @@ class ComponentEditor extends React.Component {
                 line: lastMapping.originalLine - 1,
                 ch: lastMapping.originalColumn
               },
-              `Selector '${node.selector.substring(CSS_PREFIX.length)}' doesn't match any element`
+              `Selector '${node.selector.substring(
+                CSS_PREFIX.length
+              )}' doesn't match any element`
             )
           }
         }

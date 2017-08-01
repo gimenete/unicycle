@@ -70,6 +70,8 @@ html, body {
   background-color: var(--black);
 }
 
-#preview-mmarkup .preview .preview-content {
-  margin: 10px;
+#preview-markup .preview .preview-content {
+  margin: 20px;
+  display: flex;
+  justify-content: space-around;
 }
