@@ -107,7 +107,22 @@ class MarkupEditor extends Editor {
   constructor(element, value) {
     super(element, {
       value,
-      mode: 'htmlmixed'
+      mode: 'htmlmixed',
+      extraKeys: { 'Ctrl-Space': 'autocomplete' },
+      hintOptions: {
+        hint: (cm, option) => {
+          const cursor = cm.getCursor()
+          const line = cm.getLine(cursor.line)
+          const start = cursor.ch
+          const end = cursor.ch
+          console.log('cursor', cursor, line)
+          return {
+            list: ['@if=""', '@loop=""', '@as=""'],
+            from: CodeMirror.Pos(cursor.line, start),
+            to: CodeMirror.Pos(cursor.line, end)
+          }
+        }
+      }
     })
     this.latestDOM = null
   }
@@ -324,11 +339,7 @@ class ComponentEditor extends React.Component {
           'div',
           { key: i, className: 'preview' },
           React.createElement('p', null, key),
-          React.createElement(
-            'div',
-            { className: 'preview-content' },
-            preview
-          )
+          React.createElement('div', { className: 'preview-content' }, preview)
         )
       })
     )
