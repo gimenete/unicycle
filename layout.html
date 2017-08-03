@@ -1,5 +1,9 @@
+<script src="./node_modules/sass.js/dist/sass.sync.js"></script>
 <style>textarea { border: 1px solid #eee }</style>
 <textarea id="data"></textarea>
+<style id="style">
+
+</style>
 <div id="content"></div>
 <script>
 const initialData = [
@@ -162,19 +166,15 @@ const createNode = (parent, layer) => {
   const element = document.createElement('div')
   const attrs = {}
   const css = layer.css
-  if (layer.children.length > 0 || layer.shape) {
-    if (layer.shape) {
-      css.width = `${layer.frame.width}px`
-      css.height = `${layer.frame.height}px`
-    }
-    // css['box-sizing'] = 'border-box'
-  }
   if (Object.keys(css).length > 0) attrs.style = Object.keys(css).map(key => `${key}: ${css[key]}`).join('; ')
+  if (layer.classNames && layer.classNames.length > 0) {
+    attrs['class'] = layer.classNames.join(' ')
+  }
   Object.keys(attrs).forEach(key => element.setAttribute(key, attrs[key]))
   parent.appendChild(element)
   if (layer.text) {
     const textNode = document.createTextNode(layer.text)
-    element.style.textAlign = layer.textAlign
+    // element.style.textAlign = layer.textAlign
     element.appendChild(textNode)
     return
   }
@@ -336,6 +336,17 @@ const simplifyCSS = (layer) => {
   const extraInfo = {
     hasText: !!layer.text
   }
+  if (layer.children.length > 0 || layer.shape) {
+    if (layer.shape) {
+      layer.css.width = `${layer.frame.width}px`
+      layer.css.height = `${layer.frame.height}px`
+    }
+    // css['box-sizing'] = 'border-box'
+  }
+  if (layer.text) {
+    layer.css['text-align'] = layer.textAlign
+  }
+
   layer.children.forEach(child => {
     const info = simplifyCSS(child)
     extraInfo.hasText = extraInfo.hasText || info.hasText
@@ -374,14 +385,50 @@ const simplifyCSS = (layer) => {
   return extraInfo
 }
 
+const calculateClassesAndSelectors = (layer, parentCSS, nthChild) => {
+  const className = (layer.name.match(/-?[_a-zA-Z]+[_a-zA-Z0-9-]*/g) || []).join('-').toLowerCase()
+  const selector = className ? `.${className}` : `& > :nth-child(${nthChild + 1})`
+  const css = {
+    attributes: layer.css,
+    subSelectors: {}
+  }
+  parentCSS.subSelectors[selector] = css
+  layer.css = {}
+  layer.classNames = [className].filter(Boolean)
+  layer.children.forEach((child, nthChild) => {
+    calculateClassesAndSelectors(child, css || parentCSS, nthChild)
+  })
+}
+
+const serializeCSS = (css) => {
+  let str = ''
+  Object.keys(css.attributes).forEach(key => {
+    str += `${key}: ${css.attributes[key]};\n`
+  })
+  Object.keys(css.subSelectors).forEach(selector => {
+    str += `${selector} {\n${serializeCSS(css.subSelectors[selector])}}\n`
+  })
+  return str
+}
+
 const contentNode = document.getElementById('content')
 const dataNode = document.getElementById('data')
+const styleNode = document.getElementById('style')
+
 const createPreview = (data) => {
   contentNode.innerHTML = ''
   calculateContainers(data[0])
   calculateRows(data[0])
   simplifyCSS(data[0])
+  const css = {
+    attributes: {},
+    subSelectors: {}
+  }
+  calculateClassesAndSelectors(data[0], css, 0)
   createNode(contentNode, data[0])
+  Sass.compile(serializeCSS(css), result => {
+    styleNode.innerHTML = result.text
+  })
 }
 
 dataNode.addEventListener('input', () => {
