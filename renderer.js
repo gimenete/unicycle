@@ -38,8 +38,7 @@ const parseJSON = str => {
 class Editor extends EventEmitter {
   constructor(element, options) {
     super()
-    this.errors = []
-    this.widgets = []
+    this.messages = {}
     this.editor = CodeMirror(
       element,
       Object.assign(options, {
@@ -51,27 +50,46 @@ class Editor extends EventEmitter {
     this.doc = this.editor.getDoc()
   }
 
-  addError(position, message) {
-    this.errors.push({ position, message })
-    this.doc.addLineClass(position.line, 'wrap', 'error')
-    const node = document.createElement('div')
-    node.className = 'error'
-    node.style.border = '1px solid #aaa'
-    node.style.padding = '3px'
-    node.innerText = message
-    const widget = this.doc.addLineWidget(position.line, node, {
-      noHScroll: true
+  calculateMessages(type, runner) {
+    const currentMessages = this.messages[type] || []
+    const messages = []
+    const returnValue = runner({
+      addMessage(position, text) {
+        messages.push({ position, text })
+      }
     })
-    this.widgets.push(widget)
-  }
+    const compareMessages = (a, b) =>
+      a.position.line === b.position.line && a.text === b.text
 
-  clearErrors() {
-    this.errors.forEach(error =>
-      this.doc.removeLineClass(error.position.line, 'wrap', 'error')
-    )
-    this.errors.splice(0)
-    this.widgets.forEach(widget => widget.clear())
-    this.widgets.splice(0)
+    // remove old ones
+    currentMessages.forEach(message => {
+      const { position, text } = message
+      const same = messages.find(m => compareMessages(message, m))
+      if (!same) {
+        this.doc.removeLineClass(position.line, 'wrap', type)
+        message.widget.clear()
+      }
+    })
+    // add new ones
+    messages.forEach(message => {
+      const { position, text } = message
+      const current = currentMessages.find(m => compareMessages(message, m))
+      if (!current) {
+        const node = document.createElement('div')
+        node.className = type
+        node.style.border = '1px solid #aaa'
+        node.style.padding = '3px'
+        node.innerText = text
+        message.widget = this.doc.addLineWidget(position.line, node, {
+          noHScroll: true
+        })
+        this.doc.addLineClass(position.line, 'wrap', type)
+      } else {
+        message.widget = current.widget
+      }
+    })
+    this.messages[type] = messages
+    return returnValue
   }
 
   update() {}
@@ -91,15 +109,16 @@ class JSONEditor extends Editor {
   }
 
   update() {
-    try {
-      this.clearErrors()
-      this.latestJSON = JSON.parse(this.editor.getValue())
-      this.emitUpdate()
-    } catch (e) {
-      const index = +e.message.match(/\d+/)
-      const position = this.doc.posFromIndex(index)
-      this.addError(position, e.message)
-    }
+    this.calculateMessages('error', handler => {
+      try {
+        this.latestJSON = JSON.parse(this.editor.getValue())
+        this.emitUpdate()
+      } catch (e) {
+        const index = +e.message.match(/\d+/)
+        const position = this.doc.posFromIndex(index)
+        handler.addMessage(position, e.message)
+      }
+    })
   }
 }
 
@@ -129,7 +148,6 @@ class MarkupEditor extends Editor {
 
   update() {
     try {
-      this.clearErrors()
       this.latestDOM = parse5.parseFragment(this.editor.getValue(), {
         locationInfo: true
       })
@@ -150,20 +168,21 @@ class StyleEditor extends Editor {
 
   update() {
     try {
-      this.clearErrors()
       const originalCss = `${CSS_PREFIX}{${this.editor.getValue()}}`
       sass.compile(originalCss, result => {
-        if (result.status === 0) {
-          const css = result.text
-          document.getElementById('preview-style').innerHTML = css
-          this.lastResult = result
-          this.emitUpdate()
-        } else {
-          this.addError(
-            { line: result.line, ch: result.column },
-            result.message
-          )
-        }
+        this.calculateMessages('error', handler => {
+          if (result.status === 0) {
+            const css = result.text
+            document.getElementById('preview-style').innerHTML = css
+            this.lastResult = result
+            this.emitUpdate()
+          } else {
+            handler.addMessage(
+              { line: result.line, ch: result.column },
+              result.message
+            )
+          }
+        })
       })
     } catch (e) {
       console.error('Wrong CSS', e, Object.keys(e))
@@ -187,7 +206,7 @@ class ComponentEditor extends React.Component {
 
     this.styleEditor = new StyleEditor(
       document.getElementById('style'),
-      'ul {}' ||
+      'ul {\n  \n}' ||
         dedent`
       p {
         font-family: 'Lucida Grande';
@@ -252,128 +271,143 @@ class ComponentEditor extends React.Component {
     // console.clear()
     // this.generateReact()
     // this.generateVuejs()
-    this.markupEditor.clearErrors()
-
-    const renderNode = (data, node, key) => {
-      try {
-        if (node.nodeName === '#text') {
-          return node.value.replace(/{([^}]+)?}/g, str => {
-            return evaluateExpression(str.substring(1, str.length - 1), data)
-          })
-        }
-        if (!node.childNodes) return undefined
-        const _if = node.attrs.find(attr => attr.name === '@if')
-        if (_if) {
-          const result = evaluateExpression(_if.value, data)
-          if (!result) return undefined
-        }
-        const loop = node.attrs.find(attr => attr.name === '@loop')
-        const as = node.attrs.find(attr => attr.name === '@as')
-        if (loop && as) {
-          const collection = evaluateExpression(loop.value, data)
-          if (!collection) return undefined
-          const template = Object.assign({}, node, {
-            attrs: node.attrs.filter(attr => !attr.name.startsWith('@'))
-          })
-          return collection.map((obj, i) =>
-            renderNode(
-              Object.assign({}, data, { [as.value]: obj }),
-              template,
-              i
+    return this.markupEditor.calculateMessages(
+      'error',
+      handler => {
+        const renderNode = (data, node, key) => {
+          try {
+            if (node.nodeName === '#text') {
+              return node.value.replace(/{([^}]+)?}/g, str => {
+                return evaluateExpression(
+                  str.substring(1, str.length - 1),
+                  data
+                )
+              })
+            }
+            if (!node.childNodes) return undefined
+            const _if = node.attrs.find(attr => attr.name === '@if')
+            if (_if) {
+              const result = evaluateExpression(_if.value, data)
+              if (!result) return undefined
+            }
+            const loop = node.attrs.find(attr => attr.name === '@loop')
+            const as = node.attrs.find(attr => attr.name === '@as')
+            if (loop && as) {
+              const collection = evaluateExpression(loop.value, data)
+              if (!collection) return undefined
+              const template = Object.assign({}, node, {
+                attrs: node.attrs.filter(attr => !attr.name.startsWith('@'))
+              })
+              return collection.map((obj, i) =>
+                renderNode(
+                  Object.assign({}, data, { [as.value]: obj }),
+                  template,
+                  i
+                )
+              )
+            }
+            const childNodes = node.childNodes.map((node, i) =>
+              renderNode(data, node, i)
             )
-          )
+            const mapping = {
+              class: 'className'
+            }
+            const attrs = node.attrs
+              .filter(
+                attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
+              )
+              .reduce((obj, attr) => {
+                obj[mapping[attr.name] || attr.name] = attr.value
+                return obj
+              }, {})
+            attrs.key = key
+            return React.createElement.apply(
+              null,
+              [node.nodeName, attrs].concat(childNodes)
+            )
+          } catch (err) {
+            if (!err.handled) {
+              handler.addMessage(
+                {
+                  line: node.__location.line,
+                  ch: node.__location.col
+                },
+                err.message
+              )
+              err.handled = true
+            }
+            throw err
+          }
         }
-        const childNodes = node.childNodes.map((node, i) =>
-          renderNode(data, node, i)
-        )
-        const mapping = {
-          class: 'className'
-        }
-        const attrs = node.attrs
-          .filter(
-            attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
-          )
-          .reduce((obj, attr) => {
-            obj[mapping[attr.name] || attr.name] = attr.value
-            return obj
-          }, {})
-        attrs.key = key
-        return React.createElement.apply(
-          null,
-          [node.nodeName, attrs].concat(childNodes)
-        )
-      } catch (err) {
-        if (!err.handled) {
-          this.markupEditor.addError(
-            {
-              line: node.__location.line,
-              ch: node.__location.col
-            },
-            err.message
-          )
-          err.handled = true
-        }
-        throw err
-      }
-    }
-    const data = this.dataEditor.latestJSON
-    return React.createElement(
-      'div',
-      null,
-      Object.keys(data).filter(key => !key.startsWith('!')).map((key, i) => {
-        let preview
-        try {
-          preview = renderNode(
-            data[key],
-            this.markupEditor.latestDOM.childNodes[0]
-          )
-        } catch (err) {
-          if (!err.handled) console.error(err)
-          preview = React.createElement(
-            'p',
-            { className: 'error' },
-            err.message
-          )
-        }
+
+        const data = this.dataEditor.latestJSON
         return React.createElement(
           'div',
-          { key: i, className: 'preview' },
-          React.createElement('p', null, key),
-          React.createElement('div', { className: 'preview-content' }, preview)
+          null,
+          Object.keys(data)
+            .filter(key => !key.startsWith('!'))
+            .map((key, i) => {
+              let preview
+              try {
+                preview = renderNode(
+                  data[key],
+                  this.markupEditor.latestDOM.childNodes[0]
+                )
+              } catch (err) {
+                if (!err.handled) console.error(err)
+                preview = React.createElement(
+                  'p',
+                  { className: 'error' },
+                  err.message
+                )
+              }
+              return React.createElement(
+                'div',
+                { key: i, className: 'preview' },
+                React.createElement('p', null, key),
+                React.createElement(
+                  'div',
+                  { className: 'preview-content' },
+                  preview
+                )
+              )
+            })
         )
-      })
+      },
+      true
     )
   }
 
   componentDidUpdate() {
     try {
-      this.styleEditor.clearErrors()
-      const result = this.styleEditor.lastResult
-      if (!result.text) return
-      const ast = postcss.parse(result.text)
-      const smc = new SourceMapConsumer(result.map)
-      ast.nodes.forEach(node => {
-        if (!node.selector) return
-        const generatedPosition = node.source.start
-        let lastMapping = null
-        smc.eachMapping(m => {
-          if (m.generatedLine === generatedPosition.line) {
-            lastMapping = m
+      this.styleEditor.calculateMessages('warning', handler => {
+        const result = this.styleEditor.lastResult
+        if (!result.text) return
+        const ast = postcss.parse(result.text)
+        const smc = new SourceMapConsumer(result.map)
+        ast.nodes.forEach(node => {
+          if (!node.selector) return
+          const generatedPosition = node.source.start
+          let lastMapping = null
+          smc.eachMapping(m => {
+            if (m.generatedLine === generatedPosition.line) {
+              lastMapping = m
+            }
+          })
+          if (lastMapping) {
+            if (!document.querySelector(node.selector)) {
+              handler.addMessage(
+                {
+                  line: lastMapping.originalLine - 1,
+                  ch: lastMapping.originalColumn
+                },
+                `Selector '${node.selector.substring(
+                  CSS_PREFIX.length
+                )}' doesn't match any element`
+              )
+            }
           }
         })
-        if (lastMapping) {
-          if (!document.querySelector(node.selector)) {
-            this.styleEditor.addError(
-              {
-                line: lastMapping.originalLine - 1,
-                ch: lastMapping.originalColumn
-              },
-              `Selector '${node.selector.substring(
-                CSS_PREFIX.length
-              )}' doesn't match any element`
-            )
-          }
-        }
       })
     } catch (e) {
       console.error(e)
@@ -489,4 +523,3 @@ ReactDOM.render(componentInstance, document.getElementById('preview-markup'))
   markup.addWidget({ line: 0, ch: 0 }, widget, false)
   markup.getDoc().addLineClass(1, 'background', 'error')
   */
-
