@@ -1,0 +1,288 @@
+<style>textarea { border: 1px solid #eee }</style>
+<textarea id="data"></textarea>
+<div id="content"></div>
+<script>
+const initialData = [
+  {
+    "name": "Latest Run",
+    "frame": {
+      "x": 10,
+      "y": 279,
+      "width": 300,
+      "height": 74
+    },
+    "css": [
+      "/* Latest Run: */"
+    ],
+    "layout": {
+      "hasFixedHeight": false,
+      "hasFixedWidth": false,
+      "hasFixedBottom": false,
+      "hasFixedTop": false,
+      "hasFixedRight": false,
+      "hasFixedLeft": false
+    },
+    "children": [
+      {
+        "name": "Rectangle 87",
+        "frame": {
+          "x": 0,
+          "y": 0,
+          "width": 300,
+          "height": 74
+        },
+        "css": [
+          "/* Rectangle 87: */",
+          "background-image: linear-gradient(-180deg, #F5515F 0%, #9F041B 100%);",
+          "box-shadow: 0 1px 3px 0 rgba(0,0,0,0.30), inset 0 0 0 0 rgba(255,255,255,0.40);",
+          "border-radius: 5px;"
+        ],
+        "layout": {
+          "hasFixedHeight": false,
+          "hasFixedWidth": false,
+          "hasFixedBottom": false,
+          "hasFixedTop": false,
+          "hasFixedRight": false,
+          "hasFixedLeft": false
+        },
+        "children": [],
+        "shape": true
+      },
+      {
+        "name": ">",
+        "frame": {
+          "x": 282,
+          "y": 40,
+          "width": 8,
+          "height": 12.5
+        },
+        "css": [
+          "/* >: */",
+          "background: #FFFFFF;"
+        ],
+        "layout": {
+          "hasFixedHeight": false,
+          "hasFixedWidth": false,
+          "hasFixedBottom": false,
+          "hasFixedTop": false,
+          "hasFixedRight": false,
+          "hasFixedLeft": false
+        },
+        "children": [],
+        "shape": true
+      },
+      {
+        "name": "Latest Run:",
+        "frame": {
+          "x": 11.5,
+          "y": 9,
+          "width": 246,
+          "height": 15
+        },
+        "css": [
+          "/* Latest Run:: */",
+          "font-family: AvenirNext-Regular;",
+          "font-size: 12px;",
+          "color: rgba(255,255,255,0.80);",
+          "letter-spacing: 0;",
+          "line-height: 15px;"
+        ],
+        "layout": {
+          "hasFixedHeight": false,
+          "hasFixedWidth": false,
+          "hasFixedBottom": false,
+          "hasFixedTop": false,
+          "hasFixedRight": false,
+          "hasFixedLeft": false
+        },
+        "children": [],
+        "text": "Latest Run:",
+        "textAlign": "natural"
+      },
+      {
+        "name": " ★ 24.32m",
+        "frame": {
+          "x": 230,
+          "y": 8.807999999999993,
+          "width": 60,
+          "height": 15
+        },
+        "css": [
+          "/*  ★ 24.32m: */",
+          "font-family: AvenirNext-Regular;",
+          "font-size: 12px;",
+          "color: rgba(255,255,255,0.80);",
+          "letter-spacing: 0;",
+          "line-height: 15px;"
+        ],
+        "layout": {
+          "hasFixedHeight": true,
+          "hasFixedWidth": false,
+          "hasFixedBottom": false,
+          "hasFixedTop": false,
+          "hasFixedRight": false,
+          "hasFixedLeft": false
+        },
+        "children": [],
+        "text": " ★ 24.32m",
+        "textAlign": "right"
+      },
+      {
+        "name": "5.2 kilometers",
+        "frame": {
+          "x": 10,
+          "y": 26,
+          "width": 174,
+          "height": 37
+        },
+        "css": [
+          "/* 5.2 kilometers: */",
+          "font-family: AvenirNext-Regular;",
+          "font-size: 27px;",
+          "color: #FFFFFF;",
+          "text-shadow: 0 -1px 1px #A21C0E;"
+        ],
+        "layout": {
+          "hasFixedHeight": true,
+          "hasFixedWidth": false,
+          "hasFixedBottom": false,
+          "hasFixedTop": false,
+          "hasFixedRight": false,
+          "hasFixedLeft": false
+        },
+        "children": [],
+        "text": "5.2 kilometers",
+        "textAlign": "natural"
+      }
+    ]
+  }
+]
+
+const frameContains = (frame, otherFrame) => {
+  return frame.x <= otherFrame.x
+    && frame.y <= otherFrame.y
+    && frame.x + frame.width >= otherFrame.x + otherFrame.width
+    && frame.y + frame.height >= otherFrame.y + otherFrame.height
+}
+
+const createNode = (parent, layer) => {
+  const element = document.createElement('div')
+  const attrs = {}
+  const css = layer.css.filter(str => !(str.startsWith('/*') && str.indexOf('*/') === str.length - 2))
+  if (layer.children.length > 0 || layer.shape) {
+    css.push(`margin: 0 auto;`)
+    if (layer.shape) {
+      css.push(`width: ${layer.frame.width}px;`)
+      css.push(`height: ${layer.frame.height}px;`)
+    }
+    css.push('box-sizing: border-box;')
+  }
+  if (css.length > 0) attrs.style = css.join(' ')
+  Object.keys(attrs).forEach(key => element.setAttribute(key, attrs[key]))
+  parent.appendChild(element)
+  if (layer.text) {
+    const textNode = document.createTextNode(layer.text)
+    element.style.textAlign = layer.textAlign
+    element.appendChild(textNode)
+    return
+  }
+  layer.children.forEach(child => createNode(element, child))
+}
+
+const calculateRows = (layer) => {
+  let children = layer.children.slice(0)
+  children = children.sort((a, b) => a.frame.y - b.frame.y)
+  console.log('calculateRows', JSON.stringify(children, null, 2))
+  layer.children = children.reduce((layerChildNodes, child1, i) => {
+    let y = child1.frame.y + child1.frame.height
+    const childNodes = children.slice(i + 1).reduce((arr, child2) => {
+      if (child2.frame.y < y) {
+        arr.push(child2)
+        children.splice(i, 1)
+        child2.children.forEach(calculateRows)
+        y = Math.max(y, child2.frame.y + child2.frame.height)
+      }
+      return arr
+    }, [child1])
+    if (childNodes.length > 1) {
+      console.log('found row', JSON.stringify(childNodes, null, 2))
+      const frame = childNodes.reduce((frame, node) => {
+        frame.x = Math.min(frame.x, node.frame.x)
+        frame.y = Math.min(frame.y, node.frame.y)
+        frame.width = Math.max(frame.width, node.frame.x + node.frame.width)
+        frame.height = Math.max(frame.height, node.frame.y + node.frame.height)
+        return frame
+      }, {
+        x: Number.MAX_SAFE_INTEGER,
+        y: Number.MAX_SAFE_INTEGER,
+        width: Number.MIN_SAFE_INTEGER,
+        height: Number.MIN_SAFE_INTEGER
+      })
+      childNodes.forEach(node => {
+        node.frame.x -= frame.x
+        node.frame.y -= frame.y
+      })
+      const row = {
+        name: '',
+        frame,
+        css: [
+          'display: flex;',
+          'justify-content: space-between;'
+        ],
+        layout: {},
+        children: childNodes.sort((a, b) => a.frame.x - b.frame.x)
+      }
+      layerChildNodes.push(row)
+    } else {
+      console.log('no row found', child1.name)
+      layerChildNodes.push(child1)
+      calculateRows(child1)
+    }
+    return layerChildNodes
+  }, [])
+}
+
+const calculateContainers = (layer) => {
+  let children = layer.children.slice(0)
+  children.forEach(layer => {
+    layer.frame.area = layer.frame.width * layer.frame.height
+  })
+  children = children.sort((a, b) => b.frame.area - a.frame.area)
+  children.forEach((child1, i) => {
+    const childNodes = children.slice(i + 1).reduce((arr, child2) => {
+      if (frameContains(child1.frame, child2.frame)) {
+        arr.push(child2)
+        children.splice(i, 1)
+      }
+      return arr
+    }, [])
+
+    if (childNodes.length > 0) {
+      child1.children = child1.children.concat(childNodes)
+      childNodes.forEach(node => {
+        node.frame.x -= child1.frame.x
+        node.frame.y -= child1.frame.y
+        const index = layer.children.indexOf(node)
+        if (index >= 0) layer.children.splice(index, 1)
+      })
+    }
+    calculateContainers(child1)
+  })
+  layer.children = layer.children.sort((a, b) => a.frame.y - b.frame.y)
+}
+
+const contentNode = document.getElementById('content')
+const dataNode = document.getElementById('data')
+const createPreview = (data) => {
+  contentNode.innerHTML = ''
+  calculateContainers(data[0])
+  calculateRows(data[0])
+  createNode(contentNode, data[0])
+}
+
+dataNode.addEventListener('input', () => {
+  createPreview(JSON.parse(dataNode.value))
+})
+
+createPreview(initialData)
+</script>

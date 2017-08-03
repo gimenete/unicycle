@@ -489,3 +489,4 @@ ReactDOM.render(componentInstance, document.getElementById('preview-markup'))
   markup.addWidget({ line: 0, ch: 0 }, widget, false)
   markup.getDoc().addLineClass(1, 'background', 'error')
   */
+

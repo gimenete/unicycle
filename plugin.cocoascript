@@ -1,0 +1,61 @@
+
+const sketch = context.api()
+
+/*
+log(sketch.api_version)
+log(sketch.version)
+log(sketch.build)
+log(sketch.full_version)
+var documentName = context.document.displayName()
+log('The current document is named: ' + documentName)
+*/
+
+const document = sketch.selectedDocument
+const selectedLayers = document.selectedLayers
+
+const data = []
+
+function appendLayerInformation(arr, layer) {
+  if (!layer.frame) return
+  // see https://github.com/abynim/Sketch-Headers/blob/master/Headers/MSLayer.h
+  const sketchObject = layer.sketchObject
+  const info = {
+    name: String(layer.name),
+    frame: layer.frame,
+    css: [].slice.call(sketchObject.CSSAttributes()).map(a => String(a)),
+    layout: {
+      hasFixedHeight: !!sketchObject.hasFixedHeight(),
+      hasFixedWidth: !!sketchObject.hasFixedWidth(),
+      hasFixedBottom: !!sketchObject.hasFixedBottom(),
+      hasFixedTop: !!sketchObject.hasFixedTop(),
+      hasFixedRight: !!sketchObject.hasFixedRight(),
+      hasFixedLeft: !!sketchObject.hasFixedLeft()
+    },
+    children: []
+  }
+  if (layer.isGroup) {
+    layer.iterate((layer, i) => {
+      appendLayerInformation(info.children, layer)
+    })
+  } else if (layer.isText) {
+    info.text = String(layer.text)
+    info.textAlign = layer.alignment
+  } else if (layer.isShape) {
+    info.shape = true
+    // TODO: https://github.com/sketchplugins/plugin-requests/blob/master/Copy%20Layer%20as%20SVG.sketchplugin
+  } else if (layer.isImage) {
+    log('is image' + layer.sketchObject)
+  }
+  arr.push(info)
+}
+
+selectedLayers.iterate((layer, i) => {
+  appendLayerInformation(data, layer)
+})
+
+
+var pasteBoard = [NSPasteboard generalPasteboard]
+[pasteBoard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:nil]
+[pasteBoard setString:JSON.stringify(data, null, 2) forType:NSPasteboardTypeString]
+
+
