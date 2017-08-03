@@ -200,62 +200,22 @@ class ComponentEditor extends React.Component {
         <ul>
           <li @loop="items" @as="item">{item}</li>
         </ul>
+        <p @if="items.length === 0">
+          The list is empty
+        </p>
       </div>
     `
     )
 
     this.styleEditor = new StyleEditor(
       document.getElementById('style'),
-      'ul {\n  \n}' ||
-        dedent`
-      p {
-        font-family: 'Lucida Grande';
-        font-size: 30px;
-
-        &.message {
-          color: blue;
-        }
-
-        &.error {
-          color: red;
-        }
-      }
-
-      .spinner {
-        width: 40px;
-        height: 40px;
-        margin: 100px auto;
-        background-color: #333;
-
-        border-radius: 100%;
-        -webkit-animation: sk-scaleout 1.0s infinite ease-in-out;
-        animation: sk-scaleout 1.0s infinite ease-in-out;
-      }
-
-      @-webkit-keyframes sk-scaleout {
-        0% { -webkit-transform: scale(0) }
-        100% {
-          -webkit-transform: scale(1.0);
-          opacity: 0;
-        }
-      }
-
-      @keyframes sk-scaleout {
-        0% {
-          -webkit-transform: scale(0);
-          transform: scale(0);
-        } 100% {
-          -webkit-transform: scale(1.0);
-          transform: scale(1.0);
-          opacity: 0;
-        }
-      }
-    `
+      'ul {\n  color: blue;\n}\n\n.foo {\n  color: red;\n}'
     )
 
     this.dataEditor = new JSONEditor(document.getElementById('state'), {
       // Loading: { loading: true, message: null, error: null },
-      'Regular state': { items: ['apple', 'orange', 'pear'] }
+      'Regular state': { items: ['apple', 'orange', 'pear'] },
+      'Blank Slate': { items: [] }
       // 'Error state': { loading: false, message: null, error: 'Network error' }
     })
 
@@ -268,8 +228,8 @@ class ComponentEditor extends React.Component {
   }
 
   render() {
-    // console.clear()
-    // this.generateReact()
+    console.clear()
+    this.generateReact()
     // this.generateVuejs()
     return this.markupEditor.calculateMessages(
       'error',
@@ -415,6 +375,8 @@ class ComponentEditor extends React.Component {
   }
 
   generateReact() {
+    const data = this.dataEditor.latestJSON
+    const someState = data[Object.keys(data)[0]]
     const dom = this.markupEditor.latestDOM
     let code = `
   /*
@@ -424,23 +386,19 @@ class ComponentEditor extends React.Component {
   import React from 'react';
   import ReactDOM from 'react-dom';
 
-  class MyComponent extends Component {
-    constructor(props) {
-      super(props)
-    }
-    render() { return `
+  export default (props) => { const {${Object.keys(someState).join(', ')}} = props;`
 
     const renderNode = node => {
       if (node.nodeName === '#text') {
-        code += node.value
-        return
+        return node.value
       }
 
+      let code = ''
       const mapping = {
         class: 'className'
       }
       const toString = () => {
-        code += `<${node.nodeName}`
+        let code = `<${node.nodeName}`
         node.attrs.forEach(attr => {
           if (attr.name.startsWith(':') || attr.name.startsWith('@')) {
             return
@@ -449,21 +407,25 @@ class ComponentEditor extends React.Component {
           code += ` ${name}="${attr.value}"`
         })
         code += '>'
-        node.childNodes.map(renderNode)
+        node.childNodes.forEach(node => (code += renderNode(node)))
         code += `</${node.nodeName}>`
+        return code
       }
+      let basicMarkup = toString()
 
       const _if = node.attrs.find(attr => attr.name === '@if')
-      if (_if) {
-        code += `{(${_if.value.replace(/state\./g, 'this.state.')}) && (`
-        toString()
-        code += ')}'
-      } else {
-        toString()
+      const loop = node.attrs.find(attr => attr.name === '@loop')
+      const as = node.attrs.find(attr => attr.name === '@as')
+      if (loop && as) {
+        basicMarkup = `{(${loop.value}).map((${as.value}, i) => ${basicMarkup})}`
       }
+      if (_if) {
+        basicMarkup = `{(${_if.value}) && (${basicMarkup})}`
+      }
+      return basicMarkup
     }
-    renderNode(dom.childNodes[0])
-    code += '}}'
+    code += 'return ' + renderNode(dom.childNodes[0])
+    code += '}'
 
     console.log('%c React component:', 'color: #67DAF9')
     console.log(prettier.format(code, { semi: false }))
