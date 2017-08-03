@@ -11,9 +11,7 @@ const initialData = [
       "width": 300,
       "height": 74
     },
-    "css": [
-      "/* Latest Run: */"
-    ],
+    "css": {},
     "layout": {
       "hasFixedHeight": false,
       "hasFixedWidth": false,
@@ -31,12 +29,11 @@ const initialData = [
           "width": 300,
           "height": 74
         },
-        "css": [
-          "/* Rectangle 87: */",
-          "background-image: linear-gradient(-180deg, #F5515F 0%, #9F041B 100%);",
-          "box-shadow: 0 1px 3px 0 rgba(0,0,0,0.30), inset 0 0 0 0 rgba(255,255,255,0.40);",
-          "border-radius: 5px;"
-        ],
+        "css": {
+          "background-image": "linear-gradient(-180deg, #F5515F 0%, #9F041B 100%)",
+          "box-shadow": "0 1px 3px 0 rgba(0,0,0,0.30), inset 0 0 0 0 rgba(255,255,255,0.40)",
+          "border-radius": "5px"
+        },
         "layout": {
           "hasFixedHeight": false,
           "hasFixedWidth": false,
@@ -56,10 +53,9 @@ const initialData = [
           "width": 8,
           "height": 12.5
         },
-        "css": [
-          "/* >: */",
-          "background: #FFFFFF;"
-        ],
+        "css": {
+          "background": "#FFFFFF"
+        },
         "layout": {
           "hasFixedHeight": false,
           "hasFixedWidth": false,
@@ -79,14 +75,13 @@ const initialData = [
           "width": 246,
           "height": 15
         },
-        "css": [
-          "/* Latest Run:: */",
-          "font-family: AvenirNext-Regular;",
-          "font-size: 12px;",
-          "color: rgba(255,255,255,0.80);",
-          "letter-spacing: 0;",
-          "line-height: 15px;"
-        ],
+        "css": {
+          "font-family": "AvenirNext-Regular",
+          "font-size": "12px",
+          "color": "rgba(255,255,255,0.80)",
+          "letter-spacing": "0",
+          "line-height": "15px"
+        },
         "layout": {
           "hasFixedHeight": false,
           "hasFixedWidth": false,
@@ -107,14 +102,13 @@ const initialData = [
           "width": 60,
           "height": 15
         },
-        "css": [
-          "/*  ★ 24.32m: */",
-          "font-family: AvenirNext-Regular;",
-          "font-size: 12px;",
-          "color: rgba(255,255,255,0.80);",
-          "letter-spacing: 0;",
-          "line-height: 15px;"
-        ],
+        "css": {
+          "font-family": "AvenirNext-Regular",
+          "font-size": "12px",
+          "color": "rgba(255,255,255,0.80)",
+          "letter-spacing": "0",
+          "line-height": "15px"
+        },
         "layout": {
           "hasFixedHeight": true,
           "hasFixedWidth": false,
@@ -135,13 +129,12 @@ const initialData = [
           "width": 174,
           "height": 37
         },
-        "css": [
-          "/* 5.2 kilometers: */",
-          "font-family: AvenirNext-Regular;",
-          "font-size: 27px;",
-          "color: #FFFFFF;",
-          "text-shadow: 0 -1px 1px #A21C0E;"
-        ],
+        "css": {
+          "font-family": "AvenirNext-Regular",
+          "font-size": "27px",
+          "color": "#FFFFFF",
+          "text-shadow": "0 -1px 1px #A21C0E"
+        },
         "layout": {
           "hasFixedHeight": true,
           "hasFixedWidth": false,
@@ -168,16 +161,15 @@ const frameContains = (frame, otherFrame) => {
 const createNode = (parent, layer) => {
   const element = document.createElement('div')
   const attrs = {}
-  const css = layer.css.filter(str => !(str.startsWith('/*') && str.indexOf('*/') === str.length - 2))
+  const css = layer.css
   if (layer.children.length > 0 || layer.shape) {
-    css.push(`margin: 0 auto;`)
     if (layer.shape) {
-      css.push(`width: ${layer.frame.width}px;`)
-      css.push(`height: ${layer.frame.height}px;`)
+      css.width = `${layer.frame.width}px`
+      css.height = `${layer.frame.height}px`
     }
-    css.push('box-sizing: border-box;')
+    // css['box-sizing'] = 'border-box'
   }
-  if (css.length > 0) attrs.style = css.join(' ')
+  if (Object.keys(css).length > 0) attrs.style = Object.keys(css).map(key => `${key}: ${css[key]}`).join('; ')
   Object.keys(attrs).forEach(key => element.setAttribute(key, attrs[key]))
   parent.appendChild(element)
   if (layer.text) {
@@ -192,7 +184,6 @@ const createNode = (parent, layer) => {
 const calculateRows = (layer) => {
   let children = layer.children.slice(0)
   children = children.sort((a, b) => a.frame.y - b.frame.y)
-  console.log('calculateRows', JSON.stringify(children, null, 2))
   layer.children = children.reduce((layerChildNodes, child1, i) => {
     let y = child1.frame.y + child1.frame.height
     const childNodes = children.slice(i + 1).reduce((arr, child2) => {
@@ -205,7 +196,6 @@ const calculateRows = (layer) => {
       return arr
     }, [child1])
     if (childNodes.length > 1) {
-      console.log('found row', JSON.stringify(childNodes, null, 2))
       const frame = childNodes.reduce((frame, node) => {
         frame.x = Math.min(frame.x, node.frame.x)
         frame.y = Math.min(frame.y, node.frame.y)
@@ -225,16 +215,15 @@ const calculateRows = (layer) => {
       const row = {
         name: '',
         frame,
-        css: [
-          'display: flex;',
-          'justify-content: space-between;'
-        ],
+        css: {
+          'display': 'flex',
+          'justify-content': 'space-between'
+        },
         layout: {},
         children: childNodes.sort((a, b) => a.frame.x - b.frame.x)
       }
       layerChildNodes.push(row)
     } else {
-      console.log('no row found', child1.name)
       layerChildNodes.push(child1)
       calculateRows(child1)
     }
@@ -271,12 +260,127 @@ const calculateContainers = (layer) => {
   layer.children = layer.children.sort((a, b) => a.frame.y - b.frame.y)
 }
 
+// see https://gist.github.com/dcneiner/1137601
+// see https://www.w3.org/TR/CSS22/propidx.html
+const inheritedProperties = [
+  'azimuth',
+  'border-collapse',
+  'border-spacing',
+  'caption-side',
+  'color',
+  'cursor',
+  'direction',
+  'elevation',
+  'empty-cells',
+  'font-family',
+  'font-size',
+  'font-style',
+  'font-variant',
+  'font-weight',
+  'font',
+  'letter-spacing',
+  'line-height',
+  'list-style-image',
+  'list-style-position',
+  'list-style-type',
+  'list-style',
+  'orphans',
+  'pitch-range',
+  'pitch',
+  'quotes',
+  'richness',
+  'speak-header',
+  'speak-numeral',
+  'speak-punctuation',
+  'speak',
+  'speech-rate',
+  'stress',
+  'text-align',
+  'text-indent',
+  'text-transform',
+  'visibility',
+  'voice-family',
+  'volume',
+  'white-space',
+  'widows',
+  'word-spacing'
+]
+
+const textInheritedProperties = [
+  'color',
+  'font-family',
+  'font-size',
+  'font-style',
+  'font-variant',
+  'font-weight',
+  'font',
+  'letter-spacing',
+  'line-height',
+  'speak-header',
+  'speak-numeral',
+  'speak-punctuation',
+  'speak',
+  'speech-rate',
+  'stress',
+  'text-align',
+  'text-indent',
+  'text-transform',
+  'voice-family',
+  'volume',
+  'white-space',
+  'word-spacing'
+]
+
+const simplifyCSS = (layer) => {
+  const allKeys = {}
+  const extraInfo = {
+    hasText: !!layer.text
+  }
+  layer.children.forEach(child => {
+    const info = simplifyCSS(child)
+    extraInfo.hasText = extraInfo.hasText || info.hasText
+
+    inheritedProperties.forEach(key => {
+      let currentValue = child.css[key]
+      if (!currentValue) {
+        if (!info.hasText && textInheritedProperties.indexOf(key) >= 0) {
+          currentValue = '*'
+        } else {
+          return
+        }
+      }
+      let allValues = allKeys[key]
+      if (!allValues) {
+        allValues = { [currentValue]: 1 }
+      } else if (!allValues[currentValue]) {
+        allValues[currentValue] = 1
+      } else {
+        allValues[currentValue]++
+      }
+      allKeys[key] = allValues
+    })
+  })
+  Object.keys(allKeys).forEach(key => {
+    const allValues = allKeys[key]
+    Object.keys(allValues).forEach(value => {
+      if (value === '*') return
+      const count = allValues[value] + (allValues['*'] || 0)
+      if (count === layer.children.length) {
+        layer.css[key] = value
+        layer.children.forEach(layer => delete layer.css[key])
+      }
+    })
+  })
+  return extraInfo
+}
+
 const contentNode = document.getElementById('content')
 const dataNode = document.getElementById('data')
 const createPreview = (data) => {
   contentNode.innerHTML = ''
   calculateContainers(data[0])
   calculateRows(data[0])
+  simplifyCSS(data[0])
   createNode(contentNode, data[0])
 }
 

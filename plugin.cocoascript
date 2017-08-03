@@ -15,6 +15,19 @@ const selectedLayers = document.selectedLayers
 
 const data = []
 
+function cssToObject(arr) {
+  return arr.reduce((obj, str) => {
+    if (str.startsWith('/*')) return obj
+    const parts = str.split(':')
+    if (parts.length > 1) {
+      let value = parts.slice(1).join(':').trim()
+      if (value.endsWith(';')) value = value.substring(0, value.length - 1)
+      obj[parts[0].trim()] = value
+    }
+    return obj
+  }, {})
+}
+
 function appendLayerInformation(arr, layer) {
   if (!layer.frame) return
   // see https://github.com/abynim/Sketch-Headers/blob/master/Headers/MSLayer.h
@@ -22,7 +35,7 @@ function appendLayerInformation(arr, layer) {
   const info = {
     name: String(layer.name),
     frame: layer.frame,
-    css: [].slice.call(sketchObject.CSSAttributes()).map(a => String(a)),
+    css: cssToObject(sketchObject.CSSAttributes()),
     layout: {
       hasFixedHeight: !!sketchObject.hasFixedHeight(),
       hasFixedWidth: !!sketchObject.hasFixedWidth(),
