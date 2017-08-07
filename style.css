@@ -9,19 +9,10 @@ html, body {
   font-family: 'Helvetica Neue';
 }
 #components {
-  background-color: var(--black);
-  color: white;
   max-height: 100%;
   overflow: auto;
-}
-#components ul {
-  list-style-type: none;
-  padding: 0;
-}
-#components li {
-  border-bottom: 1px solid #aaa;
   padding: 10px;
-  width: 100px;
+  width: 200px;
 }
 #component {
   display: flex;
@@ -44,13 +35,14 @@ html, body {
 #preview {
   flex-grow: 1
 }
-#preview-content {
+.preview-content {
   all: initial;
 }
 
 .CodeMirror {
   max-height: 100%;
   width: 400px;
+  font-size: 12px;
 }
 
 .CodeMirror .error {
@@ -68,10 +60,14 @@ html, body {
 
 #preview-markup .preview > p {
   font-size: 12px;
-  color: white;
-  padding: 10px;
-  margin: 0;
-  background-color: var(--black);
+
+  background-color: whitesmoke;
+  border-radius: 3px 3px 0 0;
+  color: #363636;
+  font-size: 1.25em;
+  font-weight: 300;
+  line-height: 1.25;
+  padding: 0.5em 0.75em;
 }
 
 #preview-markup .preview .preview-content {

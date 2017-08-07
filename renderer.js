@@ -8,6 +8,8 @@ const prettier = require('prettier')
 const postcss = require('postcss')
 const { SourceMapConsumer } = require('source-map')
 
+const rce = React.createElement
+
 const CSS_PREFIX = '#preview-markup .preview-content '
 
 const evaluate = (code, options) => {
@@ -228,8 +230,8 @@ class ComponentEditor extends React.Component {
   }
 
   render() {
-    console.clear()
-    this.generateReact()
+    // console.clear()
+    // this.generateReact()
     // this.generateVuejs()
     return this.markupEditor.calculateMessages(
       'error',
@@ -281,10 +283,7 @@ class ComponentEditor extends React.Component {
                 return obj
               }, {})
             attrs.key = key
-            return React.createElement.apply(
-              null,
-              [node.nodeName, attrs].concat(childNodes)
-            )
+            return rce.apply(null, [node.nodeName, attrs].concat(childNodes))
           } catch (err) {
             if (!err.handled) {
               handler.addMessage(
@@ -301,7 +300,7 @@ class ComponentEditor extends React.Component {
         }
 
         const data = this.dataEditor.latestJSON
-        return React.createElement(
+        return rce(
           'div',
           null,
           Object.keys(data)
@@ -315,21 +314,13 @@ class ComponentEditor extends React.Component {
                 )
               } catch (err) {
                 if (!err.handled) console.error(err)
-                preview = React.createElement(
-                  'p',
-                  { className: 'error' },
-                  err.message
-                )
+                preview = rce('p', { className: 'error' }, err.message)
               }
-              return React.createElement(
+              return rce(
                 'div',
                 { key: i, className: 'preview' },
-                React.createElement('p', null, key),
-                React.createElement(
-                  'div',
-                  { className: 'preview-content' },
-                  preview
-                )
+                rce('p', null, key),
+                rce('div', { className: 'preview-content' }, preview)
               )
             })
         )
@@ -386,7 +377,9 @@ class ComponentEditor extends React.Component {
   import React from 'react';
   import ReactDOM from 'react-dom';
 
-  export default (props) => { const {${Object.keys(someState).join(', ')}} = props;`
+  export default (props) => { const {${Object.keys(someState).join(
+    ', '
+  )}} = props;`
 
     const renderNode = node => {
       if (node.nodeName === '#text') {
@@ -471,7 +464,7 @@ class ComponentEditor extends React.Component {
   }
 }
 
-const componentInstance = React.createElement(ComponentEditor, {})
+const componentInstance = rce(ComponentEditor, {})
 ReactDOM.render(componentInstance, document.getElementById('preview-markup'))
 
 /*
