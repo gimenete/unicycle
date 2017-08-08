@@ -67,7 +67,7 @@ class Typer {
 
   createASTForKeypath(keypath) {
     const key = keypath.join('.')
-    const current = this.keypaths[key]
+    const current = this.keypaths[key] || {} // can be undefined for an empty array
     // create interfaces
     Object.keys(current).forEach(type => {
       if (type !== 'object') return
@@ -106,7 +106,7 @@ class Typer {
 
   createTypeScript(prefix) {
     const ast = this.createAST(prefix)
-    const codeForArray = arr => arr.map(codeForValue).join(' | ')
+    const codeForArray = arr => arr.length === 0 ? 'any' : arr.map(codeForValue).join(' | ')
     const codeForValue = value => {
       if (value.type === 'array') {
         return `Array<${codeForArray(value.values)}>`
@@ -149,7 +149,8 @@ const user1 = {
     { url: 'http://...', text: 'Personal website' },
     { url: 'http://...', text: null }
   ],
-  mixed: [{ foo: '' }, 'bar', 123, null]
+  mixed: [{ foo: '' }, 'bar', 123, null],
+  foo: []
 }
 
 const user2 = {
