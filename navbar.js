@@ -188,11 +188,7 @@ class Navbar extends React.Component {
                       span([`Open project`])
                     ]
                   )
-                ])
-              ])
-            ]),
-            div('.navbar-item', [
-              div('.field.is-grouped', [
+                ]),
                 p('.control', [
                   a(
                     '.button.is-outlined.is-primary',
@@ -217,11 +213,7 @@ class Navbar extends React.Component {
                     },
                     [span('.icon', [i('.fa.fa-hdd-o')]), span([`Save`])]
                   )
-                ])
-              ])
-            ]),
-            div('.navbar-item', [
-              div('.field.is-grouped', [
+                ]),
                 p('.control', [
                   a(
                     '.button.is-primary',
