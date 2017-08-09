@@ -16,11 +16,14 @@ const {
   span
 } = require('hyperscript-helpers')(h)
 
+const Modal = require('./modal')
+
 class Navbar extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      isExportOpen: false
+      isExportOpen: false,
+      isCreateProjectOpen: false
     }
     this.onClick = this.onClick.bind(this)
   }
@@ -29,165 +32,157 @@ class Navbar extends React.Component {
 
   render() {
     return div([
-      div('.modal' + (this.state.isExportOpen ? '.is-active' : ''), [
-        div('.modal-background'),
-        div('.modal-card', [
-          header('.modal-card-head', [
-            p('.modal-card-title', [`Export components`]),
-            button('.delete', {
-              onClick: () => this.setState({ isExportOpen: false })
+      h(Modal, {
+        title: 'New project',
+        isOpen: this.state.isCreateProjectOpen,
+        onCancel: () => this.setState({ isCreateProjectOpen: false }),
+        onAccept: () => this.setState({ isCreateProjectOpen: false }),
+        acceptText: 'Create project',
+        body: div('.field', [
+          div('.control', [
+            label('.label', ['Name']),
+            input('.input', {
+              type: 'text',
+              name: 'name',
+              placeholder: 'Project name',
+              onChange: () => {}
             })
-          ]),
-          section('.modal-card-body', [
-            div('.field', [
-              div('.control', [
-                label('.label', [`Framework`]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'framework',
-                    checked: true,
-                    onChange: () => {}
-                  }),
-                  ' React.js'
-                ]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'framework'
-                  }),
-                  ' Angular.js'
-                ]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'framework'
-                  }),
-                  ' Vue.js'
-                ]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'framework'
-                  }),
-                  ' Elm'
-                ])
-              ])
-            ]),
-            div('.field', [
-              div('.control', [
-                label('.label', [`Stylesheet`]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'stylesheet',
-                    checked: true,
-                    onChange: () => {}
-                  }),
-                  ' SCSS'
-                ]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'stylesheet'
-                  }),
-                  ' Plain CSS'
-                ])
-              ])
-            ]),
-            div('.field', [
-              div('.control', [
-                label('.label', [`JavaScript flavor`]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'javascript',
-                    checked: true,
-                    onChange: () => {}
-                  }),
-                  ' ES2015 / ES modules'
-                ]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'javascript'
-                  }),
-                  ' ES2015 / requires'
-                ]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'javascript'
-                  }),
-                  ' TypeScript'
-                ])
-              ])
-            ]),
-            div('.field', [
-              div('.control', [
-                label('.label', [`JSX`]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'jsx',
-                    checked: true,
-                    onChange: () => {}
-                  }),
-                  ' Yes'
-                ]),
-                label('.radio', [
-                  input({
-                    type: 'radio',
-                    name: 'jsx'
-                  }),
-                  ' No'
-                ])
+          ])
+        ])
+      }),
+      h(Modal, {
+        title: 'Export components',
+        isOpen: this.state.isExportOpen,
+        onCancel: () => this.setState({ isExportOpen: false }),
+        onAccept: () => this.setState({ isExportOpen: false }),
+        acceptText: 'Export...',
+        body: div([
+          div('.field', [
+            div('.control', [
+              label('.label', [`Framework`]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'framework',
+                  checked: true,
+                  onChange: () => {}
+                }),
+                ' React.js'
+              ]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'framework'
+                }),
+                ' Angular.js'
+              ]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'framework'
+                }),
+                ' Vue.js'
+              ]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'framework'
+                }),
+                ' Elm'
               ])
             ])
           ]),
-          footer('.modal-card-foot', [
-            a(
-              '.button.is-success',
-              { onClick: () => this.setState({ isExportOpen: false }) },
-              [`Export...`]
-            ),
-            a(
-              '.button',
-              { onClick: () => this.setState({ isExportOpen: false }) },
-              [`Cancel`]
-            )
+          div('.field', [
+            div('.control', [
+              label('.label', [`Stylesheet`]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'stylesheet',
+                  checked: true,
+                  onChange: () => {}
+                }),
+                ' SCSS'
+              ]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'stylesheet'
+                }),
+                ' Plain CSS'
+              ])
+            ])
+          ]),
+          div('.field', [
+            div('.control', [
+              label('.label', [`JavaScript flavor`]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'javascript',
+                  checked: true,
+                  onChange: () => {}
+                }),
+                ' ES2015 / ES modules'
+              ]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'javascript'
+                }),
+                ' ES2015 / requires'
+              ]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'javascript'
+                }),
+                ' TypeScript'
+              ])
+            ])
+          ]),
+          div('.field', [
+            div('.control', [
+              label('.label', [`JSX`]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'jsx',
+                  checked: true,
+                  onChange: () => {}
+                }),
+                ' Yes'
+              ]),
+              label('.radio', [
+                input({
+                  type: 'radio',
+                  name: 'jsx'
+                }),
+                ' No'
+              ])
+            ])
           ])
         ])
-      ]),
+      }),
       nav('.navbar', [
         div('.navbar-brand', [span([`Nectarina`])]),
         div('#navMenuExample.navbar-menu', [
-          div('.navbar-start', [
+          div('.navbar-start', []),
+          div('.navbar-end', [
             div('.navbar-item', [
               div('.field.is-grouped', [
                 p('.control', [
                   a(
-                    '.button.is-outlined.is-info',
+                    '.button.is-outlined.is-primary',
                     {
-                      href: 'javascript:;',
-                      className: 'button is-outlined is-info'
+                      onClick: () =>
+                        this.setState({ isCreateProjectOpen: true })
                     },
                     [span('.icon', [i('.fa.fa-plus')]), span([`New project`])]
                   )
                 ])
               ])
-            ])
-          ]),
-          div('.navbar-end', [
-            a(
-              '.navbar-item.is-hidden-desktop-only',
-              {
-                href: 'https://github.com/jgthms/bulma',
-                target: '_blank',
-                className: 'navbar-item is-hidden-desktop-only'
-              },
-              [`Docs`]
-            ),
+            ]),
             div('.navbar-item', [
               div('.field.is-grouped', [
                 p('.control', [
@@ -195,17 +190,10 @@ class Navbar extends React.Component {
                     '.button.is-primary',
                     {
                       href: 'javascript:;',
-                      className: 'button is-primary'
+                      className: 'button is-primary',
+                      onClick: () => this.setState({ isExportOpen: true })
                     },
-                    [
-                      span('.icon', [i('.fa.fa-download')]),
-                      span(
-                        {
-                          onClick: () => this.setState({ isExportOpen: true })
-                        },
-                        [`Export`]
-                      )
-                    ]
+                    [span('.icon', [i('.fa.fa-download')]), span([`Export`])]
                   )
                 ])
               ])
