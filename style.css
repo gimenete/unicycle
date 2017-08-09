@@ -10,6 +10,11 @@ html, body {
 #app {
   display: flex;
   height: 100%;
+  flex-direction: column;
+}
+#content {
+  display: flex;
+  height: 100%;
   width: 100%;
   flex-direction: row;
 }
@@ -26,12 +31,11 @@ html, body {
 }
 .editor {
   height: 33%;
-  border-bottom: 1px solid var(--gray);
-}
-.editor:last-child {
-  border: none;
+  border-top: 1px solid var(--gray);
+  border-left: 1px solid var(--gray);
 }
 #previews {
+  border-top: 1px solid var(--gray);
   flex-grow: 1
 }
 
@@ -71,4 +75,19 @@ html, body {
   margin: 20px;
   display: flex;
   justify-content: space-around;
+}
+
+.navbar-brand {
+  align-items: center;
+  font-size: 110%;
+  font-weight: bold;
+  padding: 0 10px;
+}
+
+.new-component {
+  margin-bottom: 10px;
+}
+
+.new-component a {
+  width: 100%
 }

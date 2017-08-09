@@ -7,6 +7,8 @@ const dedent = require('dedent')
 const prettier = require('prettier')
 const postcss = require('postcss')
 const { SourceMapConsumer } = require('source-map')
+const h = require('react-hyperscript')
+const { div, span, p, ul, li, a, input, i } = require('hyperscript-helpers')(h)
 
 const rce = React.createElement
 
@@ -300,40 +302,25 @@ class ComponentEditor extends React.Component {
         }
 
         const data = this.dataEditor.latestJSON
-        return rce(
-          'div',
-          null,
+        return div(
           Object.keys(data)
             .filter(key => !key.startsWith('!'))
             .map((key, i) => {
               let preview
               try {
-                preview = rce(
-                  'div',
-                  { className: 'preview-content' },
+                preview = div('.preview-content', [
                   renderNode(
                     data[key],
                     this.markupEditor.latestDOM.childNodes[0]
                   )
-                )
+                ])
               } catch (err) {
                 if (!err.handled) console.error(err)
-                preview = preview = rce(
-                  'div',
-                  { className: 'message is-danger' },
-                  rce(
-                    'div',
-                    { className: 'message-body' },
-                    rce('p', null, `Error: ${err.message}`)
-                  )
-                )
+                preview = div('.message.is-danger', [
+                  div('.message-body', [p(`Error: ${err.message}`)])
+                ])
               }
-              return rce(
-                'div',
-                { key: i, className: 'preview' },
-                rce('p', null, key),
-                preview
-              )
+              return div('.preview', { key: i }, [p(key), preview])
             })
         )
       },
@@ -476,17 +463,41 @@ class ComponentEditor extends React.Component {
   }
 }
 
-const componentInstance = rce(ComponentEditor, {})
-ReactDOM.render(componentInstance, document.getElementById('previews-markup'))
+const markupPreviews = rce(ComponentEditor, {})
+ReactDOM.render(markupPreviews, document.getElementById('previews-markup'))
 
-/*
-  const widget = document.createElement('div')
-  widget.style.position = 'absolute'
-  widget.style.backgroundColor = 'white'
-  widget.style.zIndex = 2
-  widget.style.border = '1px solid black'
-  widget.style.padding = '3px'
-  widget.innerHTML = 'hello world'
-  markup.addWidget({ line: 0, ch: 0 }, widget, false)
-  markup.getDoc().addLineClass(1, 'background', 'error')
-  */
+class Menu extends React.Component {
+  constructor(props) {
+    super(props)
+    this.onClick = this.onClick.bind(this)
+  }
+
+  onClick(e) {
+  }
+
+  render() {
+    return div([
+      p('.menu-label', 'Globals'),
+      ul('.menu-list', [
+        li([a('Colors')]),
+        li([a('Fonts')]),
+        li([a('Images')])
+      ]),
+      p('.menu-label', 'Components'),
+      ul('.menu-list', [
+        li([a('.is-active', { onClick: this.onClick }, 'Profile')]),
+        li([a({ onClick: this.onClick }, 'Sign up')])
+      ]),
+      p('.new-component', [
+        a('.button.is-outlined.is-primary', [
+          span('.icon', [i('.fa.fa-plus')]),
+          span('New component')
+        ])
+      ]),
+      input('.input.is-small', { type: 'text', placeholder: 'search' })
+    ])
+  }
+}
+
+const menu = rce(Menu, {})
+ReactDOM.render(menu, document.getElementById('menu'))

@@ -17,38 +17,138 @@
     <script src="./node_modules/codemirror/mode/sass/sass.js"></script>
   </head>
   <body>
-    <div id="app">
-      <aside class="menu" id="menu">
-        <p class="menu-label">
-          Globals
-        </p>
-        <ul class="menu-list">
-          <li><a>Colors</a></li>
-          <li><a>Fonts</a></li>
-          <li><a>Images</a></li>
-        </ul>
-        <a class="button is-primary is-outlined is-small" style="float: right">
-          <span class="icon is-small">
-            <i class="fa fa-plus"></i>
-          </span>
-        </a>
-        <p class="menu-label">
-          Components
-        </p>
-        <ul class="menu-list">
-          <li><a class="is-active">Profile</a></li>
-          <li><a>Sign up</a></li>
-        </ul>
-        <input class="input is-small" type="text" placeholder="search">
-      </aside>
-      <div id="editors">
-        <div class="editor" id="markup"></div>
-        <div class="editor" id="style"></div>
-        <div class="editor" id="state"></div>
+    <div class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Export components</p>
+          <button class="delete"></button>
+        </header>
+        <section class="modal-card-body">
+          <div class="field">
+            <div class="control">
+              <label class="label">Framework</label>
+              <label class="radio">
+                <input type="radio" name="framework" checked>
+                React.js
+              </label>
+              <label class="radio">
+                <input type="radio" name="framework">
+                Angular.js
+              </label>
+              <label class="radio">
+                <input type="radio" name="framework">
+                Vue.js
+              </label>
+              <label class="radio">
+                <input type="radio" name="framework">
+                Elm
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <label class="label">Stylesheet</label>
+              <label class="radio">
+                <input type="radio" name="stylesheet" checked>
+                SCSS
+              </label>
+              <label class="radio">
+                <input type="radio" name="stylesheet">
+                Plain CSS
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <label class="label">JavaScript flavor</label>
+              <label class="radio">
+                <input type="radio" name="javascript" checked>
+                ES2015 / ES modules
+              </label>
+              <label class="radio">
+                <input type="radio" name="javascript">
+                ES2015 / requires
+              </label>
+              <label class="radio">
+                <input type="radio" name="javascript">
+                TypeScript
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <label class="label">JSX</label>
+              <label class="radio">
+                <input type="radio" name="jsx" checked>
+                Yes
+              </label>
+              <label class="radio">
+                <input type="radio" name="jsx">
+                No
+              </label>
+            </div>
+          </div>
+        </section>
+        <footer class="modal-card-foot">
+          <a class="button is-success">Export...</a>
+          <a class="button">Cancel</a>
+        </footer>
       </div>
-      <div id="previews">
-        <style id="previews-style"></style>
-        <div id="previews-markup"></div>
+    </div>
+    <div id="app">
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <span>Nectarina</span>
+        </div>
+
+        <div id="navMenuExample" class="navbar-menu">
+          <div class="navbar-start">
+            <div class="navbar-item">
+              <div class="field is-grouped">
+                <p class="control">
+                  <a class="button is-outlined is-info" href="javascript:;">
+                    <span class="icon">
+                      <i class="fa fa-plus"></i>
+                    </span>
+                    <span>New project</span>
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="navbar-end">
+            <a class="navbar-item is-hidden-desktop-only" href="https://github.com/jgthms/bulma" target="_blank">
+              Docs
+            </a>
+            <div class="navbar-item">
+              <div class="field is-grouped">
+                <p class="control">
+                  <a class="button is-primary" href="javascript:;">
+                    <span class="icon">
+                      <i class="fa fa-download"></i>
+                    </span>
+                    <span>Export</span>
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div id="content">
+        <aside class="menu" id="menu">
+        </aside>
+        <div id="editors">
+          <div class="editor" id="markup"></div>
+          <div class="editor" id="style"></div>
+          <div class="editor" id="state"></div>
+        </div>
+        <div id="previews">
+          <style id="previews-style"></style>
+          <div id="previews-markup"></div>
+        </div>
       </div>
     </div>
   </body>
