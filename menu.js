@@ -23,7 +23,9 @@ class Menu extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      isCreateComponentOpen: false
+      isCreateComponentOpen: false,
+      createComponentName: '',
+      activeComponent: '2'
     }
     this.onClick = this.onClick.bind(this)
   }
@@ -31,21 +33,37 @@ class Menu extends React.Component {
   onClick(e) {}
 
   render() {
+    const components = [
+      {
+        id: '1',
+        name: 'Profile'
+      },
+      {
+        id: '2',
+        name: 'Sign up'
+      }
+    ]
     return div([
       h(Modal, {
         title: 'New component',
         isOpen: this.state.isCreateComponentOpen,
         onCancel: () => this.setState({ isCreateComponentOpen: false }),
-        onAccept: () => this.setState({ isCreateComponentOpen: false }),
+        onAccept: () => {
+          this.setState({
+            isCreateComponentOpen: false,
+            createComponentName: ''
+          })
+        },
         acceptText: 'Create component',
         body: div('.field', [
           div('.control', [
             label('.label', ['Name']),
             input('.input', {
               type: 'text',
-              name: 'name',
+              value: this.state.createComponentName,
               placeholder: 'ComponentName',
-              onChange: () => {}
+              onChange: e =>
+                this.setState({ createComponentName: e.target.value })
             })
           ])
         ])
@@ -57,10 +75,18 @@ class Menu extends React.Component {
         li([a('Images')])
       ]),
       p('.menu-label', 'Components'),
-      ul('.menu-list', [
-        li([a('.is-active', { onClick: this.onClick }, 'Profile')]),
-        li([a({ onClick: this.onClick }, 'Sign up')])
-      ]),
+      ul(
+        '.menu-list',
+        components.map(component =>
+          li([
+            a(
+              this.state.activeComponent === component.id ? '.is-active' : '.not-active',
+              { onClick: () => this.setState({ activeComponent: component.id }) },
+              component.name
+            )
+          ])
+        )
+      ),
       p('.new-component', [
         a(
           '.button.is-outlined.is-primary',

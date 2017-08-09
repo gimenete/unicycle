@@ -30,7 +30,7 @@ class Modal extends React.Component {
         ]),
         section('.modal-card-body', [body]),
         footer('.modal-card-foot', [
-          a('.button.is-success', { onClick: onCancel }, [acceptText]),
+          a('.button.is-success', { onClick: onAccept }, [acceptText]),
           a('.button', { onClick: onCancel }, [`Cancel`])
         ])
       ])

@@ -91,3 +91,7 @@ html, body {
 .new-component a {
   width: 100%
 }
+
+#menu .menu-list {
+  padding-bottom: 20px;
+}
