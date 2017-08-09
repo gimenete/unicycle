@@ -10,7 +10,7 @@ const { SourceMapConsumer } = require('source-map')
 
 const rce = React.createElement
 
-const CSS_PREFIX = '#preview-markup .preview-content '
+const CSS_PREFIX = '#previews-markup .preview-content '
 
 const evaluate = (code, options) => {
   const keys = []
@@ -175,7 +175,7 @@ class StyleEditor extends Editor {
         this.calculateMessages('error', handler => {
           if (result.status === 0) {
             const css = result.text
-            document.getElementById('preview-style').innerHTML = css
+            document.getElementById('previews-style').innerHTML = css
             this.lastResult = result
             this.emitUpdate()
           } else {
@@ -308,19 +308,31 @@ class ComponentEditor extends React.Component {
             .map((key, i) => {
               let preview
               try {
-                preview = renderNode(
-                  data[key],
-                  this.markupEditor.latestDOM.childNodes[0]
+                preview = rce(
+                  'div',
+                  { className: 'preview-content' },
+                  renderNode(
+                    data[key],
+                    this.markupEditor.latestDOM.childNodes[0]
+                  )
                 )
               } catch (err) {
                 if (!err.handled) console.error(err)
-                preview = rce('p', { className: 'error' }, err.message)
+                preview = preview = rce(
+                  'div',
+                  { className: 'message is-danger' },
+                  rce(
+                    'div',
+                    { className: 'message-body' },
+                    rce('p', null, `Error: ${err.message}`)
+                  )
+                )
               }
               return rce(
                 'div',
                 { key: i, className: 'preview' },
                 rce('p', null, key),
-                rce('div', { className: 'preview-content' }, preview)
+                preview
               )
             })
         )
@@ -465,7 +477,7 @@ class ComponentEditor extends React.Component {
 }
 
 const componentInstance = rce(ComponentEditor, {})
-ReactDOM.render(componentInstance, document.getElementById('preview-markup'))
+ReactDOM.render(componentInstance, document.getElementById('previews-markup'))
 
 /*
   const widget = document.createElement('div')

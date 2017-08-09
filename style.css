@@ -6,19 +6,18 @@
 html, body {
   height: 100%;
   margin: 0;
-  font-family: 'Helvetica Neue';
 }
-#components {
-  max-height: 100%;
-  overflow: auto;
-  padding: 10px;
-  width: 200px;
-}
-#component {
+#app {
   display: flex;
   height: 100%;
   width: 100%;
   flex-direction: row;
+}
+#menu {
+  max-height: 100%;
+  overflow: auto;
+  padding: 10px;
+  width: 200px;
 }
 #editors {
   display: flex;
@@ -32,11 +31,8 @@ html, body {
 .editor:last-child {
   border: none;
 }
-#preview {
+#previews {
   flex-grow: 1
-}
-.preview-content {
-  all: initial;
 }
 
 .CodeMirror {
@@ -53,12 +49,12 @@ html, body {
   background-color: #FFC940;
 }
 
-#preview-markup {
+#previews-markup {
   overflow: auto;
   max-height: 100%;
 }
 
-#preview-markup .preview > p {
+#previews-markup .preview > p {
   font-size: 12px;
 
   background-color: whitesmoke;
@@ -70,7 +66,8 @@ html, body {
   padding: 0.5em 0.75em;
 }
 
-#preview-markup .preview .preview-content {
+#previews-markup .preview .preview-content {
+  all: initial;
   margin: 20px;
   display: flex;
   justify-content: space-around;
