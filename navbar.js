@@ -15,6 +15,7 @@ const {
   section,
   span
 } = require('hyperscript-helpers')(h)
+const { BrowserWindow, dialog } = require('electron').remote
 
 const Modal = require('./modal')
 
@@ -167,8 +168,29 @@ class Navbar extends React.Component {
       nav('.navbar', [
         div('.navbar-brand', [span([`Nectarina`])]),
         div('#navMenuExample.navbar-menu', [
-          div('.navbar-start', []),
-          div('.navbar-end', [
+          div('.navbar-start', [
+            div('.navbar-item', [
+              div('.field.is-grouped', [
+                p('.control', [
+                  a(
+                    '.button.is-outlined.is-info',
+                    {
+                      onClick: () => {
+                        console.log(
+                          dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+                            properties: ['openDirectory']
+                          })
+                        )
+                      }
+                    },
+                    [
+                      span('.icon', [i('.fa.fa-folder-open-o')]),
+                      span([`Open project`])
+                    ]
+                  )
+                ])
+              ])
+            ]),
             div('.navbar-item', [
               div('.field.is-grouped', [
                 p('.control', [
@@ -182,6 +204,21 @@ class Navbar extends React.Component {
                   )
                 ])
               ])
+            ])
+          ]),
+          div('.navbar-end', [
+            div('.navbar-item', [
+              div('.field.is-grouped', [
+                p('.control', [
+                  a(
+                    '.button.is-info',
+                    {
+                      onClick: () => {}
+                    },
+                    [span('.icon', [i('.fa.fa-hdd-o')]), span([`Save`])]
+                  )
+                ])
+              ])
             ]),
             div('.navbar-item', [
               div('.field.is-grouped', [
@@ -189,7 +226,6 @@ class Navbar extends React.Component {
                   a(
                     '.button.is-primary',
                     {
-                      href: 'javascript:;',
                       className: 'button is-primary',
                       onClick: () => this.setState({ isExportOpen: true })
                     },

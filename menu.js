@@ -18,6 +18,7 @@ const {
 } = require('hyperscript-helpers')(h)
 
 const Modal = require('./modal')
+const eventbus = require('./eventbus')
 
 class Menu extends React.Component {
   constructor(props) {
@@ -25,7 +26,17 @@ class Menu extends React.Component {
     this.state = {
       isCreateComponentOpen: false,
       createComponentName: '',
-      activeComponent: '2'
+      activeComponent: '2',
+      components: [
+        {
+          id: '1',
+          name: 'Profile'
+        },
+        {
+          id: '2',
+          name: 'Sign up'
+        }
+      ]
     }
     this.onClick = this.onClick.bind(this)
   }
@@ -33,26 +44,24 @@ class Menu extends React.Component {
   onClick(e) {}
 
   render() {
-    const components = [
-      {
-        id: '1',
-        name: 'Profile'
-      },
-      {
-        id: '2',
-        name: 'Sign up'
-      }
-    ]
+    const { components } = this.state
     return div([
       h(Modal, {
         title: 'New component',
         isOpen: this.state.isCreateComponentOpen,
         onCancel: () => this.setState({ isCreateComponentOpen: false }),
         onAccept: () => {
+          const id = String(Date.now())
           this.setState({
             isCreateComponentOpen: false,
-            createComponentName: ''
+            createComponentName: '',
+            components: components.concat({
+              id,
+              name: this.state.createComponentName
+            }),
+            activeComponent: id
           })
+          eventbus.emit('activeComponent', id)
         },
         acceptText: 'Create component',
         body: div('.field', [
@@ -80,8 +89,15 @@ class Menu extends React.Component {
         components.map(component =>
           li([
             a(
-              this.state.activeComponent === component.id ? '.is-active' : '.not-active',
-              { onClick: () => this.setState({ activeComponent: component.id }) },
+              this.state.activeComponent === component.id
+                ? '.is-active'
+                : '.not-active',
+              {
+                onClick: () => {
+                  this.setState({ activeComponent: component.id })
+                  eventbus.emit('activeComponent', component.id)
+                }
+              },
               component.name
             )
           ])

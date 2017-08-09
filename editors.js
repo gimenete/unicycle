@@ -12,6 +12,8 @@ const { div, span, p, ul, li, a, input, i } = require('hyperscript-helpers')(h)
 
 const CSS_PREFIX = '#previews-markup .preview-content '
 
+const eventbus = require('./eventbus')
+
 const evaluate = (code, options) => {
   const keys = []
   const values = []
@@ -50,6 +52,10 @@ class Editor extends EventEmitter {
     )
     this.editor.on('change', () => this.update())
     this.doc = this.editor.getDoc()
+
+    eventbus.on('activeComponent', id => {
+      console.log('new active component', id)
+    })
   }
 
   calculateMessages(type, runner) {
@@ -283,7 +289,10 @@ class ComponentEditor extends React.Component {
                 return obj
               }, {})
             attrs.key = key
-            return React.createElement.apply(null, [node.nodeName, attrs].concat(childNodes))
+            return React.createElement.apply(
+              null,
+              [node.nodeName, attrs].concat(childNodes)
+            )
           } catch (err) {
             if (!err.handled) {
               handler.addMessage(
