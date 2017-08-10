@@ -79,7 +79,7 @@ html, body {
   justify-content: space-around;
 }
 
-.navbar {
+body {
   -webkit-app-region: drag;
 }
 
@@ -100,4 +100,8 @@ html, body {
 
 #menu .menu-list {
   padding-bottom: 10px;
+}
+
+.no-drag, button, .button, input, #editors, .preview-content {
+  -webkit-app-region: no-drag
 }
