@@ -71,4 +71,4 @@ var pasteBoard = [NSPasteboard generalPasteboard]
 [pasteBoard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:nil]
 [pasteBoard setString:JSON.stringify(data, null, 2) forType:NSPasteboardTypeString]
 
-
+// TODO: https://developer.apple.com/documentation/appkit/nsworkspace/1535886-open
