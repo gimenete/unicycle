@@ -32,6 +32,8 @@ class Navbar extends React.Component {
   onClick(e) {}
 
   render() {
+    const modifier = '.is-small'
+    const navbarIcon = name => span(`.icon${modifier}`, [i(`.fa.fa-${name}`)])
     return div([
       h(Modal, {
         title: 'New project',
@@ -173,30 +175,30 @@ class Navbar extends React.Component {
               div('.field.is-grouped', [
                 p('.control', [
                   a(
-                    '.button.is-outlined.is-info',
+                    `.button.is-outlined.is-info${modifier}`,
                     {
                       onClick: () => {
                         console.log(
-                          dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
-                            properties: ['openDirectory']
-                          })
+                          dialog.showOpenDialog(
+                            BrowserWindow.getFocusedWindow(),
+                            {
+                              properties: ['openDirectory']
+                            }
+                          )
                         )
                       }
                     },
-                    [
-                      span('.icon', [i('.fa.fa-folder-open-o')]),
-                      span([`Open project`])
-                    ]
+                    [navbarIcon('folder-open-o'), span([`Open project`])]
                   )
                 ]),
                 p('.control', [
                   a(
-                    '.button.is-outlined.is-primary',
+                    `.button.is-outlined.is-primary${modifier}`,
                     {
                       onClick: () =>
                         this.setState({ isCreateProjectOpen: true })
                     },
-                    [span('.icon', [i('.fa.fa-plus')]), span([`New project`])]
+                    [navbarIcon('plus'), span([`New project`])]
                   )
                 ])
               ])
@@ -207,21 +209,20 @@ class Navbar extends React.Component {
               div('.field.is-grouped', [
                 p('.control', [
                   a(
-                    '.button.is-info',
+                    `.button.is-primary${modifier}`,
                     {
                       onClick: () => {}
                     },
-                    [span('.icon', [i('.fa.fa-hdd-o')]), span([`Save`])]
+                    [navbarIcon('hdd-o'), span([`Save`])]
                   )
                 ]),
                 p('.control', [
                   a(
-                    '.button.is-primary',
+                    `.button.is-info${modifier}`,
                     {
-                      className: 'button is-primary',
                       onClick: () => this.setState({ isExportOpen: true })
                     },
-                    [span('.icon', [i('.fa.fa-download')]), span([`Export`])]
+                    [navbarIcon('download'), span([`Export`])]
                   )
                 ])
               ])

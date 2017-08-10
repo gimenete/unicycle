@@ -105,11 +105,11 @@ class Menu extends React.Component {
       ),
       p('.new-component', [
         a(
-          '.button.is-outlined.is-primary',
+          '.button.is-outlined.is-primary.is-small',
           {
             onClick: () => this.setState({ isCreateComponentOpen: true })
           },
-          [span('.icon', [i('.fa.fa-plus')]), span('New component')]
+          [span('.icon.is-small', [i('.fa.fa-plus')]), span('New component')]
         )
       ]),
       input('.input.is-small', { type: 'text', placeholder: 'search' })
