@@ -3,16 +3,12 @@ const ReactDOM = require('react-dom')
 const h = require('react-hyperscript')
 const {
   a,
-  button,
   div,
-  footer,
-  header,
   i,
   input,
   label,
   nav,
   p,
-  section,
   span
 } = require('hyperscript-helpers')(h)
 const { BrowserWindow, dialog } = require('electron').remote

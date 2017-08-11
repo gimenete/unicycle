@@ -10,11 +10,7 @@ const {
   a,
   input,
   i,
-  header,
-  button,
-  section,
-  label,
-  footer
+  label
 } = require('hyperscript-helpers')(h)
 
 const Modal = require('./modal')

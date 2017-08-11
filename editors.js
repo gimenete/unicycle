@@ -1,3 +1,4 @@
+/* globals CodeMirror */
 const EventEmitter = require('events')
 const parse5 = require('parse5')
 const sass = require('sass.js')
@@ -8,7 +9,7 @@ const prettier = require('prettier')
 const postcss = require('postcss')
 const { SourceMapConsumer } = require('source-map')
 const h = require('react-hyperscript')
-const { div, span, p, ul, li, a, input, i } = require('hyperscript-helpers')(h)
+const { div, p } = require('hyperscript-helpers')(h)
 
 const CSS_PREFIX = '#previews-markup .preview-content '
 
@@ -28,15 +29,6 @@ const evaluate = (code, options) => {
 
 const evaluateExpression = (code, options) => {
   return evaluate(`return ${code}`, options)
-}
-
-const parseJSON = str => {
-  try {
-    return JSON.parse(str)
-  } catch (e) {
-    console.error(e)
-    return {}
-  }
 }
 
 class Editor extends EventEmitter {
@@ -71,7 +63,7 @@ class Editor extends EventEmitter {
 
     // remove old ones
     currentMessages.forEach(message => {
-      const { position, text } = message
+      const { position } = message
       const same = messages.find(m => compareMessages(message, m))
       if (!same) {
         this.doc.removeLineClass(position.line, 'wrap', type)
@@ -392,7 +384,6 @@ class ComponentEditor extends React.Component {
         return node.value
       }
 
-      let code = ''
       const mapping = {
         class: 'className'
       }

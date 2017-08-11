@@ -106,7 +106,8 @@ class Typer {
 
   createTypeScript(prefix) {
     const ast = this.createAST(prefix)
-    const codeForArray = arr => arr.length === 0 ? 'any' : arr.map(codeForValue).join(' | ')
+    const codeForArray = arr =>
+      arr.length === 0 ? 'any' : arr.map(codeForValue).join(' | ')
     const codeForValue = value => {
       if (value.type === 'array') {
         return `Array<${codeForArray(value.values)}>`
@@ -169,7 +170,7 @@ typer.addDocument(user1)
 typer.addDocument(user2)
 typer.addDocument('whatever')
 
-const ast = typer.createAST('UsersResponse')
+// const ast = typer.createAST('UsersResponse')
 // console.log(JSON.stringify(ast, null, 2))
 
 const code = typer.createTypeScript('UsersResponse')

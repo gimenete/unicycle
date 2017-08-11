@@ -1,5 +1,4 @@
 const React = require('react')
-const ReactDOM = require('react-dom')
 const h = require('react-hyperscript')
 const {
   a,
@@ -7,19 +6,14 @@ const {
   div,
   footer,
   header,
-  i,
-  input,
-  label,
-  nav,
   p,
-  section,
-  span
+  section
 } = require('hyperscript-helpers')(h)
 
 class Modal extends React.Component {
   render() {
     const { isOpen, title, body, onCancel, onAccept, acceptText } = this.props
-    return div('.modal' + (this.props.isOpen ? '.is-active' : ''), [
+    return div('.modal' + (isOpen ? '.is-active' : ''), [
       div('.modal-background', { onClick: onCancel }),
       div('.modal-card', [
         header('.modal-card-head', [
