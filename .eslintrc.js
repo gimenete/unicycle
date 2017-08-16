@@ -1,6 +1,8 @@
 module.exports = {
-  extends: ['last'],
+  extends: ['eslint:recommended', 'prettier'],
+  plugins: ['prettier'],
   env: {
+    es6: true,
     node: true
   },
   globals: {

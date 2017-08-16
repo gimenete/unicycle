@@ -19,10 +19,8 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "babel-eslint": "7.2.3",
     "electron": "~1.6.2",
     "eslint": "4.4.1",
-    "eslint-config-last": "0.0.3",
     "eslint-config-prettier": "2.3.0",
     "eslint-plugin-prettier": "2.1.2",
     "prettier": "1.5.3"
