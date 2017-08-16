@@ -14,7 +14,7 @@ const {
 } = require('hyperscript-helpers')(h)
 
 const Modal = require('./modal')
-const eventbus = require('./eventbus')
+const workspace = require('./workspace')
 
 class Menu extends React.Component {
   constructor(props) {
@@ -57,7 +57,7 @@ class Menu extends React.Component {
             }),
             activeComponent: id
           })
-          eventbus.emit('activeComponent', id)
+          workspace.setActiveComponent(id)
         },
         acceptText: 'Create component',
         body: div('.field', [
@@ -91,7 +91,7 @@ class Menu extends React.Component {
               {
                 onClick: () => {
                   this.setState({ activeComponent: component.id })
-                  eventbus.emit('activeComponent', component.id)
+                  workspace.setActiveComponent(component.id)
                 }
               },
               component.name

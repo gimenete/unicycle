@@ -13,7 +13,7 @@ const { div, p } = require('hyperscript-helpers')(h)
 
 const CSS_PREFIX = '#previews-markup .preview-content '
 
-const eventbus = require('./eventbus')
+const workspace = require('./workspace')
 
 const evaluate = (code, options) => {
   const keys = []
@@ -45,7 +45,7 @@ class Editor extends EventEmitter {
     this.editor.on('change', () => this.update())
     this.doc = this.editor.getDoc()
 
-    eventbus.on('activeComponent', id => {
+    workspace.on('activeComponent', id => {
       console.log('new active component', id)
     })
   }
