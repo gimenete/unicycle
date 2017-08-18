@@ -10,6 +10,9 @@ module.exports = {
     navigator: false,
     window: false
   },
+  parserOptions: {
+    ecmaVersion: 2017
+  },
   rules: {
     'prettier/prettier': [
       'error',

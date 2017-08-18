@@ -4,7 +4,6 @@ const parse5 = require('parse5')
 const sass = require('sass.js')
 const React = require('react')
 const ReactDOM = require('react-dom')
-const dedent = require('dedent')
 const prettier = require('prettier')
 const postcss = require('postcss')
 const { SourceMapConsumer } = require('source-map')
@@ -44,10 +43,6 @@ class Editor extends EventEmitter {
     )
     this.editor.on('change', () => this.update())
     this.doc = this.editor.getDoc()
-
-    workspace.on('activeComponent', id => {
-      console.log('new active component', id)
-    })
   }
 
   calculateMessages(type, runner) {
@@ -100,12 +95,20 @@ class Editor extends EventEmitter {
 }
 
 class JSONEditor extends Editor {
-  constructor(element, value) {
+  constructor(element) {
     super(element, {
-      value: JSON.stringify(value, null, 2),
       mode: { name: 'javascript', json: true }
     })
     this.latestJSON = null
+
+    workspace.on('activeComponent', name => {
+      workspace
+        .readComponentData(name)
+        .then(data => {
+          this.editor.setValue(data)
+        })
+        .catch(e => console.error(e))
+    })
   }
 
   update() {
@@ -123,9 +126,8 @@ class JSONEditor extends Editor {
 }
 
 class MarkupEditor extends Editor {
-  constructor(element, value) {
+  constructor(element) {
     super(element, {
-      value,
       mode: 'htmlmixed',
       extraKeys: { 'Ctrl-Space': 'autocomplete' },
       hintOptions: {
@@ -144,6 +146,15 @@ class MarkupEditor extends Editor {
       }
     })
     this.latestDOM = null
+
+    workspace.on('activeComponent', name => {
+      workspace
+        .readComponentMarkup(name)
+        .then(data => {
+          this.editor.setValue(data)
+        })
+        .catch(e => console.error(e))
+    })
   }
 
   update() {
@@ -159,10 +170,18 @@ class MarkupEditor extends Editor {
 }
 
 class StyleEditor extends Editor {
-  constructor(element, value) {
+  constructor(element) {
     super(element, {
-      value,
       mode: 'sass'
+    })
+
+    workspace.on('activeComponent', name => {
+      workspace
+        .readComponentStyles(name)
+        .then(data => {
+          this.editor.setValue(data)
+        })
+        .catch(e => console.error(e))
     })
   }
 
@@ -193,32 +212,9 @@ class StyleEditor extends Editor {
 class ComponentEditor extends React.Component {
   constructor(props) {
     super(props)
-    this.markupEditor = new MarkupEditor(
-      document.getElementById('markup'),
-      dedent`
-      <div>
-        <ul>
-          <li @loop="items" @as="item">{item}</li>
-        </ul>
-        <p @if="items.length === 0">
-          The list is empty
-        </p>
-      </div>
-    `
-    )
-
-    this.styleEditor = new StyleEditor(
-      document.getElementById('style'),
-      'ul {\n  color: blue;\n}\n\n.foo {\n  color: red;\n}'
-    )
-
-    this.dataEditor = new JSONEditor(document.getElementById('state'), {
-      // Loading: { loading: true, message: null, error: null },
-      'Regular state': { items: ['apple', 'orange', 'pear'] },
-      'Blank Slate': { items: [] }
-      // 'Error state': { loading: false, message: null, error: 'Network error' }
-    })
-
+    this.markupEditor = new MarkupEditor(document.getElementById('markup'))
+    this.styleEditor = new StyleEditor(document.getElementById('style'))
+    this.dataEditor = new JSONEditor(document.getElementById('state'))
     this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
 
     this.editors.forEach(editor => {
@@ -286,7 +282,7 @@ class ComponentEditor extends React.Component {
               [node.nodeName, attrs].concat(childNodes)
             )
           } catch (err) {
-            if (!err.handled) {
+            if (!err.handled && node) {
               handler.addMessage(
                 {
                   line: node.__location.line,
@@ -300,7 +296,7 @@ class ComponentEditor extends React.Component {
           }
         }
 
-        const data = this.dataEditor.latestJSON
+        const data = this.dataEditor.latestJSON || {}
         return div(
           Object.keys(data)
             .filter(key => !key.startsWith('!'))

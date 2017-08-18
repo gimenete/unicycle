@@ -8,28 +8,39 @@ const writeFile = pify(fs.writeFile)
 class Workspace extends EventEmitter {
   constructor() {
     super()
+    this.metadata = {
+      components: []
+    }
   }
 
-  static loadProject(dir) {
+  async loadProject(dir) {
     this.dir = dir
-    this.metadata = this.readFile(path.join('project.json'))
-    this.currentProject = this
+    this.metadata = JSON.parse(await this.readFile(path.join('project.json')))
+    this.emit('projectLoaded')
+    const firstComponent = this.metadata.components[0]
+    this.setActiveComponent((firstComponent && firstComponent.name) || null) // or first component
   }
 
-  static createProject(dir) {
+  createProject(dir) {
     // TODO
   }
 
-  setActiveComponent(id) {
-    this.activeComponent = id
-    this.emit('activeComponent', id)
+  addComponent(name) {
+    this.metadata.components.push({ name })
+    // TODO: create files
+    this.setActiveComponent(name)
+  }
+
+  setActiveComponent(name) {
+    this.activeComponent = name
+    this.emit('activeComponent', name)
   }
 
   readComponentMarkup(component) {
     return this.readFile(path.join('components', component, 'index.html'))
   }
 
-  readComponentData(component) {
+  async readComponentData(component) {
     return this.readFile(path.join('components', component, 'data.json'))
   }
 

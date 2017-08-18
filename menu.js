@@ -21,43 +21,33 @@ class Menu extends React.Component {
     super(props)
     this.state = {
       isCreateComponentOpen: false,
-      createComponentName: '',
-      activeComponent: '2',
-      components: [
-        {
-          id: '1',
-          name: 'Profile'
-        },
-        {
-          id: '2',
-          name: 'Sign up'
-        }
-      ]
+      createComponentName: ''
     }
     this.onClick = this.onClick.bind(this)
+
+    workspace.on('projectLoaded', () => {
+      this.forceUpdate()
+    })
+    workspace.on('activeComponent', () => {
+      this.forceUpdate()
+    })
   }
 
   onClick(e) {}
 
   render() {
-    const { components } = this.state
+    const { components } = workspace.metadata
     return div([
       h(Modal, {
         title: 'New component',
         isOpen: this.state.isCreateComponentOpen,
         onCancel: () => this.setState({ isCreateComponentOpen: false }),
         onAccept: () => {
-          const id = String(Date.now())
+          workspace.addComponent(this.state.createComponentName)
           this.setState({
             isCreateComponentOpen: false,
-            createComponentName: '',
-            components: components.concat({
-              id,
-              name: this.state.createComponentName
-            }),
-            activeComponent: id
+            createComponentName: ''
           })
-          workspace.setActiveComponent(id)
         },
         acceptText: 'Create component',
         body: div('.field', [
@@ -85,13 +75,13 @@ class Menu extends React.Component {
         components.map(component =>
           li([
             a(
-              this.state.activeComponent === component.id
+              workspace.activeComponent === component.name
                 ? '.is-active'
                 : '.not-active',
               {
                 onClick: () => {
-                  this.setState({ activeComponent: component.id })
-                  workspace.setActiveComponent(component.id)
+                  this.setState({ activeComponent: component.name })
+                  workspace.setActiveComponent(component.name)
                 }
               },
               component.name
