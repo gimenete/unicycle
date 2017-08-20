@@ -1,22 +1,26 @@
-/* globals CodeMirror */
-const EventEmitter = require('events')
-const parse5 = require('parse5')
+/// <reference path='./codemirror.d.ts' />
+
+import EventEmitter = require('events')
+import parse5 = require('parse5')
+import React = require('react')
+import ReactDOM = require('react-dom')
+import prettier = require('prettier')
+import { SourceMapConsumer } from 'source-map'
+
+import workspace from './workspace'
+
 const sass = require('sass.js')
-const React = require('react')
-const ReactDOM = require('react-dom')
-const prettier = require('prettier')
 const postcss = require('postcss')
-const { SourceMapConsumer } = require('source-map')
 const h = require('react-hyperscript')
 const { div, p } = require('hyperscript-helpers')(h)
 
 const CSS_PREFIX = '#previews-markup .preview-content '
 
-const workspace = require('./workspace')
+const { CodeMirror } = window
 
-const evaluate = (code, options) => {
-  const keys = []
-  const values = []
+const evaluate = (code: string, options: { [index: string]: any }) => {
+  const keys: string[] = []
+  const values: Array<any> = []
   Object.keys(options).forEach(key => {
     keys.push(key)
     values.push(options[key])
@@ -26,12 +30,41 @@ const evaluate = (code, options) => {
   return f.apply({}, values)
 }
 
-const evaluateExpression = (code, options) => {
+const evaluateExpression = (code: string, options: {}) => {
   return evaluate(`return ${code}`, options)
 }
 
+interface Position {
+  line: number
+  ch: number
+}
+
+interface Message {
+  text: string
+  position: Position
+  widget?: CodeMirror.LineWidget
+}
+
+interface MessageHandler {
+  // addMessage
+}
+
+interface MessagesResolver {
+  addMessage(position: Position, text: string): void
+}
+
+type MessageRunner = (resolve: MessagesResolver) => void
+
+type ObjectStringString = { [index: string]: string }
+
 class Editor extends EventEmitter {
-  constructor(element, options) {
+  editor: CodeMirror.Editor
+  doc: CodeMirror.Doc
+  messages: {
+    [index: string]: Message[]
+  }
+
+  constructor(element: HTMLElement, options: {}) {
     super()
     this.messages = {}
     this.editor = CodeMirror(
@@ -45,15 +78,15 @@ class Editor extends EventEmitter {
     this.doc = this.editor.getDoc()
   }
 
-  calculateMessages(type, runner) {
+  calculateMessages(type: string, runner: MessageRunner) {
     const currentMessages = this.messages[type] || []
-    const messages = []
+    const messages = new Array<Message>()
     const returnValue = runner({
-      addMessage(position, text) {
+      addMessage(position: Position, text: string) {
         messages.push({ position, text })
       }
     })
-    const compareMessages = (a, b) =>
+    const compareMessages = (a: Message, b: Message) =>
       a.position.line === b.position.line && a.text === b.text
 
     // remove old ones
@@ -61,8 +94,8 @@ class Editor extends EventEmitter {
       const { position } = message
       const same = messages.find(m => compareMessages(message, m))
       if (!same) {
-        this.doc.removeLineClass(position.line, 'wrap', type)
-        message.widget.clear()
+        this.editor.removeLineClass(position.line, 'wrap', type)
+        message.widget && message.widget.clear()
       }
     })
     // add new ones
@@ -75,10 +108,13 @@ class Editor extends EventEmitter {
         node.style.border = '1px solid #aaa'
         node.style.padding = '3px'
         node.innerText = text
-        message.widget = this.doc.addLineWidget(position.line, node, {
+        message.widget = this.editor.addLineWidget(position.line, node, {
+          coverGutter: false,
+          above: false,
+          showIfHidden: false,
           noHScroll: true
         })
-        this.doc.addLineClass(position.line, 'wrap', type)
+        this.editor.addLineClass(position.line, 'wrap', type)
       } else {
         message.widget = current.widget
       }
@@ -95,19 +131,21 @@ class Editor extends EventEmitter {
 }
 
 class JSONEditor extends Editor {
-  constructor(element) {
+  latestJSON: {} | null
+
+  constructor(element: HTMLElement) {
     super(element, {
       mode: { name: 'javascript', json: true }
     })
     this.latestJSON = null
 
-    workspace.on('activeComponent', name => {
+    workspace.on('activeComponent', (name: string) => {
       workspace
         .readComponentData(name)
         .then(data => {
           this.editor.setValue(data)
         })
-        .catch(e => console.error(e))
+        .catch((e: Error) => console.error(e))
     })
   }
 
@@ -126,12 +164,14 @@ class JSONEditor extends Editor {
 }
 
 class MarkupEditor extends Editor {
-  constructor(element) {
+  latestDOM: parse5.AST.Default.DocumentFragment | null
+
+  constructor(element: HTMLElement) {
     super(element, {
       mode: 'htmlmixed',
       extraKeys: { 'Ctrl-Space': 'autocomplete' },
       hintOptions: {
-        hint: (cm, option) => {
+        hint: (cm: CodeMirror.Doc, option: any) => {
           const cursor = cm.getCursor()
           const line = cm.getLine(cursor.line)
           const start = cursor.ch
@@ -147,7 +187,7 @@ class MarkupEditor extends Editor {
     })
     this.latestDOM = null
 
-    workspace.on('activeComponent', name => {
+    workspace.on('activeComponent', (name: string) => {
       workspace
         .readComponentMarkup(name)
         .then(data => {
@@ -161,7 +201,7 @@ class MarkupEditor extends Editor {
     try {
       this.latestDOM = parse5.parseFragment(this.editor.getValue(), {
         locationInfo: true
-      })
+      }) as parse5.AST.Default.DocumentFragment
       this.emitUpdate()
     } catch (e) {
       console.error('Wrong HTML', e, Object.keys(e))
@@ -169,8 +209,19 @@ class MarkupEditor extends Editor {
   }
 }
 
+interface SassResult {
+  status: number
+  text: string
+  message?: string
+  line?: number
+  column?: number
+  map: sourceMap.RawSourceMap
+}
+
 class StyleEditor extends Editor {
-  constructor(element) {
+  lastResult: SassResult
+
+  constructor(element: HTMLElement) {
     super(element, {
       mode: 'sass'
     })
@@ -188,17 +239,18 @@ class StyleEditor extends Editor {
   update() {
     try {
       const originalCss = `${CSS_PREFIX}{${this.editor.getValue()}}`
-      sass.compile(originalCss, result => {
+      sass.compile(originalCss, (result: SassResult) => {
         this.calculateMessages('error', handler => {
           if (result.status === 0) {
             const css = result.text
-            document.getElementById('previews-style').innerHTML = css
+            const styleElement = document.getElementById('previews-style')
+            if (styleElement) styleElement.innerHTML = css
             this.lastResult = result
             this.emitUpdate()
           } else {
             handler.addMessage(
-              { line: result.line, ch: result.column },
-              result.message
+              { line: result.line!, ch: result.column! },
+              result.message!
             )
           }
         })
@@ -209,12 +261,17 @@ class StyleEditor extends Editor {
   }
 }
 
-class ComponentEditor extends React.Component {
-  constructor(props) {
+class ComponentEditor extends React.Component<any, any> {
+  markupEditor: MarkupEditor
+  styleEditor: StyleEditor
+  dataEditor: JSONEditor
+  editors: Editor[]
+
+  constructor(props: any) {
     super(props)
-    this.markupEditor = new MarkupEditor(document.getElementById('markup'))
-    this.styleEditor = new StyleEditor(document.getElementById('style'))
-    this.dataEditor = new JSONEditor(document.getElementById('state'))
+    this.markupEditor = new MarkupEditor(document.getElementById('markup')!)
+    this.styleEditor = new StyleEditor(document.getElementById('style')!)
+    this.dataEditor = new JSONEditor(document.getElementById('state')!)
     this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
 
     this.editors.forEach(editor => {
@@ -227,100 +284,93 @@ class ComponentEditor extends React.Component {
     // console.clear()
     // this.generateReact()
     // this.generateVuejs()
-    return this.markupEditor.calculateMessages(
-      'error',
-      handler => {
-        const renderNode = (data, node, key) => {
-          try {
-            if (node.nodeName === '#text') {
-              return node.value.replace(/{([^}]+)?}/g, str => {
-                return evaluateExpression(
-                  str.substring(1, str.length - 1),
-                  data
-                )
-              })
-            }
-            if (!node.childNodes) return undefined
-            const _if = node.attrs.find(attr => attr.name === '@if')
-            if (_if) {
-              const result = evaluateExpression(_if.value, data)
-              if (!result) return undefined
-            }
-            const loop = node.attrs.find(attr => attr.name === '@loop')
-            const as = node.attrs.find(attr => attr.name === '@as')
-            if (loop && as) {
-              const collection = evaluateExpression(loop.value, data)
-              if (!collection) return undefined
-              const template = Object.assign({}, node, {
-                attrs: node.attrs.filter(attr => !attr.name.startsWith('@'))
-              })
-              return collection.map((obj, i) =>
-                renderNode(
-                  Object.assign({}, data, { [as.value]: obj }),
-                  template,
-                  i
-                )
-              )
-            }
-            const childNodes = node.childNodes.map((node, i) =>
-              renderNode(data, node, i)
-            )
-            const mapping = {
-              class: 'className'
-            }
-            const attrs = node.attrs
-              .filter(
-                attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
-              )
-              .reduce((obj, attr) => {
-                obj[mapping[attr.name] || attr.name] = attr.value
-                return obj
-              }, {})
-            attrs.key = key
-            return React.createElement.apply(
-              null,
-              [node.nodeName, attrs].concat(childNodes)
-            )
-          } catch (err) {
-            if (!err.handled && node) {
-              handler.addMessage(
-                {
-                  line: node.__location.line,
-                  ch: node.__location.col
-                },
-                err.message
-              )
-              err.handled = true
-            }
-            throw err
-          }
-        }
+    const dom = this.markupEditor.latestDOM
+    if (!dom) return div()
 
-        const data = this.dataEditor.latestJSON || {}
-        return div(
-          Object.keys(data)
-            .filter(key => !key.startsWith('!'))
-            .map((key, i) => {
-              let preview
-              try {
-                preview = div('.preview-content', [
-                  renderNode(
-                    data[key],
-                    this.markupEditor.latestDOM.childNodes[0]
-                  )
-                ])
-              } catch (err) {
-                if (!err.handled) console.error(err)
-                preview = div('.message.is-danger', [
-                  div('.message-body', [p(`Error: ${err.message}`)])
-                ])
-              }
-              return div('.preview', { key: i }, [p(key), preview])
+    return this.markupEditor.calculateMessages('error', handler => {
+      const renderNode = (
+        data: {},
+        node: parse5.AST.Default.Node,
+        key?: string | number
+      ): React.ReactNode => {
+        try {
+          if (node.nodeName === '#text') {
+            const textNode = node as parse5.AST.Default.TextNode
+            return textNode.value.replace(/{([^}]+)?}/g, str => {
+              return evaluateExpression(str.substring(1, str.length - 1), data)
             })
-        )
-      },
-      true
-    )
+          }
+          const element = node as parse5.AST.Default.Element
+          if (!element.childNodes) return undefined
+          const _if = element.attrs.find(attr => attr.name === '@if')
+          if (_if) {
+            const result = evaluateExpression(_if.value, data)
+            if (!result) return undefined
+          }
+          const loop = element.attrs.find(attr => attr.name === '@loop')
+          const as = element.attrs.find(attr => attr.name === '@as')
+          if (loop && as) {
+            const collection = evaluateExpression(loop.value, data) as any[]
+            if (!collection) return undefined
+            const template = Object.assign({}, node, {
+              attrs: element.attrs.filter(attr => !attr.name.startsWith('@'))
+            })
+            return collection.map((obj, i) =>
+              renderNode(
+                Object.assign({}, data, { [as.value]: obj }),
+                template,
+                i
+              )
+            )
+          }
+          const childNodes = element.childNodes.map((node, i) =>
+            renderNode(data, node, i)
+          )
+          const mapping: ObjectStringString = { class: 'className' }
+          const attrs = element.attrs
+            .filter(
+              attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
+            )
+            .reduce((obj, attr) => {
+              obj[mapping[attr.name] || attr.name] = attr.value
+              return obj
+            }, {} as ObjectStringString)
+          attrs['key'] = String(key)
+          return React.createElement.apply(
+            null,
+            new Array<any>(node.nodeName, attrs).concat(childNodes)
+          )
+        } catch (err) {
+          const element = node as parse5.AST.Default.Element
+          if (!err.handled && node && element.__location) {
+            handler.addMessage(
+              { line: element.__location.line, ch: element.__location.col },
+              err.message
+            )
+            err.handled = true
+          }
+          throw err
+        }
+      }
+
+      const data = this.dataEditor.latestJSON || ({} as any)
+      return div(
+        Object.keys(data).filter(key => !key.startsWith('!')).map((key, i) => {
+          let preview
+          try {
+            preview = div('.preview-content', [
+              renderNode(data[key], dom.childNodes[0])
+            ])
+          } catch (err) {
+            if (!err.handled) console.error(err)
+            preview = div('.message.is-danger', [
+              div('.message-body', [p(`Error: ${err.message}`)])
+            ])
+          }
+          return div('.preview', { key: i }, [p(key), preview])
+        })
+      )
+    })
   }
 
   componentDidUpdate() {
@@ -330,10 +380,10 @@ class ComponentEditor extends React.Component {
         if (!result.text) return
         const ast = postcss.parse(result.text)
         const smc = new SourceMapConsumer(result.map)
-        ast.nodes.forEach(node => {
+        ast.nodes.forEach((node: any) => {
           if (!node.selector) return
           const generatedPosition = node.source.start
-          let lastMapping = null
+          let lastMapping: any = null
           smc.eachMapping(m => {
             if (m.generatedLine === generatedPosition.line) {
               lastMapping = m
@@ -360,7 +410,7 @@ class ComponentEditor extends React.Component {
   }
 
   generateReact() {
-    const data = this.dataEditor.latestJSON
+    const data = this.dataEditor.latestJSON || ({} as any)
     const someState = data[Object.keys(data)[0]]
     const dom = this.markupEditor.latestDOM
     let code = `
@@ -375,17 +425,17 @@ class ComponentEditor extends React.Component {
     ', '
   )}} = props;`
 
-    const renderNode = node => {
+    const renderNode = (node: parse5.AST.Default.Node) => {
       if (node.nodeName === '#text') {
-        return node.value
+        const textNode = node as parse5.AST.Default.TextNode
+        return textNode.value
       }
 
-      const mapping = {
-        class: 'className'
-      }
+      const element = node as parse5.AST.Default.Element
+      const mapping: { [index: string]: string } = { class: 'className' }
       const toString = () => {
         let code = `<${node.nodeName}`
-        node.attrs.forEach(attr => {
+        element.attrs.forEach(attr => {
           if (attr.name.startsWith(':') || attr.name.startsWith('@')) {
             return
           }
@@ -393,15 +443,15 @@ class ComponentEditor extends React.Component {
           code += ` ${name}="${attr.value}"`
         })
         code += '>'
-        node.childNodes.forEach(node => (code += renderNode(node)))
+        element.childNodes.forEach(node => (code += renderNode(node)))
         code += `</${node.nodeName}>`
         return code
       }
       let basicMarkup = toString()
 
-      const _if = node.attrs.find(attr => attr.name === '@if')
-      const loop = node.attrs.find(attr => attr.name === '@loop')
-      const as = node.attrs.find(attr => attr.name === '@as')
+      const _if = element.attrs.find(attr => attr.name === '@if')
+      const loop = element.attrs.find(attr => attr.name === '@loop')
+      const as = element.attrs.find(attr => attr.name === '@as')
       if (loop && as) {
         basicMarkup = `{(${loop.value}).map((${as.value}, i) => ${basicMarkup})}`
       }
@@ -410,13 +460,14 @@ class ComponentEditor extends React.Component {
       }
       return basicMarkup
     }
-    code += 'return ' + renderNode(dom.childNodes[0])
+    code += 'return ' + (dom ? renderNode(dom.childNodes[0]) : '<div/>')
     code += '}'
 
     console.log('%c React component:', 'color: #67DAF9')
     console.log(prettier.format(code, { semi: false }))
   }
 
+  /*
   generateVuejs() {
     let dom = this.markupEditor.latestDOM
     const manipulateNode = node => {
@@ -455,6 +506,7 @@ class ComponentEditor extends React.Component {
     console.log('%c Vuejs component:', 'color: #47B784')
     console.log(code)
   }
+  */
 }
 
 ReactDOM.render(

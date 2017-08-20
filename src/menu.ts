@@ -1,5 +1,8 @@
-const React = require('react')
-const ReactDOM = require('react-dom')
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+
+import workspace from './workspace'
+
 const h = require('react-hyperscript')
 const {
   div,
@@ -14,10 +17,16 @@ const {
 } = require('hyperscript-helpers')(h)
 
 const Modal = require('./modal')
-const workspace = require('./workspace')
 
-class Menu extends React.Component {
-  constructor(props) {
+interface MenuState {
+  isCreateComponentOpen: boolean
+  createComponentName: string
+}
+
+interface MenuProps {}
+
+class Menu extends React.Component<MenuProps, MenuState> {
+  constructor(props: MenuProps) {
     super(props)
     this.state = {
       isCreateComponentOpen: false,
@@ -33,7 +42,7 @@ class Menu extends React.Component {
     })
   }
 
-  onClick(e) {}
+  onClick(e: React.MouseEvent<HTMLInputElement>) {}
 
   render() {
     const { components } = workspace.metadata
@@ -57,7 +66,7 @@ class Menu extends React.Component {
               type: 'text',
               value: this.state.createComponentName,
               placeholder: 'ComponentName',
-              onChange: e =>
+              onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                 this.setState({ createComponentName: e.target.value })
             })
           ])
@@ -80,7 +89,6 @@ class Menu extends React.Component {
                 : '.not-active',
               {
                 onClick: () => {
-                  this.setState({ activeComponent: component.name })
                   workspace.setActiveComponent(component.name)
                 }
               },

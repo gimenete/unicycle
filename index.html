@@ -1,41 +1,45 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Nectarina</title>
-    <link rel="stylesheet" href="./node_modules/codemirror/lib/codemirror.css">
-    <link rel="stylesheet" href="./node_modules/codemirror/addon/hint/show-hint.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="./node_modules/bulma/css/bulma.css">
-    <link rel="stylesheet" href="./style.css">
-    <script src="./node_modules/codemirror/lib/codemirror.js"></script>
-    <script src="./node_modules/codemirror/addon/hint/show-hint.js"></script>
-    <script src="./node_modules/codemirror/mode/css/css.js"></script>
-    <script src="./node_modules/codemirror/mode/javascript/javascript.js"></script>
-    <script src="./node_modules/codemirror/mode/xml/xml.js"></script>
-    <script src="./node_modules/codemirror/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="./node_modules/codemirror/mode/sass/sass.js"></script>
-  </head>
-  <body>
-    <div id="app">
-      <div id="navbar"></div>
-      <div id="content">
-        <aside class="menu is-small" id="menu">
-        </aside>
-        <div id="editors">
-          <div class="editor" id="markup"></div>
-          <div class="editor" id="style"></div>
-          <div class="editor" id="state"></div>
-        </div>
-        <div id="previews">
-          <style id="previews-style"></style>
-          <div id="previews-markup"></div>
-        </div>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Nectarina</title>
+  <link rel="stylesheet" href="./node_modules/codemirror/lib/codemirror.css">
+  <link rel="stylesheet" href="./node_modules/codemirror/addon/hint/show-hint.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="./node_modules/bulma/css/bulma.css">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./node_modules/codemirror/lib/codemirror.js"></script>
+  <script src="./node_modules/codemirror/addon/hint/show-hint.js"></script>
+  <script src="./node_modules/codemirror/mode/css/css.js"></script>
+  <script src="./node_modules/codemirror/mode/javascript/javascript.js"></script>
+  <script src="./node_modules/codemirror/mode/xml/xml.js"></script>
+  <script src="./node_modules/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="./node_modules/codemirror/mode/sass/sass.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <div id="navbar"></div>
+    <div id="content">
+      <aside class="menu is-small" id="menu">
+      </aside>
+      <div id="editors">
+        <div class="editor" id="markup"></div>
+        <div class="editor" id="style"></div>
+        <div class="editor" id="state"></div>
+      </div>
+      <div id="previews">
+        <style id="previews-style"></style>
+        <div id="previews-markup"></div>
       </div>
     </div>
-  </body>
+  </div>
+</body>
 
-  <script>
-    require('./renderer.js')
-  </script>
+<script>
+  require('./lib/renderer.js')
+
+</script>
+
 </html>

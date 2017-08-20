@@ -1,5 +1,8 @@
-const React = require('react')
-const ReactDOM = require('react-dom')
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+import Modal = require('./modal')
+import electron = require('electron')
+
 const h = require('react-hyperscript')
 const {
   a,
@@ -11,12 +14,15 @@ const {
   p,
   span
 } = require('hyperscript-helpers')(h)
-const { BrowserWindow, dialog } = require('electron').remote
+const { BrowserWindow, dialog } = electron.remote
 
-const Modal = require('./modal')
+interface NavbarState {
+  isExportOpen: boolean
+  isCreateProjectOpen: boolean
+}
 
-class Navbar extends React.Component {
-  constructor(props) {
+class Navbar extends React.Component<any, NavbarState> {
+  constructor(props: any) {
     super(props)
     this.state = {
       isExportOpen: false,
@@ -25,11 +31,12 @@ class Navbar extends React.Component {
     this.onClick = this.onClick.bind(this)
   }
 
-  onClick(e) {}
+  onClick(e: React.MouseEvent<HTMLInputElement>) {}
 
   render() {
     const modifier = '.is-small'
-    const navbarIcon = name => span(`.icon${modifier}`, [i(`.fa.fa-${name}`)])
+    const navbarIcon = (name: string) =>
+      span(`.icon${modifier}`, [i(`.fa.fa-${name}`)])
     return div([
       h(Modal, {
         title: 'New project',

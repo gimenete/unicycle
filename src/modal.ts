@@ -1,4 +1,6 @@
-const React = require('react')
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+
 const h = require('react-hyperscript')
 const {
   a,
@@ -10,7 +12,16 @@ const {
   section
 } = require('hyperscript-helpers')(h)
 
-class Modal extends React.Component {
+interface ModalProps {
+  isOpen: boolean
+  title: string
+  body: React.Component
+  acceptText: string
+  onCancel: () => {}
+  onAccept: () => {}
+}
+
+class Modal extends React.Component<ModalProps, any> {
   render() {
     const { isOpen, title, body, onCancel, onAccept, acceptText } = this.props
     return div('.modal' + (isOpen ? '.is-active' : ''), [
