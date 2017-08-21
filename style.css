@@ -106,3 +106,9 @@ input,
 .preview-content {
   -webkit-app-region: no-drag;
 }
+
+.pt-overlay-content {
+  width: 60vw;
+  margin-left: 15vw;
+  top: 20vh;
+}

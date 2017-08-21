@@ -11,8 +11,6 @@ import workspace from './workspace'
 
 const sass = require('sass.js')
 const postcss = require('postcss')
-const h = require('react-hyperscript')
-const { div, p } = require('hyperscript-helpers')(h)
 
 const CSS_PREFIX = '#previews-markup .preview-content '
 
@@ -42,7 +40,7 @@ interface MessagesResolver {
   addMessage(position: monaco.Position, text: string): void
 }
 
-type MessageRunner = (resolve: MessagesResolver) => void
+type MessageRunner<T> = (resolve: MessagesResolver) => T
 
 type ObjectStringString = { [index: string]: string }
 
@@ -79,7 +77,7 @@ class Editor extends EventEmitter {
     )
   }
 
-  calculateMessages(type: string, runner: MessageRunner) {
+  calculateMessages<T>(type: string, runner: MessageRunner<T>): T {
     const messages = new Array<Message>()
     const returnValue = runner({
       addMessage(position: monaco.Position, text: string) {
@@ -251,12 +249,14 @@ class ComponentEditor extends React.Component<any, any> {
     })
   }
 
-  render() {
+  render(): JSX.Element | null {
     // console.clear()
     // this.generateReact()
     // this.generateVuejs()
     const dom = this.markupEditor.latestDOM
-    if (!dom) return div()
+    if (!dom) return <div />
+    const rootNode = dom.childNodes[0]
+    if (!rootNode) return <div />
 
     return this.markupEditor.calculateMessages('error', handler => {
       const renderNode = (
@@ -328,21 +328,40 @@ class ComponentEditor extends React.Component<any, any> {
       }
 
       const data = this.dataEditor.latestJSON || ({} as any)
-      return div(
-        Object.keys(data).filter(key => !key.startsWith('!')).map((key, i) => {
-          let preview
-          try {
-            preview = div('.preview-content', [
-              renderNode(data[key], dom.childNodes[0])
-            ])
-          } catch (err) {
-            if (!err.handled) console.error(err)
-            preview = div('.message.is-danger', [
-              div('.message-body', [p(`Error: ${err.message}`)])
-            ])
-          }
-          return div('.preview', { key: i }, [p(key), preview])
-        })
+      return (
+        <div>
+          {Object.keys(data)
+            .filter(key => !key.startsWith('!'))
+            .map((key, i) => {
+              let preview
+              try {
+                preview = (
+                  <div className="preview-content">
+                    {renderNode(data[key], rootNode)}
+                  </div>
+                )
+              } catch (err) {
+                if (!err.handled) console.error(err)
+                preview = (
+                  <div className="message is-danger">
+                    <div className="message-body">
+                      <p>
+                        Error: {err.message}
+                      </p>
+                    </div>
+                  </div>
+                )
+              }
+              return (
+                <div className="preview" key={i}>
+                  <p>
+                    {key}
+                  </p>
+                  {preview}
+                </div>
+              )
+            })}
+        </div>
       )
     })
   }

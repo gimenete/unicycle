@@ -4,7 +4,8 @@
     "module": "commonjs",
     "outDir": "./lib",
     "strict": true,
-    "inlineSourceMap": true
+    "inlineSourceMap": true,
+    "jsx": "react"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
