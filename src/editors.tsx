@@ -343,10 +343,11 @@ class ComponentEditor extends React.Component<any, any> {
               } catch (err) {
                 if (!err.handled) console.error(err)
                 preview = (
-                  <div className="message is-danger">
+                  <div className="pt-callout pt-intent-danger">
                     <div className="message-body">
+                      <h5>Error</h5>
                       <p>
-                        Error: {err.message}
+                        {err.message}
                       </p>
                     </div>
                   </div>
