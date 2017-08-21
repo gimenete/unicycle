@@ -1,4 +1,4 @@
-/// <reference path='./codemirror.d.ts' />
+/// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
 
 import EventEmitter = require('events')
 import parse5 = require('parse5')
@@ -16,8 +16,6 @@ const { div, p } = require('hyperscript-helpers')(h)
 
 const CSS_PREFIX = '#previews-markup .preview-content '
 
-const { CodeMirror } = window
-
 const evaluate = (code: string, options: { [index: string]: any }) => {
   const keys: string[] = []
   const values: Array<any> = []
@@ -34,23 +32,14 @@ const evaluateExpression = (code: string, options: {}) => {
   return evaluate(`return ${code}`, options)
 }
 
-interface Position {
-  line: number
-  ch: number
-}
-
 interface Message {
   text: string
-  position: Position
+  position: monaco.Position
   widget?: CodeMirror.LineWidget
 }
 
-interface MessageHandler {
-  // addMessage
-}
-
 interface MessagesResolver {
-  addMessage(position: Position, text: string): void
+  addMessage(position: monaco.Position, text: string): void
 }
 
 type MessageRunner = (resolve: MessagesResolver) => void
@@ -58,34 +47,42 @@ type MessageRunner = (resolve: MessagesResolver) => void
 type ObjectStringString = { [index: string]: string }
 
 class Editor extends EventEmitter {
-  editor: CodeMirror.Editor
-  doc: CodeMirror.Doc
+  editor: monaco.editor.IStandaloneCodeEditor
   messages: {
     [index: string]: Message[]
   }
 
-  constructor(element: HTMLElement, options: {}) {
+  constructor(
+    element: HTMLElement,
+    options: monaco.editor.IEditorConstructionOptions
+  ) {
     super()
     this.messages = {}
-    this.editor = CodeMirror(
+    this.editor = monaco.editor.create(
       element,
       Object.assign(options, {
         tabSize: 2,
         lineNumbers: true
       })
     )
-    this.editor.on('change', () => this.update())
-    this.doc = this.editor.getDoc()
+    this.editor.onDidChangeModelContent((e: any) => {
+      console.log('e', e)
+      this.update()
+    })
   }
 
   calculateMessages(type: string, runner: MessageRunner) {
     const currentMessages = this.messages[type] || []
     const messages = new Array<Message>()
     const returnValue = runner({
-      addMessage(position: Position, text: string) {
-        messages.push({ position, text })
+      addMessage(position: monaco.Position, text: string) {
+        messages.push({
+          position,
+          text
+        })
       }
     })
+    /*
     const compareMessages = (a: Message, b: Message) =>
       a.position.line === b.position.line && a.text === b.text
 
@@ -120,6 +117,7 @@ class Editor extends EventEmitter {
       }
     })
     this.messages[type] = messages
+    */
     return returnValue
   }
 
@@ -135,7 +133,7 @@ class JSONEditor extends Editor {
 
   constructor(element: HTMLElement) {
     super(element, {
-      mode: { name: 'javascript', json: true }
+      language: 'json' // TODO: JSON?
     })
     this.latestJSON = null
 
@@ -156,7 +154,7 @@ class JSONEditor extends Editor {
         this.emitUpdate()
       } catch (e) {
         const index = +e.message.match(/\d+/)
-        const position = this.doc.posFromIndex(index)
+        const position = this.editor.getModel().getPositionAt(index)
         handler.addMessage(position, e.message)
       }
     })
@@ -168,7 +166,8 @@ class MarkupEditor extends Editor {
 
   constructor(element: HTMLElement) {
     super(element, {
-      mode: 'htmlmixed',
+      language: 'html'
+      /*
       extraKeys: { 'Ctrl-Space': 'autocomplete' },
       hintOptions: {
         hint: (cm: CodeMirror.Doc, option: any) => {
@@ -184,6 +183,7 @@ class MarkupEditor extends Editor {
           }
         }
       }
+      */
     })
     this.latestDOM = null
 
@@ -223,7 +223,7 @@ class StyleEditor extends Editor {
 
   constructor(element: HTMLElement) {
     super(element, {
-      mode: 'sass'
+      language: 'scss'
     })
 
     workspace.on('activeComponent', name => {
@@ -249,7 +249,7 @@ class StyleEditor extends Editor {
             this.emitUpdate()
           } else {
             handler.addMessage(
-              { line: result.line!, ch: result.column! },
+              new monaco.Position(result.line!, result.column!),
               result.message!
             )
           }
@@ -344,7 +344,10 @@ class ComponentEditor extends React.Component<any, any> {
           const element = node as parse5.AST.Default.Element
           if (!err.handled && node && element.__location) {
             handler.addMessage(
-              { line: element.__location.line, ch: element.__location.col },
+              new monaco.Position(
+                element.__location.line,
+                element.__location.col
+              ),
               err.message
             )
             err.handled = true
@@ -392,10 +395,10 @@ class ComponentEditor extends React.Component<any, any> {
           if (lastMapping) {
             if (!document.querySelector(node.selector)) {
               handler.addMessage(
-                {
-                  line: lastMapping.originalLine - 1,
-                  ch: lastMapping.originalColumn
-                },
+                new monaco.Position(
+                  lastMapping.originalLine - 1,
+                  lastMapping.originalColumn
+                ),
                 `Selector '${node.selector.substring(
                   CSS_PREFIX.length
                 )}' doesn't match any element`

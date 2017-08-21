@@ -1,9 +1,10 @@
 :root {
-  --black: #22282D;
-  --gray: #DBDDDD;
+  --black: #22282d;
+  --gray: #dbdddd;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   user-select: none;
@@ -35,24 +36,24 @@ html, body {
   height: 33%;
   border-top: 1px solid var(--gray);
   border-left: 1px solid var(--gray);
+  width: 400px;
 }
 #previews {
   border-top: 1px solid var(--gray);
-  flex-grow: 1
+  flex-grow: 1;
 }
 
-.CodeMirror {
+.monaco-editor {
   max-height: 100%;
-  width: 400px;
   font-size: 12px;
 }
 
-.CodeMirror .error {
-  background-color: #FF7373;
+.monaco-editor .error {
+  background-color: #ff7373;
 }
 
-.CodeMirror .warning {
-  background-color: #FFC940;
+.monaco-editor .warning {
+  background-color: #ffc940;
 }
 
 #previews-markup {
@@ -95,13 +96,18 @@ body {
 }
 
 .new-component a {
-  width: 100%
+  width: 100%;
 }
 
 #menu .menu-list {
   padding-bottom: 10px;
 }
 
-.no-drag, button, .button, input, #editors, .preview-content {
-  -webkit-app-region: no-drag
+.no-drag,
+button,
+.button,
+input,
+#editors,
+.preview-content {
+  -webkit-app-region: no-drag;
 }
