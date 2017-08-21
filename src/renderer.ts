@@ -1,8 +1,8 @@
 import path = require('path')
 import workspace from './workspace'
-const utils = require('./utils')
+import { isPackaged } from './utils'
 
-if (utils.isPackaged()) {
+if (isPackaged()) {
   const navbar = document.getElementById('navbar')
   if (navbar) {
     navbar.style.paddingTop = '10px'

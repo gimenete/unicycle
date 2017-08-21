@@ -112,3 +112,7 @@ input,
   margin-left: 15vw;
   top: 20vh;
 }
+
+.pt-navbar {
+  box-shadow: none;
+}
