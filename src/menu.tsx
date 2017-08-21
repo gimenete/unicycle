@@ -43,7 +43,7 @@ class Menu extends React.Component<MenuProps, MenuState> {
             <h3>New component</h3>
             <form>
               <input
-                className="pt-input .modifier"
+                className="pt-input"
                 type="text"
                 placeholder="ComponentName"
                 dir="auto"

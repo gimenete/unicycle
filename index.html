@@ -13,7 +13,7 @@
   <div id="app">
     <div id="navbar"></div>
     <div id="content">
-      <aside class="menu is-small" id="menu">
+      <aside id="menu">
       </aside>
       <div id="editors">
         <div class="editor" id="markup"></div>
@@ -23,6 +23,32 @@
       <div id="previews">
         <style id="previews-style"></style>
         <div id="previews-markup"></div>
+      </div>
+      <div id="output">
+        <div>
+          <div class="pt-select pt-minimal">
+            <select>
+              <option selected>React.js</option>
+              <option value="1">Angular.js</option>
+              <option value="2">Vue.js</option>
+              <option value="3">Elm</option>
+            </select>
+          </div>
+          <div class="pt-select pt-minimal">
+            <select>
+              <option selected>SCSS</option>
+              <option value="1">CSS</option>
+            </select>
+          </div>
+          <div class="pt-select pt-minimal">
+            <select>
+              <option selected>ES 2017</option>
+              <option value="1">TypeScript</option>
+              <option value="2">Flow</option>
+            </select>
+          </div>
+        </div>
+        <div class="editor" id="output-editor"></div>
       </div>
     </div>
   </div>

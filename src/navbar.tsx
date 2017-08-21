@@ -25,7 +25,7 @@ class Navbar extends React.Component<any, NavbarState> {
   render() {
     return (
       <div>
-        <nav className="pt-navbar .modifier">
+        <nav className="pt-navbar">
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">Branas</div>
             <input

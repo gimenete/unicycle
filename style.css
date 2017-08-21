@@ -102,8 +102,8 @@ body {
 button,
 .button,
 input,
-#editors,
-.preview-content {
+.preview-content,
+.editor {
   -webkit-app-region: no-drag;
 }
 
@@ -115,4 +115,19 @@ input,
 
 .pt-navbar {
   box-shadow: none;
+}
+
+#output {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#output > div {
+  padding: 10px 4px;
+  padding-top: 0;
+}
+
+#output-editor {
+  flex-grow: 1;
 }

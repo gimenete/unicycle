@@ -58,18 +58,21 @@ class Editor extends EventEmitter {
     this.oldDecorations = {}
     this.editor = monaco.editor.create(
       element,
-      Object.assign(options, {
-        tabSize: 2,
-        lineNumbers: true,
-        scrollBeyondLastLine: false,
-        minimap: {
-          enabled: false
-        },
-        // fontLigatures: true,
-        autoIndent: true,
-        theme: 'vs'
-      })
+      Object.assign(
+        options,
+        {
+          tabSize: 2,
+          lineNumbers: 'on',
+          scrollBeyondLastLine: false,
+          minimap: { enabled: false },
+          autoIndent: true,
+          theme: 'vs',
+          automaticLayout: true,
+          fontLigatures: false // true
+        } as monaco.editor.IEditorConstructionOptions
+      )
     )
+    this.editor.getModel().updateOptions({ tabSize: 2 })
     this.editor.onDidChangeModelContent(
       (e: monaco.editor.IModelContentChangedEvent) => {
         this.update()
@@ -115,11 +118,13 @@ class Editor extends EventEmitter {
 }
 
 class JSONEditor extends Editor {
-  latestJSON: {} | null
+  latestJSON: {
+    [index: string]: any
+  } | null
 
   constructor(element: HTMLElement) {
     super(element, {
-      language: 'json' // TODO: JSON?
+      language: 'json'
     })
     this.latestJSON = null
 
@@ -235,6 +240,7 @@ class ComponentEditor extends React.Component<any, any> {
   styleEditor: StyleEditor
   dataEditor: JSONEditor
   editors: Editor[]
+  outputEditor: monaco.editor.IStandaloneCodeEditor
 
   constructor(props: any) {
     super(props)
@@ -243,6 +249,16 @@ class ComponentEditor extends React.Component<any, any> {
     this.dataEditor = new JSONEditor(document.getElementById('state')!)
     this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
 
+    const outputEditor = document.getElementById('output-editor')!
+    this.outputEditor = monaco.editor.create(outputEditor, {
+      lineNumbers: 'off',
+      readOnly: true,
+      scrollBeyondLastLine: false,
+      minimap: { enabled: false },
+      value: '',
+      automaticLayout: true
+    })
+
     this.editors.forEach(editor => {
       editor.update()
       editor.on('update', () => this.forceUpdate())
@@ -250,9 +266,8 @@ class ComponentEditor extends React.Component<any, any> {
   }
 
   render(): JSX.Element | null {
-    // console.clear()
-    // this.generateReact()
-    // this.generateVuejs()
+    this.generateOutput()
+
     const dom = this.markupEditor.latestDOM
     if (!dom) return <div />
     const rootNode = dom.childNodes[0]
@@ -403,15 +418,24 @@ class ComponentEditor extends React.Component<any, any> {
     }
   }
 
-  generateReact() {
-    const data = this.dataEditor.latestJSON || ({} as any)
-    const someState = data[Object.keys(data)[0]]
+  generateOutput() {
+    const code = this.generateReact()
+    this.outputEditor.setValue(prettier.format(code, { semi: false }))
+  }
+
+  generateReact(): string {
+    const data = this.dataEditor.latestJSON
+    if (!data) return ''
+    const keys = Object.keys(data)
+    const someState = data[keys[0]]
+    if (!someState) return ''
     const dom = this.markupEditor.latestDOM
+    if (!dom) return ''
     let code = `
-  /*
-    * This file was generated automatically. Do not change it.
-    * Use composition if you want to extend it
-    */
+  /**
+ * This file was generated automatically. Do not change it.
+ * Use composition if you want to extend it
+ */
   import React from 'react';
   import ReactDOM from 'react-dom';
 
@@ -457,8 +481,7 @@ class ComponentEditor extends React.Component<any, any> {
     code += 'return ' + (dom ? renderNode(dom.childNodes[0]) : '<div/>')
     code += '}'
 
-    console.log('%c React component:', 'color: #67DAF9')
-    console.log(prettier.format(code, { semi: false }))
+    return code
   }
 
   /*
