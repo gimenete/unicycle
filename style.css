@@ -33,7 +33,7 @@ body {
   border-right: 1px solid var(--gray);
 }
 .editor {
-  height: 33%;
+  height: 30%;
   border-top: 1px solid var(--gray);
   border-left: 1px solid var(--gray);
   width: 400px;
@@ -41,11 +41,6 @@ body {
 #previews {
   border-top: 1px solid var(--gray);
   flex-grow: 1;
-}
-
-.monaco-editor {
-  max-height: 100%;
-  font-size: 12px;
 }
 
 .monaco-editor .error {

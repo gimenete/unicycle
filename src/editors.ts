@@ -35,7 +35,7 @@ const evaluateExpression = (code: string, options: {}) => {
 interface Message {
   text: string
   position: monaco.Position
-  widget?: CodeMirror.LineWidget
+  widget?: any
 }
 
 interface MessagesResolver {
@@ -48,8 +48,8 @@ type ObjectStringString = { [index: string]: string }
 
 class Editor extends EventEmitter {
   editor: monaco.editor.IStandaloneCodeEditor
-  messages: {
-    [index: string]: Message[]
+  oldDecorations: {
+    [index: string]: string[]
   }
 
   constructor(
@@ -57,22 +57,29 @@ class Editor extends EventEmitter {
     options: monaco.editor.IEditorConstructionOptions
   ) {
     super()
-    this.messages = {}
+    this.oldDecorations = {}
     this.editor = monaco.editor.create(
       element,
       Object.assign(options, {
         tabSize: 2,
-        lineNumbers: true
+        lineNumbers: true,
+        scrollBeyondLastLine: false,
+        minimap: {
+          enabled: false
+        },
+        // fontLigatures: true,
+        autoIndent: true,
+        theme: 'vs'
       })
     )
-    this.editor.onDidChangeModelContent((e: any) => {
-      console.log('e', e)
-      this.update()
-    })
+    this.editor.onDidChangeModelContent(
+      (e: monaco.editor.IModelContentChangedEvent) => {
+        this.update()
+      }
+    )
   }
 
   calculateMessages(type: string, runner: MessageRunner) {
-    const currentMessages = this.messages[type] || []
     const messages = new Array<Message>()
     const returnValue = runner({
       addMessage(position: monaco.Position, text: string) {
@@ -82,42 +89,23 @@ class Editor extends EventEmitter {
         })
       }
     })
-    /*
-    const compareMessages = (a: Message, b: Message) =>
-      a.position.line === b.position.line && a.text === b.text
-
-    // remove old ones
-    currentMessages.forEach(message => {
-      const { position } = message
-      const same = messages.find(m => compareMessages(message, m))
-      if (!same) {
-        this.editor.removeLineClass(position.line, 'wrap', type)
-        message.widget && message.widget.clear()
-      }
-    })
-    // add new ones
-    messages.forEach(message => {
-      const { position, text } = message
-      const current = currentMessages.find(m => compareMessages(message, m))
-      if (!current) {
-        const node = document.createElement('div')
-        node.className = type
-        node.style.border = '1px solid #aaa'
-        node.style.padding = '3px'
-        node.innerText = text
-        message.widget = this.editor.addLineWidget(position.line, node, {
-          coverGutter: false,
-          above: false,
-          showIfHidden: false,
-          noHScroll: true
-        })
-        this.editor.addLineClass(position.line, 'wrap', type)
-      } else {
-        message.widget = current.widget
-      }
-    })
-    this.messages[type] = messages
-    */
+    this.oldDecorations[type] = this.editor.deltaDecorations(
+      this.oldDecorations[type] || [],
+      messages.map(message => {
+        return {
+          range: new monaco.Range(
+            message.position.lineNumber,
+            message.position.column,
+            message.position.lineNumber,
+            message.position.column
+          ),
+          options: {
+            isWholeLine: true,
+            className: type
+          }
+        }
+      })
+    )
     return returnValue
   }
 
@@ -167,23 +155,6 @@ class MarkupEditor extends Editor {
   constructor(element: HTMLElement) {
     super(element, {
       language: 'html'
-      /*
-      extraKeys: { 'Ctrl-Space': 'autocomplete' },
-      hintOptions: {
-        hint: (cm: CodeMirror.Doc, option: any) => {
-          const cursor = cm.getCursor()
-          const line = cm.getLine(cursor.line)
-          const start = cursor.ch
-          const end = cursor.ch
-          console.log('cursor', cursor, line)
-          return {
-            list: ['@if=""', '@loop=""', '@as=""'],
-            from: CodeMirror.Pos(cursor.line, start),
-            to: CodeMirror.Pos(cursor.line, end)
-          }
-        }
-      }
-      */
     })
     this.latestDOM = null
 
@@ -396,7 +367,7 @@ class ComponentEditor extends React.Component<any, any> {
             if (!document.querySelector(node.selector)) {
               handler.addMessage(
                 new monaco.Position(
-                  lastMapping.originalLine - 1,
+                  lastMapping.originalLine,
                   lastMapping.originalColumn
                 ),
                 `Selector '${node.selector.substring(
