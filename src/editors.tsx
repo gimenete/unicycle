@@ -311,6 +311,7 @@ class ComponentEditor extends React.Component<any, any> {
       Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
         selectEditor(i)
       })
+      tab.addEventListener('click', () => selectEditor(i))
     })
   }
 

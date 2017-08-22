@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Button, Intent, Overlay } from '@blueprintjs/core'
+import { Button, Intent, Dialog } from '@blueprintjs/core'
 
 import workspace from './workspace'
 
@@ -12,6 +12,8 @@ interface MenuState {
 interface MenuProps {}
 
 class Menu extends React.Component<MenuProps, MenuState> {
+  createComponentInput?: HTMLElement | null
+
   constructor(props: MenuProps) {
     super(props)
     this.state = {
@@ -30,28 +32,38 @@ class Menu extends React.Component<MenuProps, MenuState> {
 
   onClick(e: React.MouseEvent<HTMLInputElement>) {}
 
+  openCreateComponent() {
+    this.setState({ isCreateComponentOpen: true }, () =>
+      this.createComponentInput!.focus()
+    )
+  }
+
   render() {
     const { components } = workspace.metadata
     return (
       <div>
-        <Overlay
+        <Dialog
+          title="New component"
           isOpen={this.state.isCreateComponentOpen}
           canEscapeKeyClose
+          autoFocus
           onClose={() => this.setState({ isCreateComponentOpen: false })}
         >
-          <div className="pt-card pt-elevation-4">
-            <h3>New component</h3>
-            <form>
-              <input
-                className="pt-input"
-                type="text"
-                placeholder="ComponentName"
-                dir="auto"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  this.setState({ createComponentName: e.target.value })}
-              />
-            </form>
-            <p>
+          <div className="pt-dialog-body">
+            <input
+              ref={input => {
+                this.createComponentInput = input
+              }}
+              className="pt-input pt-fill"
+              type="text"
+              placeholder="ComponentName"
+              dir="auto"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                this.setState({ createComponentName: e.target.value })}
+            />
+          </div>
+          <div className="pt-dialog-footer">
+            <div className="pt-dialog-footer-actions">
               <Button
                 intent={Intent.DANGER}
                 onClick={() =>
@@ -74,9 +86,9 @@ class Menu extends React.Component<MenuProps, MenuState> {
               >
                 Create component
               </Button>
-            </p>
+            </div>
           </div>
-        </Overlay>
+        </Dialog>
         <ul className="pt-tree-node-list pt-tree-root">
           <li className="pt-tree-node pt-tree-node-expanded">
             <div className="pt-tree-node-content">
@@ -88,7 +100,10 @@ class Menu extends React.Component<MenuProps, MenuState> {
               {components.map(component =>
                 <li
                   key={component.name}
-                  className="pt-tree-node"
+                  className={`pt-tree-node ${workspace.activeComponent ===
+                  component.name
+                    ? 'pt-tree-node-selected'
+                    : ''}`}
                   onClick={() => {
                     workspace.setActiveComponent(component.name)
                   }}
@@ -108,8 +123,8 @@ class Menu extends React.Component<MenuProps, MenuState> {
         <p>
           <button
             type="button"
-            className="pt-button pt-icon-add pt-fill"
-            onClick={() => this.setState({ isCreateComponentOpen: true })}
+            className="pt-button pt-icon-plus pt-fill"
+            onClick={() => this.openCreateComponent()}
           >
             New component
           </button>

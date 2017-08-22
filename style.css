@@ -24,8 +24,15 @@ body {
 #menu {
   max-height: 100%;
   overflow: auto;
-  padding: 10px;
   width: 200px;
+  background: whitesmoke;
+  padding: 0;
+  margin: 10px;
+  margin-top: 0;
+  margin-left: 0;
+}
+#menu > div > p {
+  margin: 10px;
 }
 #editors .pt-tabs {
   display: flex;
@@ -45,6 +52,7 @@ body {
 }
 #previews {
   border-top: 1px solid var(--gray);
+  border-right: 1px solid var(--gray);
   flex-grow: 1;
 }
 
@@ -112,12 +120,6 @@ input,
   -webkit-app-region: no-drag;
 }
 
-.pt-overlay-content {
-  width: 60vw;
-  margin-left: 15vw;
-  top: 20vh;
-}
-
 .pt-navbar {
   box-shadow: none;
 }
@@ -142,4 +144,12 @@ input,
   visibility: hidden;
   margin-left: -100vw;
   position: absolute;
+}
+
+.pt-tree-node {
+  cursor: pointer;
+}
+
+.pt-tab-list {
+  margin: 0 auto;
 }
