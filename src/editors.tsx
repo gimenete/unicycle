@@ -1,4 +1,5 @@
 /// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
+/// <reference path='../node_modules/@types/mousetrap/index.d.ts' />
 
 import EventEmitter = require('events')
 import parse5 = require('parse5')
@@ -259,9 +260,57 @@ class ComponentEditor extends React.Component<any, any> {
       automaticLayout: true
     })
 
+    const actions = [
+      {
+        id: 'switch-markdup-editor',
+        label: 'Switch to markup editor',
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_1],
+        contextMenuGroupId: 'navigation',
+        contextMenuOrder: 1.5,
+        run: () => selectEditor(0)
+      },
+      {
+        id: 'switch-style-editor',
+        label: 'Switch to style editor',
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_2],
+        contextMenuGroupId: 'navigation',
+        contextMenuOrder: 1.5,
+        run: () => selectEditor(1)
+      },
+      {
+        id: 'switch-states-editor',
+        label: 'Switch to states editor',
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_3],
+        contextMenuGroupId: 'navigation',
+        contextMenuOrder: 1.5,
+        run: () => selectEditor(2)
+      }
+    ]
+
     this.editors.forEach(editor => {
       editor.update()
       editor.on('update', () => this.forceUpdate())
+      actions.forEach(action => editor.editor.addAction(action))
+    })
+
+    const tabs = Array.from(document.querySelectorAll('#editors .pt-tabs li'))
+    const panels = Array.from(
+      document.querySelectorAll('#editors .pt-tabs .pt-tab-panel')
+    )
+
+    const selectEditor = (index: number) => {
+      tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'))
+      panels.forEach(panel => panel.setAttribute('aria-hidden', 'true'))
+
+      tabs[index].setAttribute('aria-selected', 'true')
+      panels[index].setAttribute('aria-hidden', 'false')
+      this.editors[index].editor.focus()
+    }
+
+    tabs.forEach((tab, i) => {
+      Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
+        selectEditor(i)
+      })
     })
   }
 

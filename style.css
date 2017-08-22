@@ -27,15 +27,20 @@ body {
   padding: 10px;
   width: 200px;
 }
-#editors {
+#editors .pt-tabs {
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--gray);
+  height: 100%;
+}
+#editors .pt-tabs .pt-tab-panel {
+  flex-grow: 1;
+}
+#editors .pt-tabs .pt-tab-panel .editor {
+  height: calc(100vh - 100px);
 }
 .editor {
   height: 30%;
-  border-top: 1px solid var(--gray);
-  border-left: 1px solid var(--gray);
   width: 400px;
 }
 #previews {
@@ -130,4 +135,11 @@ input,
 
 #output-editor {
   flex-grow: 1;
+}
+
+#editors .pt-tab-panel[aria-hidden="true"] {
+  display: block;
+  visibility: hidden;
+  margin-left: -100vw;
+  position: absolute;
 }

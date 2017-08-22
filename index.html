@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="./node_modules/@blueprintjs/core/dist/blueprint.css">
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="./node_modules/monaco-editor/min/vs/editor/editor.main.css">
   <link rel="stylesheet" href="./style.css">
+  <script src="./node_modules/mousetrap/mousetrap.min.js"></script>
 </head>
 
 <body>
@@ -16,9 +17,22 @@
       <aside id="menu">
       </aside>
       <div id="editors">
-        <div class="editor" id="markup"></div>
-        <div class="editor" id="style"></div>
-        <div class="editor" id="state"></div>
+        <div class="pt-tabs">
+          <ul class="pt-tab-list" role="tablist">
+            <li class="pt-tab" role="tab" aria-selected="true">Markup ⌘1</li>
+            <li class="pt-tab" role="tab">Style ⌘2</li>
+            <li class="pt-tab" role="tab">States ⌘3</li>
+          </ul>
+          <div class="pt-tab-panel" role="tabpanel">
+            <div class="editor" id="markup"></div>
+          </div>
+          <div class="pt-tab-panel" role="tabpanel" aria-hidden="true">
+            <div class="editor" id="style"></div>
+          </div>
+          <div class="pt-tab-panel" role="tabpanel" aria-hidden="true">
+            <div class="editor" id="state"></div>
+          </div>
+        </div>
       </div>
       <div id="previews">
         <style id="previews-style"></style>
