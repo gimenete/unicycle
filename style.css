@@ -45,9 +45,9 @@ body {
 }
 #editors .pt-tabs .pt-tab-panel .editor {
   height: calc(100vh - 100px);
+  width: 600px;
 }
-.editor {
-  height: 30%;
+#output .editor {
   width: 400px;
 }
 #previews {
