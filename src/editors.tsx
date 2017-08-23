@@ -371,6 +371,12 @@ class ComponentEditor extends React.Component<any, any> {
               return obj
             }, {} as ObjectStringString)
           attrs['key'] = String(key)
+          element.attrs.forEach(attr => {
+            if (!attr.name.startsWith(':')) return
+            const name = attr.name.substring(1)
+            const expression = attr.value
+            attrs[mapping[name] || name] = evaluateExpression(expression, data)
+          })
           if (attrs['style']) {
             attrs['style'] = css2obj(attrs['style'] as string)
           }
