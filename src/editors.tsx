@@ -10,6 +10,7 @@ import { SourceMapConsumer } from 'source-map'
 import { throttle } from 'lodash'
 
 import workspace from './workspace'
+import css2obj from './css2obj'
 
 const sass = require('sass.js')
 const postcss = require('postcss')
@@ -30,6 +31,14 @@ const evaluate = (code: string, options: { [index: string]: any }) => {
 
 const evaluateExpression = (code: string, options: {}) => {
   return evaluate(`return ${code}`, options)
+}
+
+interface ReactAttributes {
+  [index: string]: string | CssObject
+}
+
+interface CssObject {
+  [index: string]: string | number
 }
 
 interface Message {
@@ -353,7 +362,7 @@ class ComponentEditor extends React.Component<any, any> {
             renderNode(data, node, i)
           )
           const mapping: ObjectStringString = { class: 'className' }
-          const attrs = element.attrs
+          const attrs: ReactAttributes = element.attrs
             .filter(
               attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
             )
@@ -362,6 +371,9 @@ class ComponentEditor extends React.Component<any, any> {
               return obj
             }, {} as ObjectStringString)
           attrs['key'] = String(key)
+          if (attrs['style']) {
+            attrs['style'] = css2obj(attrs['style'] as string)
+          }
           return React.createElement.apply(
             null,
             new Array<any>(node.nodeName, attrs).concat(childNodes)
@@ -498,7 +510,11 @@ class ComponentEditor extends React.Component<any, any> {
             return
           }
           const name = mapping[attr.name] || attr.name
-          code += ` ${name}="${attr.value}"`
+          if (name === 'style') {
+            code += ` ${name}={${JSON.stringify(css2obj(attr.value))}}`
+          } else {
+            code += ` ${name}="${attr.value}"`
+          }
         })
         code += '>'
         element.childNodes.forEach(node => (code += renderNode(node)))
