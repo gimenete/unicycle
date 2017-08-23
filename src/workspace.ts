@@ -5,6 +5,7 @@ import fs = require('fs')
 const pify = require('pify')
 const readFile = pify(fs.readFile)
 const writeFile = pify(fs.writeFile)
+const mkdir = pify(fs.mkdir)
 
 interface Component {
   name: string
@@ -26,7 +27,7 @@ class Workspace extends EventEmitter {
 
   async loadProject(dir: string) {
     this.dir = dir
-    this.metadata = JSON.parse(await this.readFile(path.join('project.json')))
+    this.metadata = JSON.parse(await this.readFile('project.json'))
     this.emit('projectLoaded')
     const firstComponent = this.metadata.components[0]
     this.setActiveComponent((firstComponent && firstComponent.name) || null) // or first component
@@ -36,9 +37,19 @@ class Workspace extends EventEmitter {
     // TODO
   }
 
-  addComponent(name: string) {
+  async addComponent(name: string) {
     this.metadata.components.push({ name })
-    // TODO: create files
+    this.activeComponent = name
+    await Promise.all([
+      mkdir(path.join(this.dir, 'components', name)),
+      this.writeComponentFile('index.html', '<div>\n  \n</div>'),
+      this.writeComponentFile(
+        'data.json',
+        JSON.stringify({ 'Some state': {} }, null, 2)
+      ),
+      this.writeComponentFile('styles.scss', ''),
+      this.writeFile('project.json', JSON.stringify(this.metadata, null, 2))
+    ])
     this.setActiveComponent(name)
   }
 
