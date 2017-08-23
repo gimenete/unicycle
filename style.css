@@ -44,7 +44,7 @@ body {
   flex-grow: 1;
 }
 #editors .pt-tabs .pt-tab-panel .editor {
-  height: calc(100vh - 100px);
+  height: calc(100vh - 120px);
   width: 600px;
 }
 #output .editor {
@@ -86,6 +86,7 @@ body {
   margin: 20px;
   display: flex;
   justify-content: space-around;
+  /* background: url('./preview-background.png'); */
 }
 
 body {
@@ -136,7 +137,8 @@ input,
 }
 
 #output-editor {
-  flex-grow: 1;
+  /* flex-grow: 1; */
+  height: calc(100vh - 120px);
 }
 
 #editors .pt-tab-panel[aria-hidden="true"] {

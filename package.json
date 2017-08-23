@@ -31,6 +31,7 @@
   "dependencies": {
     "@blueprintjs/core": "^1.25.1",
     "@types/codemirror": "0.0.45",
+    "@types/lodash": "^4.14.74",
     "@types/mousetrap": "^1.5.34",
     "@types/prettier": "^1.5.0",
     "@types/react": "^16.0.2",
@@ -38,6 +39,7 @@
     "@types/source-map": "^0.5.1",
     "camelcase": "^4.1.0",
     "dedent": "^0.7.0",
+    "lodash": "^4.17.4",
     "monaco-editor": "^0.10.0",
     "mousetrap": "^1.6.1",
     "node-sass": "^4.5.3",

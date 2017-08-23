@@ -7,6 +7,7 @@ import React = require('react')
 import ReactDOM = require('react-dom')
 import prettier = require('prettier')
 import { SourceMapConsumer } from 'source-map'
+import { throttle } from 'lodash'
 
 import workspace from './workspace'
 
@@ -52,6 +53,7 @@ class Editor extends EventEmitter {
   }
 
   constructor(
+    file: string,
     element: HTMLElement,
     options: monaco.editor.IEditorConstructionOptions
   ) {
@@ -73,12 +75,27 @@ class Editor extends EventEmitter {
         } as monaco.editor.IEditorConstructionOptions
       )
     )
+    const saveFile = throttle(() => {
+      workspace
+        .writeComponentFile(file, this.editor.getValue())
+        .catch((e: Error) => console.error(e))
+    }, 2000)
     this.editor.getModel().updateOptions({ tabSize: 2 })
     this.editor.onDidChangeModelContent(
       (e: monaco.editor.IModelContentChangedEvent) => {
         this.update()
+        saveFile()
       }
     )
+
+    workspace.on('activeComponent', (name: string) => {
+      workspace
+        .readComponentFile(file)
+        .then(data => {
+          this.editor.setValue(data)
+        })
+        .catch((e: Error) => console.error(e))
+    })
   }
 
   calculateMessages<T>(type: string, runner: MessageRunner<T>): T {
@@ -124,19 +141,10 @@ class JSONEditor extends Editor {
   } | null
 
   constructor(element: HTMLElement) {
-    super(element, {
+    super('data.json', element, {
       language: 'json'
     })
     this.latestJSON = null
-
-    workspace.on('activeComponent', (name: string) => {
-      workspace
-        .readComponentData(name)
-        .then(data => {
-          this.editor.setValue(data)
-        })
-        .catch((e: Error) => console.error(e))
-    })
   }
 
   update() {
@@ -157,19 +165,10 @@ class MarkupEditor extends Editor {
   latestDOM: parse5.AST.Default.DocumentFragment | null
 
   constructor(element: HTMLElement) {
-    super(element, {
+    super('index.html', element, {
       language: 'html'
     })
     this.latestDOM = null
-
-    workspace.on('activeComponent', (name: string) => {
-      workspace
-        .readComponentMarkup(name)
-        .then(data => {
-          this.editor.setValue(data)
-        })
-        .catch(e => console.error(e))
-    })
   }
 
   update() {
@@ -197,17 +196,8 @@ class StyleEditor extends Editor {
   lastResult: SassResult
 
   constructor(element: HTMLElement) {
-    super(element, {
+    super('styles.scss', element, {
       language: 'scss'
-    })
-
-    workspace.on('activeComponent', name => {
-      workspace
-        .readComponentStyles(name)
-        .then(data => {
-          this.editor.setValue(data)
-        })
-        .catch(e => console.error(e))
     })
   }
 

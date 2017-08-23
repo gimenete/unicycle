@@ -47,16 +47,14 @@ class Workspace extends EventEmitter {
     this.emit('activeComponent', name)
   }
 
-  readComponentMarkup(component: string) {
-    return this.readFile(path.join('components', component, 'index.html'))
-  }
-
-  async readComponentData(component: string) {
-    return this.readFile(path.join('components', component, 'data.json'))
-  }
-
-  readComponentStyles(component: string) {
-    return this.readFile(path.join('components', component, 'styles.scss'))
+  readComponentFile(file: string): Promise<string> {
+    if (!this.activeComponent) {
+      console.warn(
+        `Trying to read ${file} but not active component at this moment`
+      )
+      return Promise.resolve('')
+    }
+    return this.readFile(path.join('components', this.activeComponent, file))
   }
 
   readFile(relativePath: string) {
@@ -65,28 +63,23 @@ class Workspace extends EventEmitter {
     return readFile(fullPath, 'utf8') as Promise<string>
   }
 
-  writeComponentMarkup(component: string, data: string) {
+  writeComponentFile(file: string, data: string) {
+    if (!this.activeComponent) {
+      console.warn(
+        `Trying to write ${file} but not active component at this moment`
+      )
+      return Promise.resolve()
+    }
     return this.writeFile(
-      path.join('components', component, 'index.html'),
+      path.join('components', this.activeComponent, file),
       data
     )
   }
 
-  writeComponentData(component: string, data: string) {
-    return this.writeFile(path.join('components', component, 'data.json'), data)
-  }
-
-  writeComponentStyles(component: string, data: string) {
-    return this.writeFile(
-      path.join('components', component, 'styles.scss'),
-      data
-    )
-  }
-
-  writeFile(relativePath: string, data: string) {
+  writeFile(relativePath: string, data: string): Promise<void> {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
-    return writeFile(fullPath, 'utf8')
+    return writeFile(fullPath, data, 'utf8')
   }
 }
 
