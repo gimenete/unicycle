@@ -35,7 +35,7 @@ class Typer {
     this.keypaths = {}
   }
 
-  calculateType(keypath: string[], data: any) {
+  calculateType(keypath: string, data: any) {
     let type: string = typeof data
     let paths: StringToBoolean = {}
     if (type === 'object') {
@@ -44,19 +44,18 @@ class Typer {
       } else if (Array.isArray(data)) {
         type = 'array'
         paths = { '[]': true }
-        data.map(value => this.calculateType(keypath.concat('[]'), value))
+        data.map(value => this.calculateType(keypath + '[]', value))
       } else {
         paths = Object.keys(data).reduce((obj, key) => {
           obj[key] = true
           return obj
         }, {} as StringToBoolean)
         Object.keys(data).forEach(key =>
-          this.calculateType(keypath.concat(key), data[key])
+          this.calculateType(keypath ? keypath + '.' + key : key, data[key])
         )
       }
     }
-    const key = keypath.join('.')
-    const current = this.keypaths[key] || {}
+    const current = this.keypaths[keypath] || {}
     const currentKeypath = current[type]
     if (currentKeypath) {
       Object.keys(currentKeypath).forEach(key => {
@@ -72,7 +71,7 @@ class Typer {
     } else {
       current[type] = paths
     }
-    this.keypaths[key] = current
+    this.keypaths[keypath] = current
   }
 
   interfaceName(key: string) {
@@ -81,33 +80,32 @@ class Typer {
   }
 
   addDocument(doc: any) {
-    this.calculateType([], doc)
+    this.calculateType('', doc)
   }
 
   createAST(prefix: string) {
     this.prefix = prefix
     this.interfaces = []
-    const root = this.createASTForKeypath([])
+    const root = this.createASTForKeypath('')
     return {
       interfaces: this.interfaces,
       root
     }
   }
 
-  createASTForKeypath(keypath: string[]): AST[] {
-    const key = keypath.join('.')
-    const current = this.keypaths[key] || {} // can be undefined for an empty array
+  createASTForKeypath(keypath: string): AST[] {
+    const current = this.keypaths[keypath] || {} // can be undefined for an empty array
     // create interfaces
     Object.keys(current).forEach(type => {
       if (type !== 'object') return
-      const name = this.interfaceName(key)
+      const name = this.interfaceName(keypath)
       this.interfaces.push({
         name,
         fields: Object.keys(current[type]).map(key => {
           return {
             name: key,
             required: current[type][key],
-            value: this.createASTForKeypath(keypath.concat(key))
+            value: this.createASTForKeypath(keypath ? keypath + '.' + key : key)
           }
         })
       })
@@ -118,14 +116,14 @@ class Typer {
       if (type === 'object') {
         return {
           type: 'object',
-          interfaceName: this.interfaceName(key)
+          interfaceName: this.interfaceName(keypath)
         }
       }
       if (type === 'array') {
         return {
           type: 'array',
           values: Object.keys(current[type]).reduce((arr, key) => {
-            return arr.concat(this.createASTForKeypath(keypath.concat(key)))
+            return arr.concat(this.createASTForKeypath(keypath + '[]'))
           }, [] as AST[])
         }
       }
@@ -202,5 +200,4 @@ typer.addDocument('whatever')
 // const ast = typer.createAST('UsersResponse')
 // console.log(JSON.stringify(ast, null, 2))
 
-const code = typer.createTypeScript('UsersResponse')
-console.log(code)
+console.log(typer.createTypeScript('UsersResponse'))
