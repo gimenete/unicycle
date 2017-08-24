@@ -142,6 +142,9 @@ class Typer {
       if (value.type === 'object') {
         return value.interfaceName
       }
+      if (value.type === 'function') {
+        return '{ (): any }'
+      }
       return value.type
     }
     const code = `${ast.interfaces
@@ -164,6 +167,87 @@ class Typer {
     export type ${prefix} = ${codeForArray(ast.root)}
     `
     return prettier.format(code, { semi: false })
+  }
+
+  createPropTypes(initialCode: string) {
+    let nullValidator: string | null = null
+    let undefinedValidator: string | null = null
+    const ast = this.createAST('')
+    const codeForArray = (values: AST[]): string =>
+      values.length === 1
+        ? codeForValue(values[0], false)
+        : `PropTypes.oneOfType([${values
+            .map(value => codeForValue(value, false))
+            .join(',')}])`
+    const codeForValue = (value: AST, isRoot: boolean): string => {
+      if (value.type === 'array') {
+        const values = value.values!
+        if (values.length === 0) {
+          return 'PropTypes.array'
+        } else if (values.length === 1) {
+          return `PropTypes.arrayOf(${codeForValue(values[0], false)})`
+        }
+        return `PropTypes.arrayOf(${codeForArray(values)})`
+      }
+      if (['string', 'number', 'symbol'].indexOf(value.type) >= 0) {
+        return `PropTypes.${value.type}`
+      }
+      if (value.type === 'boolean') {
+        return 'PropTypes.bool'
+      }
+      if (value.type === 'function') {
+        return 'PropTypes.func'
+      }
+      if (value.type === 'object') {
+        const interfaceName = value.interfaceName!
+        const definition = this.interfaces.find(i => i.name === interfaceName)!
+        const fields = definition.fields
+        if (fields.length === 0) {
+          return 'PropTypes.object'
+        }
+        const code = `{
+          ${fields.map(
+            field =>
+              `"${field.name}": ${codeForArray(field.value)}${field.required
+                ? '.isRequired'
+                : ''}`
+          )}
+        }`
+        return isRoot ? code : `PropTypes.shape(${code})`
+      }
+      if (value.type === 'null') {
+        nullValidator = `
+          const nullValidator = (props, propName, componentName) => {
+            if (props[propName] !== null) {
+              return new Error(\`Invalid prop \${propName} supplied to \${componentName}\. Validation failed.\`)
+            }
+          }
+        `
+        return 'nullValidator'
+      }
+      if (value.type === 'undefined') {
+        undefinedValidator = `
+          const undefinedValidator = (props, propName, componentName) => {
+            if (typeof props[propName] !== 'undefined') {
+              return new Error(\`Invalid prop \${propName} supplied to \${componentName}\. Validation failed.\`)
+            }
+          }
+      `
+        return 'undefinedValidator'
+      }
+      return 'Unknown'
+    }
+    const code =
+      ast.root.length === 1 && ast.root[0].type === 'object'
+        ? codeForValue(ast.root[0], true)
+        : codeForArray(ast.root)
+
+    return prettier.format(
+      [nullValidator, undefinedValidator, `${initialCode} = ${code}`]
+        .filter(Boolean)
+        .join(';'),
+      { semi: false }
+    )
   }
 }
 
@@ -195,9 +279,10 @@ const user2 = {
 const typer = new Typer()
 typer.addDocument(user1)
 typer.addDocument(user2)
-typer.addDocument('whatever')
+// typer.addDocument('whatever')
 
 // const ast = typer.createAST('UsersResponse')
 // console.log(JSON.stringify(ast, null, 2))
 
-console.log(typer.createTypeScript('UsersResponse'))
+// console.log(typer.createTypeScript('UsersResponse'))
+console.log(typer.createPropTypes('MyComponent.propTypes'))
