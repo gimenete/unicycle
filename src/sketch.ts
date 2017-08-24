@@ -341,7 +341,7 @@ const serializeCSS = (css: TreeCSS) => {
     str += `${key}: ${css.attributes[key]};\n`
   })
   Object.keys(css.subSelectors).forEach(selector => {
-    str += `${selector} {\n${serializeCSS(css.subSelectors[selector])}}\n`
+    str += `\n\n${selector} {\n${serializeCSS(css.subSelectors[selector])}}\n\n`
   })
   return str
 }

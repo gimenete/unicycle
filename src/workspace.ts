@@ -40,8 +40,6 @@ class Workspace extends EventEmitter {
   }
 
   async addComponent(name: string, structure: string) {
-    this.metadata.components.push({ name })
-    this.activeComponent = name
     const initial = structure
       ? await sketch(structure)
       : {
@@ -49,13 +47,20 @@ class Workspace extends EventEmitter {
           style: ''
         }
     const initialState = JSON.stringify({ 'Some state': {} }, null, 2)
+    await mkdir(path.join(this.dir, 'components', name))
     await Promise.all([
-      mkdir(path.join(this.dir, 'components', name)),
-      this.writeComponentFile('index.html', initial.markup),
-      this.writeComponentFile('styles.scss', initial.style),
-      this.writeComponentFile('data.json', initialState),
+      this.writeFile(
+        path.join('components', name, 'index.html'),
+        initial.markup
+      ),
+      this.writeFile(
+        path.join('components', name, 'styles.scss'),
+        initial.style
+      ),
+      this.writeFile(path.join('components', name, 'data.json'), initialState),
       this.writeFile('project.json', JSON.stringify(this.metadata, null, 2))
     ])
+    this.metadata.components.push({ name })
     this.setActiveComponent(name)
   }
 
