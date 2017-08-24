@@ -1,14 +1,43 @@
 const camelcase = require('camelcase')
 const prettier = require('prettier')
 
+type StringToBoolean = {
+  [index: string]: boolean
+}
+
+type Keypath = {
+  [index: string]: StringToBoolean
+}
+
+interface Field {
+  name: string
+  required: boolean
+  value: AST[]
+}
+
+interface Interface {
+  name: string
+  fields: Field[]
+}
+
+interface AST {
+  type: string
+  interfaceName?: string
+  values?: AST[]
+}
+
 class Typer {
+  keypaths: { [index: string]: Keypath }
+  interfaces: Interface[]
+  prefix: string
+
   constructor() {
     this.keypaths = {}
   }
 
-  calculateType(keypath, data) {
-    let type = typeof data
-    let paths = {}
+  calculateType(keypath: string[], data: any) {
+    let type: string = typeof data
+    let paths: StringToBoolean = {}
     if (type === 'object') {
       if (data === null) {
         type = 'null'
@@ -20,7 +49,7 @@ class Typer {
         paths = Object.keys(data).reduce((obj, key) => {
           obj[key] = true
           return obj
-        }, {})
+        }, {} as StringToBoolean)
         Object.keys(data).forEach(key =>
           this.calculateType(keypath.concat(key), data[key])
         )
@@ -46,16 +75,16 @@ class Typer {
     this.keypaths[key] = current
   }
 
-  interfaceName(key) {
+  interfaceName(key: string) {
     const name = camelcase((this.prefix + ' ' + key).replace(/\[\]/g, 'Value'))
     return 'I' + name.substring(0, 1).toUpperCase() + name.substring(1)
   }
 
-  addDocument(doc) {
+  addDocument(doc: any) {
     this.calculateType([], doc)
   }
 
-  createAST(prefix) {
+  createAST(prefix: string) {
     this.prefix = prefix
     this.interfaces = []
     const root = this.createASTForKeypath([])
@@ -65,7 +94,7 @@ class Typer {
     }
   }
 
-  createASTForKeypath(keypath) {
+  createASTForKeypath(keypath: string[]): AST[] {
     const key = keypath.join('.')
     const current = this.keypaths[key] || {} // can be undefined for an empty array
     // create interfaces
@@ -97,20 +126,20 @@ class Typer {
           type: 'array',
           values: Object.keys(current[type]).reduce((arr, key) => {
             return arr.concat(this.createASTForKeypath(keypath.concat(key)))
-          }, [])
+          }, [] as AST[])
         }
       }
       return { type }
     })
   }
 
-  createTypeScript(prefix) {
+  createTypeScript(prefix: string) {
     const ast = this.createAST(prefix)
-    const codeForArray = arr =>
+    const codeForArray = (arr: AST[]): string =>
       arr.length === 0 ? 'any' : arr.map(codeForValue).join(' | ')
-    const codeForValue = value => {
+    const codeForValue = (value: AST) => {
       if (value.type === 'array') {
-        return `Array<${codeForArray(value.values)}>`
+        return `Array<${codeForArray(value.values!)}>`
       }
       if (value.type === 'object') {
         return value.interfaceName
