@@ -7,18 +7,21 @@ import workspace from './workspace'
 interface MenuState {
   isCreateComponentOpen: boolean
   createComponentName: string
+  createComponentStructure: string
 }
 
 interface MenuProps {}
 
 class Menu extends React.Component<MenuProps, MenuState> {
   createComponentInput?: HTMLElement | null
+  createComponentStructure?: HTMLElement | null
 
   constructor(props: MenuProps) {
     super(props)
     this.state = {
       isCreateComponentOpen: false,
-      createComponentName: ''
+      createComponentName: '',
+      createComponentStructure: ''
     }
     this.onClick = this.onClick.bind(this)
 
@@ -50,17 +53,31 @@ class Menu extends React.Component<MenuProps, MenuState> {
           onClose={() => this.setState({ isCreateComponentOpen: false })}
         >
           <div className="pt-dialog-body">
-            <input
-              ref={input => {
-                this.createComponentInput = input
-              }}
-              className="pt-input pt-fill"
-              type="text"
-              placeholder="ComponentName"
-              dir="auto"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                this.setState({ createComponentName: e.target.value })}
-            />
+            <label className="pt-label">
+              Component name
+              <input
+                ref={input => {
+                  this.createComponentInput = input
+                }}
+                className="pt-input pt-fill"
+                type="text"
+                placeholder="ComponentName"
+                dir="auto"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  this.setState({ createComponentName: e.target.value })}
+              />
+            </label>
+            <label className="pt-label">
+              Structure (copy from Sketch)
+              <textarea
+                className="pt-input pt-fill"
+                ref={textarea => {
+                  this.createComponentStructure = textarea
+                }}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  this.setState({ createComponentStructure: e.target.value })}
+              />
+            </label>
           </div>
           <div className="pt-dialog-footer">
             <div className="pt-dialog-footer-actions">
@@ -77,7 +94,10 @@ class Menu extends React.Component<MenuProps, MenuState> {
                 intent={Intent.SUCCESS}
                 style={{ float: 'right' }}
                 onClick={() => {
-                  workspace.addComponent(this.state.createComponentName)
+                  workspace.addComponent(
+                    this.state.createComponentName,
+                    this.state.createComponentStructure
+                  )
                   this.setState({
                     isCreateComponentOpen: false,
                     createComponentName: ''

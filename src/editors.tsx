@@ -2,12 +2,13 @@
 /// <reference path='../node_modules/@types/mousetrap/index.d.ts' />
 
 import EventEmitter = require('events')
-import parse5 = require('parse5')
-import React = require('react')
-import ReactDOM = require('react-dom')
-import prettier = require('prettier')
+import * as parse5 from 'parse5'
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+import * as prettier from 'prettier'
 import { SourceMapConsumer } from 'source-map'
 import { throttle } from 'lodash'
+import { SassResult } from './types'
 
 import workspace from './workspace'
 import css2obj from './css2obj'
@@ -190,15 +191,6 @@ class MarkupEditor extends Editor {
       console.error('Wrong HTML', e, Object.keys(e))
     }
   }
-}
-
-interface SassResult {
-  status: number
-  text: string
-  message?: string
-  line?: number
-  column?: number
-  map: sourceMap.RawSourceMap
 }
 
 class StyleEditor extends Editor {

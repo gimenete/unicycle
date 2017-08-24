@@ -1,6 +1,8 @@
-import EventEmitter = require('events')
-import path = require('path')
-import fs = require('fs')
+import * as EventEmitter from 'events'
+import * as path from 'path'
+import * as fs from 'fs'
+
+import sketch from './sketch'
 
 const pify = require('pify')
 const readFile = pify(fs.readFile)
@@ -37,17 +39,21 @@ class Workspace extends EventEmitter {
     // TODO
   }
 
-  async addComponent(name: string) {
+  async addComponent(name: string, structure: string) {
     this.metadata.components.push({ name })
     this.activeComponent = name
+    const initial = structure
+      ? await sketch(structure)
+      : {
+          markup: '<div>\n  \n</div>',
+          style: ''
+        }
+    const initialState = JSON.stringify({ 'Some state': {} }, null, 2)
     await Promise.all([
       mkdir(path.join(this.dir, 'components', name)),
-      this.writeComponentFile('index.html', '<div>\n  \n</div>'),
-      this.writeComponentFile(
-        'data.json',
-        JSON.stringify({ 'Some state': {} }, null, 2)
-      ),
-      this.writeComponentFile('styles.scss', ''),
+      this.writeComponentFile('index.html', initial.markup),
+      this.writeComponentFile('styles.scss', initial.style),
+      this.writeComponentFile('data.json', initialState),
       this.writeFile('project.json', JSON.stringify(this.metadata, null, 2))
     ])
     this.setActiveComponent(name)
@@ -81,10 +87,8 @@ class Workspace extends EventEmitter {
       )
       return Promise.resolve()
     }
-    return this.writeFile(
-      path.join('components', this.activeComponent, file),
-      data
-    )
+    const fullPath = path.join('components', this.activeComponent, file)
+    return this.writeFile(fullPath, data)
   }
 
   writeFile(relativePath: string, data: string): Promise<void> {
