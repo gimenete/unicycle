@@ -497,8 +497,11 @@ class ComponentEditor extends React.Component<any, any> {
   import ReactDOM from 'react-dom';
   import PropTypes from 'prop-types';
 
-  const ${componentName} = (props) => {
-    const {${Array.from(keys).join(', ')}} = props;`
+  const ${componentName} = (props) => {`
+
+    if (keys.length > 0) {
+      code += `const {${Array.from(keys).join(', ')}} = props;`
+    }
 
     const renderNode = (node: parse5.AST.Default.Node) => {
       if (node.nodeName === '#text') {
