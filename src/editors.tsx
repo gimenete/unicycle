@@ -521,6 +521,12 @@ class ComponentEditor extends React.Component<any, any> {
             code += ` ${name}="${attr.value}"`
           }
         })
+        element.attrs.forEach(attr => {
+          if (!attr.name.startsWith(':')) return
+          const name = attr.name.substring(1)
+          const expression = attr.value
+          code += ` ${name}={${expression}}`
+        })
         code += '>'
         element.childNodes.forEach(node => (code += renderNode(node)))
         code += `</${node.nodeName}>`
