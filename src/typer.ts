@@ -276,13 +276,17 @@ const user2 = {
   ]
 }
 
-const typer = new Typer()
-typer.addDocument(user1)
-typer.addDocument(user2)
-// typer.addDocument('whatever')
+export default Typer
 
-// const ast = typer.createAST('UsersResponse')
-// console.log(JSON.stringify(ast, null, 2))
+if (module.id === require.main!.id) {
+  const typer = new Typer()
+  typer.addDocument(user1)
+  typer.addDocument(user2)
+  // typer.addDocument('whatever')
 
-// console.log(typer.createTypeScript('UsersResponse'))
-console.log(typer.createPropTypes('MyComponent.propTypes'))
+  // const ast = typer.createAST('UsersResponse')
+  // console.log(JSON.stringify(ast, null, 2))
+
+  // console.log(typer.createTypeScript('UsersResponse'))
+  console.log(typer.createPropTypes('MyComponent.propTypes'))
+}

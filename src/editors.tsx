@@ -9,6 +9,8 @@ import * as prettier from 'prettier'
 import { SourceMapConsumer } from 'source-map'
 import { throttle } from 'lodash'
 import { SassResult } from './types'
+import { uppercamelcase } from './utils'
+import Typer from './typer'
 
 import workspace from './workspace'
 import css2obj from './css2obj'
@@ -476,11 +478,16 @@ class ComponentEditor extends React.Component<any, any> {
   generateReact(): string {
     const data = this.dataEditor.latestJSON
     if (!data) return ''
-    const keys = Object.keys(data)
-    const someState = data[keys[0]]
-    if (!someState) return ''
+    const keys = Object.values(data).reduce((set: Set<string>, value) => {
+      Object.keys(value).forEach(key => set.add(key))
+      return set
+    }, new Set<string>())
     const dom = this.markupEditor.latestDOM
     if (!dom) return ''
+    const typer = new Typer()
+    Object.values(data).forEach(state => typer.addDocument(state))
+
+    const componentName = uppercamelcase(workspace.activeComponent!)
     let code = `
   /**
  * This file was generated automatically. Do not change it.
@@ -488,10 +495,10 @@ class ComponentEditor extends React.Component<any, any> {
  */
   import React from 'react';
   import ReactDOM from 'react-dom';
+  import PropTypes from 'prop-types';
 
-  export default (props) => { const {${Object.keys(someState).join(
-    ', '
-  )}} = props;`
+  const ${componentName} = (props) => {
+    const {${Array.from(keys).join(', ')}} = props;`
 
     const renderNode = (node: parse5.AST.Default.Node) => {
       if (node.nodeName === '#text') {
@@ -533,8 +540,9 @@ class ComponentEditor extends React.Component<any, any> {
       return basicMarkup
     }
     code += 'return ' + (dom ? renderNode(dom.childNodes[0]) : '<div/>')
-    code += '}'
-
+    code += '}\n'
+    code += typer.createPropTypes(`${componentName}.propTypes`)
+    code += 'export default ' + componentName
     return code
   }
 
