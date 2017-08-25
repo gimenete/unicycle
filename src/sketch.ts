@@ -299,7 +299,7 @@ const textInheritedProperties = [
   'word-spacing'
 ]
 
-const simplifyCSS = (layer: SketchLayer) => {
+const simplifyCSSRules = (layer: SketchLayer) => {
   const allKeys: { [index: string]: { [index: string]: number } } = {}
   const extraInfo = {
     hasText: !!layer.text
@@ -317,7 +317,7 @@ const simplifyCSS = (layer: SketchLayer) => {
   }
 
   layer.children.forEach(child => {
-    const info = simplifyCSS(child)
+    const info = simplifyCSSRules(child)
     extraInfo.hasText = extraInfo.hasText || info.hasText
 
     inheritedProperties.forEach(key => {
@@ -385,6 +385,28 @@ const calculateClassesAndSelectors = (
   })
 }
 
+const simplifyCSSSelectors = (css: TreeCSS) => {
+  Object.keys(css.subSelectors).forEach(selector => {
+    const tree = css.subSelectors[selector]
+    if (Object.keys(tree.attributes).length === 0) {
+      const keys = Object.keys(tree.subSelectors)
+      const nSelectors = keys.length
+      if (nSelectors === 0) {
+        delete css.subSelectors[selector]
+        return
+      } else if (nSelectors === 1) {
+        const first = keys[0]
+        const subTree = tree.subSelectors[first]
+        delete css.subSelectors[selector]
+        css.subSelectors[[selector, first].join(' ')] = subTree
+        simplifyCSSSelectors(subTree)
+        return
+      }
+    }
+    return simplifyCSSSelectors(tree)
+  })
+}
+
 const serializeCSS = (css: TreeCSS) => {
   let str = ''
   Object.keys(css.attributes).forEach(key => {
@@ -406,12 +428,13 @@ export default async (input: string): Promise<SketchResult> => {
     const data = JSON.parse(input) as SketchLayer[]
     calculateContainers(data[0])
     calculateRows(data[0])
-    simplifyCSS(data[0])
+    simplifyCSSRules(data[0])
     const css: TreeCSS = {
       attributes: {},
       subSelectors: {}
     }
     calculateClassesAndSelectors(data[0], null, css, 0)
+    simplifyCSSSelectors(css)
 
     const doc = parse5.treeAdapters.default.createDocumentFragment()
     createNode(doc, data[0], 0)
