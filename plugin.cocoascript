@@ -81,7 +81,20 @@ function appendLayerInformation(arr, layer) {
     },
     children: []
   }
-  if (layer.isGroup) {
+  const allShapes = (layer) => {
+    if (layer.isShape) return true
+    if (layer.isGroup) {
+      let all = true
+      layer.iterate((subLayer, i) => {
+        all = all && allShapes(subLayer)
+      })
+      return all
+    }
+    return false
+  }
+  if (layer.isGroup && allShapes(layer)) {
+    info.svg = exportSlice(layer, 'svg', info)
+  } else if (layer.isGroup) {
     layer.iterate((layer, i) => {
       appendLayerInformation(info.children, layer)
     })

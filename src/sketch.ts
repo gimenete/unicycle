@@ -305,6 +305,7 @@ const simplifyCSS = (layer: SketchLayer) => {
     hasText: !!layer.text
   }
   if (layer.children.length === 0 && layer.svg) {
+    layer.css['box-sizing'] = 'border-box'
     delete layer.css.background
   }
   if (layer.text && layer.textAlign) {
