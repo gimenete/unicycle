@@ -1,5 +1,39 @@
-
 const sketch = context.api()
+
+function createTempFolder() {
+  var guid = [[NSProcessInfo processInfo] globallyUniqueString]
+  var path = "/tmp/com.bomberstudios.sketch-commands/" + guid
+  [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:true attributes:nil error:nil]
+  return path
+}
+
+const tempFolder = createTempFolder()
+
+function exportSlice(layer, format, info) {
+  const ancestry = MSImmutableLayerAncestry.ancestryWithMSLayer_(layer.sketchObject)
+  const rect = MSSliceTrimming.trimmedRectForLayerAncestry_(ancestry)
+  if (layer.sketchObject.isMasked()) {
+    info.frame.x = Number(rect.origin.x)
+    info.frame.y = Number(rect.origin.y)
+    info.frame.width = Number(rect.size.width)
+    info.frame.height = Number(rect.size.height)
+  }
+
+  const slice = MSExportRequest.new()
+  slice.rect = rect
+  slice.scale = 1
+  slice.includeArtboardBackground = true
+  slice.configureForLayer(ancestry)
+  const filename = tempFolder + '/slice.' + format
+  context.document.saveArtboardOrSlice_toFile_(slice, filename)
+  if (format === 'svg') {
+    return String(NSString.stringWithContentsOfFile(filename))
+  } else {
+    const data = NSData.dataWithContentsOfFile(filename);
+    const base64 = [data base64EncodedStringWithOptions:0];
+    return String(base64)
+  }
+}
 
 /*
 log(sketch.api_version)
@@ -32,9 +66,10 @@ function appendLayerInformation(arr, layer) {
   if (!layer.frame) return
   // see https://github.com/abynim/Sketch-Headers/blob/master/Headers/MSLayer.h
   const sketchObject = layer.sketchObject
+  const frame = layer.frame
   const info = {
     name: String(layer.name),
-    frame: layer.frame,
+    frame: { x: frame.x, y: frame.y, width: frame.width, height: frame.height },
     css: cssToObject(sketchObject.CSSAttributes()),
     layout: {
       hasFixedHeight: !!sketchObject.hasFixedHeight(),
@@ -53,11 +88,10 @@ function appendLayerInformation(arr, layer) {
   } else if (layer.isText) {
     info.text = String(layer.text)
     info.textAlign = layer.alignment
-  } else if (layer.isShape) {
-    info.shape = true
-    // TODO: https://github.com/sketchplugins/plugin-requests/blob/master/Copy%20Layer%20as%20SVG.sketchplugin
+  } else if (layer.isShape && !sketchObject.isPartOfClippingMask()) {
+    info.svg = exportSlice(layer, 'svg', info)
   } else if (layer.isImage) {
-    log('is image' + layer.sketchObject)
+    info.image = exportSlice(layer, 'png', info)
   }
   arr.push(info)
 }

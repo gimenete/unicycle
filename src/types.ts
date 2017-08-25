@@ -6,3 +6,5 @@ export interface SassResult {
   column?: number
   map: sourceMap.RawSourceMap
 }
+
+export type ObjectStringToString = { [index: string]: string }

@@ -189,7 +189,7 @@ class Typer {
         }
         return `PropTypes.arrayOf(${codeForArray(values)})`
       }
-      if (['string', 'number', 'symbol'].indexOf(value.type) >= 0) {
+      if (['string', 'number', 'symbol'].includes(value.type)) {
         return `PropTypes.${value.type}`
       }
       if (value.type === 'boolean') {

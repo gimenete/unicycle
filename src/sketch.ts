@@ -30,7 +30,8 @@ interface SketchLayer {
   css: SketchCSS
   layout: SketchLayout | {}
   children: SketchLayer[]
-  shape?: boolean
+  svg?: string
+  image?: string
   text?: string
   textAlign?: string
   classNames?: string[]
@@ -69,11 +70,59 @@ const createNode = (
     name: key,
     value: attrs[key]
   }))
-  const element = parse5.treeAdapters.default.createElement(
-    'div',
-    '',
-    attributes
-  )
+  if (layer.image) {
+    attributes.push({
+      name: 'src',
+      value: `data:image/png;base64,${layer.image}`
+    })
+  }
+  const parseSvg = (
+    text: string,
+    attributes: parse5.AST.Default.Attribute[]
+  ) => {
+    const svg = parse5.parseFragment(
+      text
+    ) as parse5.AST.Default.DocumentFragment
+    const root = svg.childNodes.find(
+      node => node.nodeName === 'svg'
+    )! as parse5.AST.Default.Element
+
+    // if it's a super simple SVG, ignore it
+    const isSuperSimple = (node: parse5.AST.Default.Node): boolean => {
+      const element = node as parse5.AST.Default.Element
+      if (!element.childNodes) return true
+      const notSimpleElement = !['svg', 'path', 'g', 'defs', 'desc'].includes(
+        element.nodeName
+      )
+      if (notSimpleElement) {
+        return false
+      }
+      if (element.nodeName === 'path') {
+        const d = element.attrs.find(attr => attr.name === 'd')
+        if (d) {
+          // simple paths are like M155,9 L155,33
+          const coordinates = d.value.match(/\d+,\d+/g)
+          if (coordinates && coordinates.length > 2) return false
+        }
+      }
+      return !element.childNodes.find(node => !isSuperSimple(node))
+    }
+    if (isSuperSimple(root)) {
+      return null
+    }
+
+    root.attrs = root.attrs.concat(attributes)
+    return root
+  }
+  const svg =
+    layer.svg && layer.children.length === 0 && parseSvg(layer.svg, attributes)
+  const element =
+    svg ||
+    parse5.treeAdapters.default.createElement(
+      layer.image ? 'img' : 'div',
+      '',
+      attributes
+    )
   parse5.treeAdapters.default.appendChild(parent, element)
   if (layer.text) {
     // element.style.textAlign = layer.textAlign
@@ -255,15 +304,15 @@ const simplifyCSS = (layer: SketchLayer) => {
   const extraInfo = {
     hasText: !!layer.text
   }
-  if (layer.children.length > 0 || layer.shape) {
-    if (layer.shape) {
-      layer.css.width = `${layer.frame.width}px`
-      layer.css.height = `${layer.frame.height}px`
-    }
-    // css['box-sizing'] = 'border-box'
+  if (layer.children.length === 0 && layer.svg) {
+    delete layer.css.background
   }
   if (layer.text && layer.textAlign) {
     layer.css['text-align'] = layer.textAlign
+  }
+  if (layer.image || layer.svg) {
+    layer.css.width = `${layer.frame.width}px`
+    layer.css.height = `${layer.frame.height}px`
   }
 
   layer.children.forEach(child => {
@@ -273,7 +322,7 @@ const simplifyCSS = (layer: SketchLayer) => {
     inheritedProperties.forEach(key => {
       let currentValue = child.css[key]
       if (!currentValue) {
-        if (!info.hasText && textInheritedProperties.indexOf(key) >= 0) {
+        if (!info.hasText && textInheritedProperties.includes(key)) {
           currentValue = '*'
         } else {
           return

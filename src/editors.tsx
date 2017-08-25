@@ -8,8 +8,8 @@ import * as ReactDOM from 'react-dom'
 import * as prettier from 'prettier'
 import { SourceMapConsumer } from 'source-map'
 import { throttle } from 'lodash'
-import { SassResult } from './types'
-import { uppercamelcase } from './utils'
+import { SassResult, ObjectStringToString } from './types'
+import { uppercamelcase, toReactAttributeName } from './utils'
 import Typer from './typer'
 
 import workspace from './workspace'
@@ -17,6 +17,7 @@ import css2obj from './css2obj'
 
 const sass = require('sass.js')
 const postcss = require('postcss')
+const camelcase = require('camelcase')
 
 const CSS_PREFIX = '#previews-markup .preview-content '
 
@@ -55,8 +56,6 @@ interface MessagesResolver {
 }
 
 type MessageRunner<T> = (resolve: MessagesResolver) => T
-
-type ObjectStringString = { [index: string]: string }
 
 class Editor extends EventEmitter {
   editor: monaco.editor.IStandaloneCodeEditor
@@ -355,21 +354,30 @@ class ComponentEditor extends React.Component<any, any> {
           const childNodes = element.childNodes.map((node, i) =>
             renderNode(data, node, i)
           )
-          const mapping: ObjectStringString = { class: 'className' }
           const attrs: ReactAttributes = element.attrs
             .filter(
-              attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
+              attr =>
+                !attr.name.startsWith(':') &&
+                !attr.name.startsWith('@') &&
+                attr.name !== 'dangerouslySetInnerHTML' &&
+                attr.name !== 'xlink'
             )
             .reduce((obj, attr) => {
-              obj[mapping[attr.name] || attr.name] = attr.value
+              const name = toReactAttributeName(attr.name)
+              if (name) {
+                obj[name] = attr.value
+              }
               return obj
-            }, {} as ObjectStringString)
+            }, {} as ObjectStringToString)
           attrs['key'] = String(key)
           element.attrs.forEach(attr => {
             if (!attr.name.startsWith(':')) return
             const name = attr.name.substring(1)
             const expression = attr.value
-            attrs[mapping[name] || name] = evaluateExpression(expression, data)
+            const fname = toReactAttributeName(name)
+            if (fname) {
+              attrs[fname] = evaluateExpression(expression, data)
+            }
           })
           if (attrs['style']) {
             attrs['style'] = css2obj(attrs['style'] as string)
@@ -508,8 +516,8 @@ class ComponentEditor extends React.Component<any, any> {
         const textNode = node as parse5.AST.Default.TextNode
         return textNode.value
       }
-
       const element = node as parse5.AST.Default.Element
+      if (!element.childNodes) return null
       const mapping: { [index: string]: string } = { class: 'className' }
       const toString = () => {
         let code = `<${node.nodeName}`
