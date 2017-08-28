@@ -66,6 +66,24 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
 
     this.inspector = new Inspector()
+    this.inspector.on('inspect', (data: any) => {
+      const element = data.target as HTMLElement
+      const location = element.getAttribute('data-location')
+      if (!location) return
+      const locationData = JSON.parse(location)
+      const lineNumber = locationData.ln as number
+      const column = locationData.c as number
+      const endLineNumber = locationData.eln as number
+      this.markupEditor.editor.revealLinesInCenterIfOutsideViewport(
+        lineNumber,
+        endLineNumber
+      )
+      this.markupEditor.editor.setPosition({
+        lineNumber,
+        column
+      })
+      this.markupEditor.editor.focus()
+    })
 
     const outputEditor = document.getElementById('output-editor')!
     this.outputEditor = monaco.editor.create(outputEditor, {
@@ -220,6 +238,17 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           })
           if (attrs['style']) {
             attrs['style'] = css2obj(attrs['style'] as string)
+          }
+          const location = element.__location
+          if (location) {
+            attrs['data-location'] = JSON.stringify({
+              ln: location.line,
+              c: location.col,
+              eln:
+                location.endTag !== undefined
+                  ? location.endTag.line
+                  : location.line
+            })
           }
           return React.createElement.apply(
             null,
