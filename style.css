@@ -10,6 +10,11 @@ body {
   user-select: none;
   cursor: default;
 }
+
+body {
+  overflow: hidden; /* prevent scrolling */
+}
+
 #app {
   display: flex;
   height: 100%;
