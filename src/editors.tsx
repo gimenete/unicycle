@@ -5,21 +5,22 @@ import EventEmitter = require('events')
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as prettier from 'prettier'
 import { SourceMapConsumer } from 'source-map'
-import { throttle } from 'lodash'
-import { SassResult, ObjectStringToString } from './types'
+import { SassResult, ObjectStringToString, ComponentInformation } from './types'
 import { uppercamelcase, toReactAttributeName } from './utils'
-import Typer from './typer'
+import Inspector from './inspector'
+import Editor from './editors/index'
+import MarkupEditor from './editors/markup'
+import StyleEditor from './editors/style'
+import JSONEditor from './editors/json'
+
+import reactGenerator from './generators/react'
 
 import workspace from './workspace'
 import css2obj from './css2obj'
 
-const sass = require('sass.js')
 const postcss = require('postcss')
 const camelcase = require('camelcase')
-
-const CSS_PREFIX = '#previews-markup .preview-content '
 
 const evaluate = (code: string, options: { [index: string]: any }) => {
   const keys: string[] = []
@@ -45,195 +46,13 @@ interface CssObject {
   [index: string]: string | number
 }
 
-interface Message {
-  text: string
-  position: monaco.Position
-  widget?: any
-}
-
-interface MessagesResolver {
-  addMessage(position: monaco.Position, text: string): void
-}
-
-type MessageRunner<T> = (resolve: MessagesResolver) => T
-
-class Editor extends EventEmitter {
-  editor: monaco.editor.IStandaloneCodeEditor
-  oldDecorations: {
-    [index: string]: string[]
-  }
-
-  constructor(
-    file: string,
-    element: HTMLElement,
-    options: monaco.editor.IEditorConstructionOptions
-  ) {
-    super()
-    this.oldDecorations = {}
-    this.editor = monaco.editor.create(
-      element,
-      Object.assign(
-        options,
-        {
-          tabSize: 2,
-          lineNumbers: 'on',
-          scrollBeyondLastLine: false,
-          minimap: { enabled: false },
-          autoIndent: true,
-          theme: 'vs',
-          automaticLayout: true,
-          fontLigatures: false // true
-        } as monaco.editor.IEditorConstructionOptions
-      )
-    )
-    const saveFile = throttle(() => {
-      workspace
-        .writeComponentFile(file, this.editor.getValue())
-        .catch((e: Error) => console.error(e))
-    }, 2000)
-    this.editor.getModel().updateOptions({ tabSize: 2 })
-    this.editor.onDidChangeModelContent(
-      (e: monaco.editor.IModelContentChangedEvent) => {
-        this.update()
-        saveFile()
-      }
-    )
-
-    workspace.on('activeComponent', (name: string) => {
-      workspace
-        .readComponentFile(file)
-        .then(data => {
-          this.editor.setValue(data)
-        })
-        .catch((e: Error) => console.error(e))
-    })
-  }
-
-  calculateMessages<T>(type: string, runner: MessageRunner<T>): T {
-    const messages = new Array<Message>()
-    const returnValue = runner({
-      addMessage(position: monaco.Position, text: string) {
-        messages.push({
-          position,
-          text
-        })
-      }
-    })
-    this.oldDecorations[type] = this.editor.deltaDecorations(
-      this.oldDecorations[type] || [],
-      messages.map(message => {
-        return {
-          range: new monaco.Range(
-            message.position.lineNumber,
-            message.position.column,
-            message.position.lineNumber,
-            message.position.column
-          ),
-          options: {
-            isWholeLine: true,
-            className: type
-          }
-        }
-      })
-    )
-    return returnValue
-  }
-
-  update() {}
-
-  emitUpdate() {
-    this.emit('update')
-  }
-}
-
-class JSONEditor extends Editor {
-  latestJSON: {
-    [index: string]: any
-  } | null
-
-  constructor(element: HTMLElement) {
-    super('data.json', element, {
-      language: 'json'
-    })
-    this.latestJSON = null
-  }
-
-  update() {
-    this.calculateMessages('error', handler => {
-      try {
-        this.latestJSON = JSON.parse(this.editor.getValue())
-        this.emitUpdate()
-      } catch (e) {
-        const index = +e.message.match(/\d+/)
-        const position = this.editor.getModel().getPositionAt(index)
-        handler.addMessage(position, e.message)
-      }
-    })
-  }
-}
-
-class MarkupEditor extends Editor {
-  latestDOM: parse5.AST.Default.DocumentFragment | null
-
-  constructor(element: HTMLElement) {
-    super('index.html', element, {
-      language: 'html'
-    })
-    this.latestDOM = null
-  }
-
-  update() {
-    try {
-      this.latestDOM = parse5.parseFragment(this.editor.getValue(), {
-        locationInfo: true
-      }) as parse5.AST.Default.DocumentFragment
-      this.emitUpdate()
-    } catch (e) {
-      console.error('Wrong HTML', e, Object.keys(e))
-    }
-  }
-}
-
-class StyleEditor extends Editor {
-  lastResult: SassResult
-
-  constructor(element: HTMLElement) {
-    super('styles.scss', element, {
-      language: 'scss'
-    })
-  }
-
-  update() {
-    try {
-      const originalCss = `${CSS_PREFIX}{${this.editor.getValue()}}`
-      sass.compile(originalCss, (result: SassResult) => {
-        this.calculateMessages('error', handler => {
-          if (result.status === 0) {
-            const css = result.text
-            const styleElement = document.getElementById('previews-style')
-            if (styleElement) styleElement.innerHTML = css
-            this.lastResult = result
-            this.emitUpdate()
-          } else {
-            handler.addMessage(
-              new monaco.Position(result.line!, result.column!),
-              result.message!
-            )
-          }
-        })
-      })
-    } catch (e) {
-      console.error('Wrong CSS', e, Object.keys(e))
-    }
-  }
-}
-
 class ComponentEditor extends React.Component<any, any> {
   markupEditor: MarkupEditor
   styleEditor: StyleEditor
   dataEditor: JSONEditor
   editors: Editor[]
   outputEditor: monaco.editor.IStandaloneCodeEditor
+  inspector: Inspector
 
   constructor(props: any) {
     super(props)
@@ -241,6 +60,8 @@ class ComponentEditor extends React.Component<any, any> {
     this.styleEditor = new StyleEditor(document.getElementById('style')!)
     this.dataEditor = new JSONEditor(document.getElementById('state')!)
     this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
+
+    this.inspector = new Inspector()
 
     const outputEditor = document.getElementById('output-editor')!
     this.outputEditor = monaco.editor.create(outputEditor, {
@@ -405,38 +226,60 @@ class ComponentEditor extends React.Component<any, any> {
       const data = this.dataEditor.latestJSON || ({} as any)
       return (
         <div>
-          {Object.keys(data)
-            .filter(key => !key.startsWith('!'))
-            .map((key, i) => {
-              let preview
-              try {
-                preview = (
-                  <div className="preview-content">
-                    {renderNode(data[key], rootNode)}
-                  </div>
-                )
-              } catch (err) {
-                if (!err.handled) console.error(err)
-                preview = (
-                  <div className="pt-callout pt-intent-danger">
-                    <div className="message-body">
-                      <h5>Error</h5>
-                      <p>
-                        {err.message}
-                      </p>
+          <div
+            className="pt-button-group pt-minimal"
+            style={{ float: 'right' }}
+          >
+            <button className="pt-button pt-icon-grid-view" type="button" />
+            <button className="pt-button pt-icon-grid" type="button" />
+            <button className="pt-button pt-icon-locate" type="button" />
+          </div>
+          <div className="pt-button-group pt-minimal">
+            <button className="pt-button pt-icon-comparison" type="button" />
+            <button className="pt-button pt-icon-new-object" type="button" />
+          </div>
+          <style id="previews-style">
+            {this.styleEditor.lastResult.text}
+          </style>
+          <div id="previews-markup">
+            {Object.keys(data)
+              .filter(key => !key.startsWith('!'))
+              .map((key, i) => {
+                let preview
+                try {
+                  preview = (
+                    <div className="preview-content">
+                      {renderNode(data[key], rootNode)}
                     </div>
+                  )
+                } catch (err) {
+                  if (!err.handled) console.error(err)
+                  preview = (
+                    <div className="pt-callout pt-intent-danger">
+                      <div className="message-body">
+                        <h5>Error</h5>
+                        <p>
+                          {err.message}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div className="preview" key={i}>
+                    <p>
+                      <button
+                        className="pt-button pt-minimal pt-active pt-icon-eye-open"
+                        type="button"
+                        style={{ float: 'right', marginTop: -4 }}
+                      />
+                      {key}
+                    </p>
+                    {preview}
                   </div>
                 )
-              }
-              return (
-                <div className="preview" key={i}>
-                  <p>
-                    {key}
-                  </p>
-                  {preview}
-                </div>
-              )
-            })}
+              })}
+          </div>
         </div>
       )
     })
@@ -466,7 +309,7 @@ class ComponentEditor extends React.Component<any, any> {
                   lastMapping.originalColumn
                 ),
                 `Selector '${node.selector.substring(
-                  CSS_PREFIX.length
+                  StyleEditor.CSS_PREFIX.length
                 )}' doesn't match any element`
               )
             }
@@ -479,133 +322,25 @@ class ComponentEditor extends React.Component<any, any> {
   }
 
   generateOutput() {
-    const code = this.generateReact()
-    this.outputEditor.setValue(prettier.format(code, { semi: false }))
-  }
-
-  generateReact(): string {
+    const markup = this.markupEditor.latestDOM
     const data = this.dataEditor.latestJSON
-    if (!data) return ''
-    const keys = Object.values(data).reduce((set: Set<string>, value) => {
-      Object.keys(value).forEach(key => set.add(key))
-      return set
-    }, new Set<string>())
-    const dom = this.markupEditor.latestDOM
-    if (!dom) return ''
-    const typer = new Typer()
-    Object.values(data).forEach(state => typer.addDocument(state))
-
-    const componentName = uppercamelcase(workspace.activeComponent!)
-    let code = `
-  /**
- * This file was generated automatically. Do not change it.
- * Use composition if you want to extend it
- */
-  import React from 'react';
-  import ReactDOM from 'react-dom';
-  import PropTypes from 'prop-types';
-
-  const ${componentName} = (props) => {`
-
-    if (keys.length > 0) {
-      code += `const {${Array.from(keys).join(', ')}} = props;`
+    const name = workspace.activeComponent
+    if (!markup || !data || !name) {
+      this.outputEditor.setValue('')
+      return
     }
 
-    const renderNode = (node: parse5.AST.Default.Node) => {
-      if (node.nodeName === '#text') {
-        const textNode = node as parse5.AST.Default.TextNode
-        return textNode.value
-      }
-      const element = node as parse5.AST.Default.Element
-      if (!element.childNodes) return null
-      const mapping: { [index: string]: string } = { class: 'className' }
-      const toString = () => {
-        let code = `<${node.nodeName}`
-        element.attrs.forEach(attr => {
-          if (attr.name.startsWith(':') || attr.name.startsWith('@')) {
-            return
-          }
-          const name = mapping[attr.name] || attr.name
-          if (name === 'style') {
-            code += ` ${name}={${JSON.stringify(css2obj(attr.value))}}`
-          } else {
-            code += ` ${name}="${attr.value}"`
-          }
-        })
-        element.attrs.forEach(attr => {
-          if (!attr.name.startsWith(':')) return
-          const name = attr.name.substring(1)
-          const expression = attr.value
-          code += ` ${name}={${expression}}`
-        })
-        code += '>'
-        element.childNodes.forEach(node => (code += renderNode(node)))
-        code += `</${node.nodeName}>`
-        return code
-      }
-      let basicMarkup = toString()
-
-      const _if = element.attrs.find(attr => attr.name === '@if')
-      const loop = element.attrs.find(attr => attr.name === '@loop')
-      const as = element.attrs.find(attr => attr.name === '@as')
-      if (loop && as) {
-        basicMarkup = `{(${loop.value}).map((${as.value}, i) => ${basicMarkup})}`
-      }
-      if (_if) {
-        basicMarkup = `{(${_if.value}) && (${basicMarkup})}`
-      }
-      return basicMarkup
-    }
-    code += 'return ' + (dom ? renderNode(dom.childNodes[0]) : '<div/>')
-    code += '}\n'
-    code += typer.createPropTypes(`${componentName}.propTypes`)
-    code += 'export default ' + componentName
-    return code
+    const componentInformation = {
+      name,
+      markup,
+      data
+    } as ComponentInformation
+    const code = reactGenerator(componentInformation)
+    this.outputEditor.setValue(code)
   }
-
-  /*
-  generateVuejs() {
-    let dom = this.markupEditor.latestDOM
-    const manipulateNode = node => {
-      const copy = Object.assign({}, node)
-      if (node.nodeName === '#text') {
-        return Object.assign({}, node, {
-          value: node.value.replace(/{([^}]+)?}/g, str => `{${str}}`)
-        })
-      }
-
-      copy.attrs = node.attrs.map(attr => {
-        if (attr.name === '@if') {
-          return {
-            name: 'v-if',
-            value: attr.value.replace(/state\./g, '')
-          }
-        }
-        return attr
-      })
-      copy.childNodes = node.childNodes.map(manipulateNode)
-      return copy
-    }
-
-    dom = Object.assign({}, { childNodes: manipulateNode(dom.childNodes[0]) })
-
-    const scriptCode = prettier.format(
-      `
-  export default {
-  }
-  `,
-      { semi: false }
-    )
-    let code = `<template>\n${parse5.serialize(dom)}\n</template>\n\n`
-    code += `<script>\n${scriptCode}\n</script>`
-
-    console.log('%c Vuejs component:', 'color: #47B784')
-    console.log(code)
-  }
-  */
 }
 
 ReactDOM.render(
   React.createElement(ComponentEditor, {}),
-  document.getElementById('previews-markup')
+  document.getElementById('previews')
 )

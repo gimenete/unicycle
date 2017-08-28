@@ -37,7 +37,6 @@ body {
 #editors .pt-tabs {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--gray);
   height: 100%;
 }
 #editors .pt-tabs .pt-tab-panel {
@@ -51,8 +50,6 @@ body {
   width: 400px;
 }
 #previews {
-  border-top: 1px solid var(--gray);
-  border-right: 1px solid var(--gray);
   flex-grow: 1;
 }
 
@@ -65,6 +62,9 @@ body {
 }
 
 #previews-markup {
+  border-left: 1px solid var(--gray);
+  border-top: 1px solid var(--gray);
+  border-right: 1px solid var(--gray);
   overflow: auto;
   max-height: 100%;
 }
@@ -132,13 +132,12 @@ input,
 }
 
 #output > div {
-  padding: 10px 4px;
-  padding-top: 0;
+  padding: 0px 4px;
 }
 
 #output-editor {
   /* flex-grow: 1; */
-  height: calc(100vh - 120px);
+  height: calc(100vh - 100px);
 }
 
 #editors .pt-tab-panel[aria-hidden="true"] {

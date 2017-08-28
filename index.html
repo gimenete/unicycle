@@ -35,8 +35,6 @@
         </div>
       </div>
       <div id="previews">
-        <style id="previews-style"></style>
-        <div id="previews-markup"></div>
       </div>
       <div id="output">
         <div>
@@ -97,74 +95,6 @@
     self.process.browser = true
     amdRequire(['vs/editor/editor.main'], function () {
       nodeRequire('./lib/renderer.js')
-    })
-  </script>
-  <script>
-    const overlay = document.createElement('div')
-    overlay.style.backgroundColor = 'gray'
-    overlay.style.opacity = 0.2
-    overlay.style.pointerEvents = 'none'
-    overlay.style.position = 'absolute'
-    overlay.style.transition = 'transition: all 0.5s ease-out'
-    overlay.style.zIndex = 2147483647
-
-    const innerOverlay = document.createElement('div')
-    innerOverlay.style.width = '10px'
-    innerOverlay.style.height = '10px'
-    innerOverlay.style.backgroundColor = 'black'
-
-    overlay.appendChild(innerOverlay)
-    document.body.appendChild(overlay)
-
-    let clicked = false
-    document.addEventListener('click', (e) => {
-      clicked = true
-      const rect = e.target.getBoundingClientRect()
-      console.log('...', rect)
-      const computed = window.getComputedStyle(e.target)
-
-      const paddingLeft = parseFloat(computed.paddingLeft)
-      const paddingRight = parseFloat(computed.paddingRight)
-      const paddingTop = parseFloat(computed.paddingTop)
-      const paddingBottom = parseFloat(computed.paddingBottom)
-
-      const marginLeft = parseFloat(computed.marginLeft)
-      const marginRight = parseFloat(computed.marginRight)
-      const marginTop = parseFloat(computed.marginTop)
-      const marginBottom = parseFloat(computed.marginBottom)
-
-      console.log(paddingTop, marginTop)
-      console.log((rect.top - marginTop) + 'px')
-    })
-
-    document.addEventListener('mousemove', (e) => {
-      if (clicked) return
-      const computed = window.getComputedStyle(e.target)
-      const rect = e.target.getBoundingClientRect()
-
-      const paddingLeft = parseFloat(computed.paddingLeft)
-      const paddingRight = parseFloat(computed.paddingRight)
-      const paddingTop = parseFloat(computed.paddingTop)
-      const paddingBottom = parseFloat(computed.paddingBottom)
-
-      const marginLeft = parseFloat(computed.marginLeft)
-      const marginRight = parseFloat(computed.marginRight)
-      const marginTop = parseFloat(computed.marginTop)
-      const marginBottom = parseFloat(computed.marginBottom)
-
-      overlay.style.top = (rect.top - marginTop) + 'px'
-      overlay.style.left = (rect.left - marginLeft) + 'px'
-      overlay.style.width = (rect.width + marginLeft + marginRight) + 'px'
-      overlay.style.height = (rect.height + marginTop + marginBottom) + 'px'
-      overlay.style.borderLeft = `${marginLeft}px solid yellow`
-      overlay.style.borderRight = `${marginRight}px solid yellow`
-      overlay.style.borderTop = `${marginTop}px solid yellow`
-      overlay.style.borderBottom = `${marginBottom}px solid yellow`
-
-      innerOverlay.style.marginLeft = `${paddingLeft}px`
-      innerOverlay.style.marginTop = `${paddingTop}px`
-      innerOverlay.style.width = (rect.width - paddingLeft - paddingRight) + 'px'
-      innerOverlay.style.height = (rect.height - paddingTop - paddingBottom) + 'px'
     })
   </script>
 </body>
