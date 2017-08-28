@@ -3,6 +3,7 @@ import EventEmitter = require('events')
 const parsePixels = (value: string | null) => parseFloat(value || '0')
 
 class Inspector extends EventEmitter {
+  target: HTMLElement
   marginOverlay: HTMLElement
   paddingOverlay: HTMLElement
   inspecting: boolean
@@ -11,7 +12,7 @@ class Inspector extends EventEmitter {
     super()
     this.inspecting = false
 
-    // TODO: window.addEventListener('scroll', () => recalulate overlay position, true)
+    window.addEventListener('scroll', () => this.recalculate(), true)
 
     const marginOverlay = (this.marginOverlay = document.createElement('div'))
     marginOverlay.style.backgroundColor = '#C4DFB8'
@@ -30,20 +31,6 @@ class Inspector extends EventEmitter {
 
     document.addEventListener('click', e => {
       this.stopInspecting()
-
-      const element = e.target as HTMLElement
-      const rect = element.getBoundingClientRect()
-      const computed = window.getComputedStyle(element)
-
-      const paddingLeft = parsePixels(computed.paddingLeft)
-      const paddingRight = parsePixels(computed.paddingRight)
-      const paddingTop = parsePixels(computed.paddingTop)
-      const paddingBottom = parsePixels(computed.paddingBottom)
-
-      const marginLeft = parsePixels(computed.marginLeft)
-      const marginRight = parsePixels(computed.marginRight)
-      const marginTop = parsePixels(computed.marginTop)
-      const marginBottom = parsePixels(computed.marginBottom)
     })
 
     document.addEventListener('mousemove', e => {
@@ -52,35 +39,42 @@ class Inspector extends EventEmitter {
       if (!element.matches('.preview-content *')) {
         return
       }
-      const rect = element.getBoundingClientRect()
-      const computed = window.getComputedStyle(element)
-
-      const paddingLeft = parsePixels(computed.paddingLeft)
-      const paddingRight = parsePixels(computed.paddingRight)
-      const paddingTop = parsePixels(computed.paddingTop)
-      const paddingBottom = parsePixels(computed.paddingBottom)
-
-      const marginLeft = parsePixels(computed.marginLeft)
-      const marginRight = parsePixels(computed.marginRight)
-      const marginTop = parsePixels(computed.marginTop)
-      const marginBottom = parsePixels(computed.marginBottom)
-
-      marginOverlay.style.top = rect.top - marginTop + 'px'
-      marginOverlay.style.left = rect.left - marginLeft + 'px'
-      marginOverlay.style.width = rect.width + marginLeft + marginRight + 'px'
-      marginOverlay.style.height = rect.height + marginTop + marginBottom + 'px'
-      marginOverlay.style.borderLeft = `${marginLeft}px solid #F9CC9D`
-      marginOverlay.style.borderRight = `${marginRight}px solid #F9CC9D`
-      marginOverlay.style.borderTop = `${marginTop}px solid #F9CC9D`
-      marginOverlay.style.borderBottom = `${marginBottom}px solid #F9CC9D`
-
-      paddingOverlay.style.marginLeft = `${paddingLeft}px`
-      paddingOverlay.style.marginTop = `${paddingTop}px`
-      paddingOverlay.style.width =
-        rect.width - paddingLeft - paddingRight + 'px'
-      paddingOverlay.style.height =
-        rect.height - paddingTop - paddingBottom + 'px'
+      this.target = element
+      this.recalculate()
     })
+  }
+
+  recalculate() {
+    if (!this.target) return
+
+    const { marginOverlay, paddingOverlay } = this
+    const rect = this.target.getBoundingClientRect()
+    const computed = window.getComputedStyle(this.target)
+
+    const paddingLeft = parsePixels(computed.paddingLeft)
+    const paddingRight = parsePixels(computed.paddingRight)
+    const paddingTop = parsePixels(computed.paddingTop)
+    const paddingBottom = parsePixels(computed.paddingBottom)
+
+    const marginLeft = parsePixels(computed.marginLeft)
+    const marginRight = parsePixels(computed.marginRight)
+    const marginTop = parsePixels(computed.marginTop)
+    const marginBottom = parsePixels(computed.marginBottom)
+
+    marginOverlay.style.top = rect.top - marginTop + 'px'
+    marginOverlay.style.left = rect.left - marginLeft + 'px'
+    marginOverlay.style.width = rect.width + marginLeft + marginRight + 'px'
+    marginOverlay.style.height = rect.height + marginTop + marginBottom + 'px'
+    marginOverlay.style.borderLeft = `${marginLeft}px solid #F9CC9D`
+    marginOverlay.style.borderRight = `${marginRight}px solid #F9CC9D`
+    marginOverlay.style.borderTop = `${marginTop}px solid #F9CC9D`
+    marginOverlay.style.borderBottom = `${marginBottom}px solid #F9CC9D`
+
+    paddingOverlay.style.marginLeft = `${paddingLeft}px`
+    paddingOverlay.style.marginTop = `${paddingTop}px`
+    paddingOverlay.style.width = rect.width - paddingLeft - paddingRight + 'px'
+    paddingOverlay.style.height =
+      rect.height - paddingTop - paddingBottom + 'px'
   }
 
   startInspecting() {
