@@ -79,6 +79,7 @@ body {
   border-right: 1px solid var(--gray);
   overflow: auto;
   max-height: 100%;
+  height: calc(100% - 30px);
 }
 
 #previews-markup .preview > p {
