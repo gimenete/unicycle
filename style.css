@@ -65,6 +65,10 @@ body {
   background-color: #ffc940;
 }
 
+.monaco-editor .inspector {
+  background-color: #a0c6e8;
+}
+
 #previews-markup {
   border-left: 1px solid var(--gray);
   border-right: 1px solid var(--gray);

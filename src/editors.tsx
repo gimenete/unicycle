@@ -4,9 +4,8 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { SourceMapConsumer } from 'source-map'
 import { ObjectStringToString, ComponentInformation } from './types'
-import { uppercamelcase, toReactAttributeName } from './utils'
+import { toReactAttributeName } from './utils'
 import Inspector from './inspector'
 import Editor from './editors/index'
 import MarkupEditor from './editors/markup'
@@ -18,7 +17,6 @@ import reactGenerator from './generators/react'
 import workspace from './workspace'
 import css2obj from './css2obj'
 
-const postcss = require('postcss')
 const camelcase = require('camelcase')
 
 const evaluate = (code: string, options: { [index: string]: any }) => {
@@ -83,6 +81,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         column
       })
       this.markupEditor.editor.focus()
+
+      this.styleEditor.calculateMessages('inspector', handler => {
+        this.styleEditor.iterateSelectors(info => {
+          if (element.matches(info.selector)) {
+            handler.addMessage(
+              new monaco.Position(
+                info.mapping.originalLine,
+                info.mapping.originalColumn
+              ),
+              ''
+            )
+          }
+        })
+      })
     })
 
     const outputEditor = document.getElementById('output-editor')!
@@ -350,31 +362,15 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   componentDidUpdate() {
     try {
       this.styleEditor.calculateMessages('warning', handler => {
-        const result = this.styleEditor.lastResult
-        if (!result.text) return
-        const ast = postcss.parse(result.text)
-        const smc = new SourceMapConsumer(result.map)
-        ast.nodes.forEach((node: any) => {
-          if (!node.selector) return
-          const generatedPosition = node.source.start
-          let lastMapping: any = null
-          smc.eachMapping(m => {
-            if (m.generatedLine === generatedPosition.line) {
-              lastMapping = m
-            }
-          })
-          if (lastMapping) {
-            if (!document.querySelector(node.selector)) {
-              handler.addMessage(
-                new monaco.Position(
-                  lastMapping.originalLine,
-                  lastMapping.originalColumn
-                ),
-                `Selector '${node.selector.substring(
-                  StyleEditor.CSS_PREFIX.length
-                )}' doesn't match any element`
-              )
-            }
+        this.styleEditor.iterateSelectors(info => {
+          if (!document.querySelector(info.selector)) {
+            handler.addMessage(
+              new monaco.Position(
+                info.mapping.originalLine,
+                info.mapping.originalColumn
+              ),
+              `Selector '${info.originalSelector}' doesn't match any element`
+            )
           }
         })
       })
