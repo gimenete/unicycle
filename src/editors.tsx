@@ -45,7 +45,12 @@ interface CssObject {
   [index: string]: string | number
 }
 
-class ComponentEditor extends React.Component<any, any> {
+interface ComponentEditorState {
+  inspecting: boolean
+  showGrid: boolean
+}
+
+class ComponentEditor extends React.Component<any, ComponentEditorState> {
   markupEditor: MarkupEditor
   styleEditor: StyleEditor
   dataEditor: JSONEditor
@@ -124,6 +129,20 @@ class ComponentEditor extends React.Component<any, any> {
         selectEditor(i)
       })
       tab.addEventListener('click', () => selectEditor(i))
+    })
+
+    this.state = {
+      inspecting: false,
+      showGrid: false
+    }
+  }
+
+  toggleInspecting() {
+    this.state.inspecting
+      ? this.inspector.stopInspecting()
+      : this.inspector.startInspecting()
+    this.setState({
+      inspecting: !this.state.inspecting
     })
   }
 
@@ -229,18 +248,33 @@ class ComponentEditor extends React.Component<any, any> {
             className="pt-button-group pt-minimal"
             style={{ float: 'right' }}
           >
-            <button className="pt-button pt-icon-grid-view" type="button" />
             <button className="pt-button pt-icon-grid" type="button" />
-            <button className="pt-button pt-icon-locate" type="button" />
+            <button
+              className={`pt-button pt-icon-grid-view ${this.state.showGrid
+                ? 'pt-active'
+                : ''}`}
+              type="button"
+              onClick={() => this.setState({ showGrid: !this.state.showGrid })}
+            />
+            <button
+              className={`pt-button pt-icon-locate ${this.state.inspecting
+                ? 'pt-active'
+                : ''}`}
+              type="button"
+              onClick={() => this.toggleInspecting()}
+            />
           </div>
           <div className="pt-button-group pt-minimal">
             <button className="pt-button pt-icon-comparison" type="button" />
             <button className="pt-button pt-icon-new-object" type="button" />
           </div>
-          <style id="previews-style">
+          <style>
             {this.styleEditor.lastResult.text}
           </style>
-          <div id="previews-markup">
+          <div
+            id="previews-markup"
+            className={this.state.showGrid ? 'show-grid' : ''}
+          >
             {Object.keys(data)
               .filter(key => !key.startsWith('!'))
               .map((key, i) => {

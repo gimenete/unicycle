@@ -2,6 +2,10 @@ import path = require('path')
 import workspace from './workspace'
 import { isPackaged } from './utils'
 
+import { FocusStyleManager } from '@blueprintjs/core'
+
+FocusStyleManager.onlyShowFocusOnTabs()
+
 if (isPackaged()) {
   const navbar = document.getElementById('navbar')
   if (navbar) {

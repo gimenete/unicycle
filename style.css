@@ -53,6 +53,10 @@ body {
   flex-grow: 1;
 }
 
+#previews > div {
+  height: 100%;
+}
+
 .monaco-editor .error {
   background-color: #ff7373;
 }
@@ -63,7 +67,6 @@ body {
 
 #previews-markup {
   border-left: 1px solid var(--gray);
-  border-top: 1px solid var(--gray);
   border-right: 1px solid var(--gray);
   overflow: auto;
   max-height: 100%;
@@ -71,7 +74,9 @@ body {
 
 #previews-markup .preview > p {
   font-size: 12px;
-
+  margin: 0;
+  border-top: 1px solid var(--gray);
+  border-bottom: 1px solid var(--gray);
   background-color: whitesmoke;
   border-radius: 3px 3px 0 0;
   color: #363636;
@@ -83,10 +88,14 @@ body {
 
 #previews-markup .preview .preview-content {
   all: initial;
-  margin: 20px;
+  padding: 20px;
   display: flex;
   justify-content: space-around;
-  /* background: url('./preview-background.png'); */
+}
+
+#previews-markup.show-grid .preview .preview-content {
+  background: url('./grid.png');
+  background-size: 16px 16px;
 }
 
 body {
