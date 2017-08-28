@@ -1,12 +1,11 @@
 /// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
 /// <reference path='../node_modules/@types/mousetrap/index.d.ts' />
 
-import EventEmitter = require('events')
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { SourceMapConsumer } from 'source-map'
-import { SassResult, ObjectStringToString, ComponentInformation } from './types'
+import { ObjectStringToString, ComponentInformation } from './types'
 import { uppercamelcase, toReactAttributeName } from './utils'
 import Inspector from './inspector'
 import Editor from './editors/index'
