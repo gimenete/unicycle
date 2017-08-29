@@ -33,7 +33,6 @@ class Editor extends EventEmitter {
       Object.assign(
         options,
         {
-          tabSize: 2,
           lineNumbers: 'on',
           scrollBeyondLastLine: false,
           minimap: { enabled: false },
@@ -101,6 +100,11 @@ class Editor extends EventEmitter {
 
   emitUpdate() {
     this.emit('update')
+  }
+
+  scrollDown() {
+    const lines = this.editor.getModel().getLineCount()
+    this.editor.revealLine(lines)
   }
 }
 

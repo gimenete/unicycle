@@ -4,6 +4,8 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import { Popover, Position } from '@blueprintjs/core'
+
 import { ObjectStringToString, ComponentInformation } from './types'
 import { toReactAttributeName } from './utils'
 import Inspector from './inspector'
@@ -46,6 +48,8 @@ interface CssObject {
 interface ComponentEditorState {
   inspecting: boolean
   showGrid: boolean
+  newStateIsOpen: boolean
+  newStateName: string
 }
 
 class ComponentEditor extends React.Component<any, ComponentEditorState> {
@@ -55,6 +59,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   editors: Editor[]
   outputEditor: monaco.editor.IStandaloneCodeEditor
   inspector: Inspector
+  tabs: Element[]
+  panels: Element[]
 
   constructor(props: any) {
     super(props)
@@ -114,7 +120,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_1],
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run: () => selectEditor(0)
+        run: () => this.selectEditor(0)
       },
       {
         id: 'switch-style-editor',
@@ -122,7 +128,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_2],
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run: () => selectEditor(1)
+        run: () => this.selectEditor(1)
       },
       {
         id: 'switch-states-editor',
@@ -130,7 +136,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_3],
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
-        run: () => selectEditor(2)
+        run: () => this.selectEditor(2)
       }
     ]
 
@@ -140,31 +146,35 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       actions.forEach(action => editor.editor.addAction(action))
     })
 
-    const tabs = Array.from(document.querySelectorAll('#editors .pt-tabs li'))
-    const panels = Array.from(
+    const tabs = (this.tabs = Array.from(
+      document.querySelectorAll('#editors .pt-tabs li')
+    ))
+    const panels = (this.panels = Array.from(
       document.querySelectorAll('#editors .pt-tabs .pt-tab-panel')
-    )
-
-    const selectEditor = (index: number) => {
-      tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'))
-      panels.forEach(panel => panel.setAttribute('aria-hidden', 'true'))
-
-      tabs[index].setAttribute('aria-selected', 'true')
-      panels[index].setAttribute('aria-hidden', 'false')
-      this.editors[index].editor.focus()
-    }
+    ))
 
     tabs.forEach((tab, i) => {
       Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
-        selectEditor(i)
+        this.selectEditor(i)
       })
-      tab.addEventListener('click', () => selectEditor(i))
+      tab.addEventListener('click', () => this.selectEditor(i))
     })
 
     this.state = {
       inspecting: false,
-      showGrid: false
+      showGrid: false,
+      newStateIsOpen: false,
+      newStateName: ''
     }
+  }
+
+  selectEditor(index: number) {
+    this.tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'))
+    this.panels.forEach(panel => panel.setAttribute('aria-hidden', 'true'))
+
+    this.tabs[index].setAttribute('aria-selected', 'true')
+    this.panels[index].setAttribute('aria-hidden', 'false')
+    this.editors[index].editor.focus()
   }
 
   toggleInspecting() {
@@ -307,7 +317,42 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           </div>
           <div className="pt-button-group pt-minimal">
             <button className="pt-button pt-icon-comparison" type="button" />
-            <button className="pt-button pt-icon-new-object" type="button" />
+            <Popover
+              position={Position.BOTTOM}
+              isOpen={this.state.newStateIsOpen}
+              isModal
+              onInteraction={interaction =>
+                !interaction && this.setState({ newStateIsOpen: false })}
+            >
+              <button
+                className="pt-button pt-icon-new-object"
+                type="button"
+                onClick={() =>
+                  this.setState({ newStateIsOpen: !this.state.newStateIsOpen })}
+              />
+              <div style={{ padding: 10 }}>
+                <input
+                  type="text"
+                  className="pt-input"
+                  placeholder="New state"
+                  autoFocus
+                  value={this.state.newStateName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    this.setState({ newStateName: e.target.value })}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key === 'Escape')
+                      this.setState({ newStateIsOpen: false })
+                  }}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key !== 'Enter') return
+                    this.dataEditor.addState(this.state.newStateName)
+                    this.setState({ newStateName: '', newStateIsOpen: false })
+                    this.selectEditor(2)
+                    this.dataEditor.scrollDown()
+                  }}
+                />
+              </div>
+            </Popover>
           </div>
           <style>
             {this.styleEditor.lastResult.text}

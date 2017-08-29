@@ -24,6 +24,18 @@ class JSONEditor extends Editor {
       }
     })
   }
+
+  addState(name: string) {
+    const str = this.editor.getValue()
+    try {
+      const data = JSON.parse(str)
+      const currentValues = Object.values(data)
+      data[name] = currentValues[currentValues.length - 1] || {}
+      this.editor.setValue(JSON.stringify(data, null, 2))
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }
 
 export default JSONEditor
