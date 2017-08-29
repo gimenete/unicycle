@@ -61,6 +61,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   inspector: Inspector
   tabs: Element[]
   panels: Element[]
+  scrollDown: boolean
 
   constructor(props: any) {
     super(props)
@@ -345,10 +346,18 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                   }}
                   onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
                     if (e.key !== 'Enter') return
+                    const lines = this.dataEditor.editor
+                      .getModel()
+                      .getLineCount()
                     this.dataEditor.addState(this.state.newStateName)
                     this.setState({ newStateName: '', newStateIsOpen: false })
                     this.selectEditor(2)
                     this.dataEditor.scrollDown()
+                    this.dataEditor.editor.setPosition({
+                      lineNumber: lines,
+                      column: 3
+                    })
+                    this.scrollDown = true
                   }}
                 />
               </div>
@@ -421,6 +430,11 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       })
     } catch (e) {
       console.error(e)
+    }
+    if (this.scrollDown) {
+      this.scrollDown = false
+      const previews = document.querySelector('#previews-markup')!
+      previews.scrollTop = previews.scrollHeight
     }
   }
 
