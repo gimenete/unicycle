@@ -78,8 +78,15 @@ const ${componentName} = (props) => {`
     return basicMarkup
   }
   code += 'return ' + renderNode(markup.childNodes[0])
-  code += '}\n'
+  code += '}\n\n'
   code += typer.createPropTypes(`${componentName}.propTypes`)
+  code += '\n\n'
+  const defaultState = Object.values(data).find(state => state.id === 'default')
+  if (defaultState) {
+    code += `${componentName}.defaultProps = ${JSON.stringify(
+      defaultState.props
+    )}\n\n`
+  }
   code += 'export default ' + componentName
   return prettier.format(code, { semi: false })
 }

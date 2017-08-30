@@ -245,7 +245,7 @@ class Typer {
     return prettier.format(
       [nullValidator, undefinedValidator, `${initialCode} = ${code}`]
         .filter(Boolean)
-        .join(';'),
+        .join(';\n\n'),
       { semi: false }
     )
   }
