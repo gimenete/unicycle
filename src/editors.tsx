@@ -289,7 +289,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             )
             err.handled = true
           }
-          throw err
+          return (
+            <div
+              style={{
+                display: 'inline-block',
+                color: '#444',
+                backgroundColor: 'rgba(219, 55, 55, 0.15)',
+                padding: '3px 10px',
+                fontSize: 14,
+                fontWeight: 'bold'
+              }}
+            >
+              <span style={{ color: '#c23030' }}>Error</span>: {err.message}
+            </div>
+          )
         }
       }
 
