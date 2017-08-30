@@ -96,6 +96,24 @@ body {
   padding: 0.5em 0.75em;
 }
 
+#previews-markup .preview-bar {
+  float: right;
+  margin-top: -4px;
+  font-size: 14px;
+}
+
+#previews-markup .preview-bar > * {
+  margin-left: 10px;
+}
+
+#previews-markup .preview-bar .pt-icon-error {
+  color: #c23030;
+}
+
+#previews-markup .preview-bar .pt-icon-error::before {
+  margin-right: 5px;
+}
+
 #previews-markup .preview .preview-content {
   all: initial;
   padding: 20px;

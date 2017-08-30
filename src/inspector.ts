@@ -30,7 +30,7 @@ class Inspector extends EventEmitter {
     document.body.appendChild(marginOverlay)
 
     document.addEventListener('click', e => {
-      if (!this.target) return
+      if (this.target !== e.target) return
       this.emit('inspect', { target: this.target })
     })
 

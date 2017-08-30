@@ -6,7 +6,12 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Popover, Position } from '@blueprintjs/core'
 
-import { ObjectStringToString, ComponentInformation, States } from './types'
+import {
+  ObjectStringToString,
+  ComponentInformation,
+  State,
+  States
+} from './types'
 import { toReactAttributeName } from './utils'
 import Inspector from './inspector'
 import Editor from './editors/index'
@@ -187,6 +192,13 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     })
   }
 
+  toggleHiddenState(state: State) {
+    state.hidden = !state.hidden
+    this.dataEditor.editor.setValue(
+      JSON.stringify(this.dataEditor.latestJSON, null, 2)
+    )
+  }
+
   render(): JSX.Element | null {
     this.generateOutput()
 
@@ -196,6 +208,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     if (!rootNode) return <div />
 
     return this.markupEditor.calculateMessages('error', handler => {
+      let errors = 0
       const renderNode = (
         data: {},
         node: parse5.AST.Default.Node,
@@ -288,6 +301,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               err.message
             )
             err.handled = true
+            errors++
           }
           return (
             <div
@@ -386,37 +400,32 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             {Object.keys(data)
               .filter(key => !key.startsWith('!'))
               .map((key, i) => {
-                let preview
-                try {
-                  preview = (
-                    <div className="preview-content">
-                      {renderNode(data[key].props, rootNode)}
-                    </div>
-                  )
-                } catch (err) {
-                  if (!err.handled) console.error(err)
-                  preview = (
-                    <div className="pt-callout pt-intent-danger">
-                      <div className="message-body">
-                        <h5>Error</h5>
-                        <p>
-                          {err.message}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                }
+                const state = data[key]
+                const hiddenClass = state.hidden ? '' : 'pt-active'
+                errors = 0
+                const preview = renderNode(state.props, rootNode)
                 return (
                   <div className="preview" key={i}>
                     <p>
-                      <button
-                        className="pt-button pt-minimal pt-active pt-icon-eye-open"
-                        type="button"
-                        style={{ float: 'right', marginTop: -4 }}
-                      />
+                      <span className="preview-bar">
+                        {errors > 0 &&
+                          <span className="pt-icon-error">
+                            {errors}
+                          </span>}
+                        <button
+                          className={`pt-button pt-minimal pt-icon-eye-open ${hiddenClass}`}
+                          type="button"
+                          onClick={() => this.toggleHiddenState(state)}
+                        />
+                      </span>
                       {key}
                     </p>
-                    {preview}
+                    <div
+                      className="preview-content"
+                      style={{ display: state.hidden ? 'none' : 'block' }}
+                    >
+                      {preview}
+                    </div>
                   </div>
                 )
               })}
