@@ -39,25 +39,26 @@ const ${componentName} = (props) => {`
     }
     const element = node as parse5.AST.Default.Element
     if (!element.childNodes) return null
-    const mapping: { [index: string]: string } = { class: 'className' }
     const toString = () => {
       let code = `<${node.nodeName}`
       element.attrs.forEach(attr => {
         if (attr.name.startsWith(':') || attr.name.startsWith('@')) {
           return
         }
-        const name = mapping[attr.name] || attr.name
+        const name = toReactAttributeName(attr.name)
         if (name === 'style') {
           code += ` ${name}={${JSON.stringify(css2obj(attr.value))}}`
-        } else {
+        } else if (name) {
           code += ` ${name}="${attr.value}"`
         }
       })
       element.attrs.forEach(attr => {
         if (!attr.name.startsWith(':')) return
-        const name = attr.name.substring(1)
-        const expression = attr.value
-        code += ` ${name}={${expression}}`
+        const name = toReactAttributeName(attr.name.substring(1))
+        if (name) {
+          const expression = attr.value
+          code += ` ${name}={${expression}}`
+        }
       })
       code += '>'
       element.childNodes.forEach(node => (code += renderNode(node)))
@@ -88,7 +89,13 @@ const ${componentName} = (props) => {`
     )}\n\n`
   }
   code += 'export default ' + componentName
-  return prettier.format(code, { semi: false })
+  try {
+    return prettier.format(code, { semi: false })
+  } catch (err) {
+    console.log('code', code)
+    console.error(err)
+    return ''
+  }
 }
 
 export default generateReact

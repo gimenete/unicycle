@@ -48,15 +48,19 @@ monaco.languages.registerCompletionItemProvider('html', {
       return [
         {
           label: '@if',
-          kind: monaco.languages.CompletionItemKind.Function,
+          kind: monaco.languages.CompletionItemKind.Snippet,
           detail: 'Conditional rendering',
-          insertText: 'if=""'
+          insertText: {
+            value: 'if="$1"$2'
+          }
         },
         {
           label: '@loop',
-          kind: monaco.languages.CompletionItemKind.Function,
+          kind: monaco.languages.CompletionItemKind.Snippet,
           detail: 'Loop a collection',
-          insertText: 'loop="" @as=""'
+          insertText: {
+            value: 'loop="$1" @as="$2"$3'
+          }
         }
       ]
     }

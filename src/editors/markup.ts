@@ -19,7 +19,8 @@ class MarkupEditor extends Editor {
       }) as parse5.AST.Default.DocumentFragment
       this.emitUpdate()
     } catch (e) {
-      console.error('Wrong HTML', e, Object.keys(e))
+      if (e.name === 'SyntaxError') return // TODO: show error in editor
+      console.error(e)
     }
   }
 }
