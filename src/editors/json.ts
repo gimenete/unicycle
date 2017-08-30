@@ -35,6 +35,7 @@ class JSONEditor extends Editor {
         ? Object.assign({}, oldValue)
         : { props: {} }
       delete newValue.hidden
+      delete newValue.id
       data[name] = newValue
       this.editor.setValue(JSON.stringify(data, null, 2))
     } catch (e) {
