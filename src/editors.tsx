@@ -24,7 +24,45 @@ import reactGenerator from './generators/react'
 import workspace from './workspace'
 import css2obj from './css2obj'
 
-const camelcase = require('camelcase')
+monaco.languages.registerCompletionItemProvider('html', {
+  provideCompletionItems: (model, position) => {
+    const previousAndCurrentLine = model.getValueInRange({
+      startLineNumber: 1,
+      startColumn: 1,
+      endLineNumber: position.lineNumber + 1,
+      endColumn: 1
+    })
+    const currentLine = model.getLineContent(position.lineNumber)
+    const tokens = monaco.editor.tokenize(previousAndCurrentLine, 'html')
+    const currentLineTokens = tokens[tokens.length - 2]
+    const currentToken = currentLineTokens.reduce((lastToken, token) => {
+      return token.offset < position.column ? token : lastToken
+    })
+    const index = currentLineTokens.indexOf(currentToken)
+    const nextToken = currentLineTokens[index + 1]
+    const tokenValue = currentLine.substring(
+      currentToken.offset,
+      nextToken ? nextToken.offset : currentLine.length
+    )
+    if (tokenValue.endsWith(' @')) {
+      return [
+        {
+          label: '@if',
+          kind: monaco.languages.CompletionItemKind.Function,
+          detail: 'Conditional rendering',
+          insertText: 'if=""'
+        },
+        {
+          label: '@loop',
+          kind: monaco.languages.CompletionItemKind.Function,
+          detail: 'Loop a collection',
+          insertText: 'loop="" @as=""'
+        }
+      ]
+    }
+    return []
+  }
+})
 
 const evaluate = (code: string, options: { [index: string]: any }) => {
   const keys: string[] = []
