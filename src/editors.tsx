@@ -348,7 +348,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             errors++
           }
           return (
-            <div
+            <span
               style={{
                 display: 'inline-block',
                 color: '#444',
@@ -362,7 +362,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               }
             >
               <span style={{ color: '#c23030' }}>Error:</span> {err.message}
-            </div>
+            </span>
           )
         }
       }
