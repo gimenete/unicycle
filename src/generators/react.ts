@@ -133,10 +133,10 @@ const ${componentName} = (props) => {`
       eventHandlers.get(key)
     )
     if (requiredEventHandlers.length > 0) {
-      code += `${componentName}.defaultProps = Object.assign(${JSON.stringify(
+      code += `const noop = () => {}; ${componentName}.defaultProps = Object.assign(${JSON.stringify(
         props
       )}, {${requiredEventHandlers
-        .map(key => `"${key}": () => {}`)
+        .map(key => `"${key}": noop`)
         .join(',')}})\n\n`
     } else {
       code += `${componentName}.defaultProps = ${JSON.stringify(props)}\n\n`
