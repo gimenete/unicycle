@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 
 import sketch from './sketch'
+import { States } from './types'
 
 const pify = require('pify')
 const readFile = pify(fs.readFile)
@@ -46,7 +47,11 @@ class Workspace extends EventEmitter {
           markup: '<div>\n  \n</div>',
           style: ''
         }
-    const initialState = JSON.stringify({ 'Some state': {} }, null, 2)
+    const initialState = JSON.stringify(
+      { 'Some state': { props: {} } } as States,
+      null,
+      2
+    )
     await mkdir(path.join(this.dir, 'components', name))
     await Promise.all([
       this.writeFile(

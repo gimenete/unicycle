@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Popover, Position } from '@blueprintjs/core'
 
-import { ObjectStringToString, ComponentInformation } from './types'
+import { ObjectStringToString, ComponentInformation, States } from './types'
 import { toReactAttributeName } from './utils'
 import Inspector from './inspector'
 import Editor from './editors/index'
@@ -300,13 +300,13 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 fontWeight: 'bold'
               }}
             >
-              <span style={{ color: '#c23030' }}>Error</span>: {err.message}
+              <span style={{ color: '#c23030' }}>Error:</span> {err.message}
             </div>
           )
         }
       }
 
-      const data = this.dataEditor.latestJSON || ({} as any)
+      const data = this.dataEditor.latestJSON || ({} as States)
       return (
         <div>
           <div
@@ -390,7 +390,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 try {
                   preview = (
                     <div className="preview-content">
-                      {renderNode(data[key], rootNode)}
+                      {renderNode(data[key].props, rootNode)}
                     </div>
                   )
                 } catch (err) {

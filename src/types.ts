@@ -9,8 +9,14 @@ export interface SassResult {
   map: sourceMap.RawSourceMap
 }
 
+export interface State {
+  id?: string
+  hidden?: boolean
+  props: { [index: string]: any }
+}
+
 export interface States {
-  [index: string]: any
+  [index: string]: State
 }
 
 export interface ComponentInformation {

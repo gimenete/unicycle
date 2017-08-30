@@ -10,11 +10,11 @@ const generateReact = (information: ComponentInformation): string => {
   const { data, markup } = information
 
   const keys = Object.values(data).reduce((set: Set<string>, value) => {
-    Object.keys(value).forEach(key => set.add(key))
+    Object.keys(value.props).forEach(key => set.add(key))
     return set
   }, new Set<string>())
   const typer = new Typer()
-  Object.values(data).forEach(state => typer.addDocument(state))
+  Object.values(data).forEach(state => typer.addDocument(state.props))
 
   const componentName = uppercamelcase(information.name)
   let code = `
@@ -28,7 +28,7 @@ import PropTypes from 'prop-types';
 
 const ${componentName} = (props) => {`
 
-  if (keys.length > 0) {
+  if (keys.size > 0) {
     code += `const {${Array.from(keys).join(', ')}} = props;`
   }
 
