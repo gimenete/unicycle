@@ -300,11 +300,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           )
           const attrs: ReactAttributes = element.attrs
             .filter(
-              attr =>
-                !attr.name.startsWith(':') &&
-                !attr.name.startsWith('@') &&
-                attr.name !== 'dangerouslySetInnerHTML' &&
-                attr.name !== 'xlink'
+              attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
             )
             .reduce((obj, attr) => {
               const name = toReactAttributeName(attr.name)

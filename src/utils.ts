@@ -393,6 +393,9 @@ const validAttributes = new Set([
   'yChannelSelector',
   'z',
   'zoomAndPan'
+
+  // TODO: allow?
+  // 'dangerouslySetInnerHTML'
 ])
 
 export function isPackaged() {
@@ -410,8 +413,9 @@ const mapping: ObjectStringToString = {
   tabindex: 'tabIndex'
 }
 export function toReactAttributeName(name: string): string | null {
-  if (name.startsWith('aria-') || name.startsWith('data-'))
+  if (name.startsWith('aria-') || name.startsWith('data-')) {
     return name.toLowerCase()
+  }
   const rname = camelcase(mapping[name] || name)
   return validAttributes.has(rname) ? rname : null
 }
