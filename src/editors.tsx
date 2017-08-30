@@ -214,6 +214,15 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         node: parse5.AST.Default.Node,
         key?: string | number
       ): React.ReactNode => {
+        const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
+          JSON.stringify({
+            ln: location.line,
+            c: location.col,
+            eln:
+              location.endTag !== undefined
+                ? location.endTag.line
+                : location.line
+          })
         try {
           if (node.nodeName === '#text') {
             const textNode = node as parse5.AST.Default.TextNode
@@ -277,14 +286,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           }
           const location = element.__location
           if (location) {
-            attrs['data-location'] = JSON.stringify({
-              ln: location.line,
-              c: location.col,
-              eln:
-                location.endTag !== undefined
-                  ? location.endTag.line
-                  : location.line
-            })
+            attrs['data-location'] = locationJSON(location)
           }
           return React.createElement.apply(
             null,
@@ -313,6 +315,9 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 fontSize: 14,
                 fontWeight: 'bold'
               }}
+              data-location={
+                element.__location && locationJSON(element.__location)
+              }
             >
               <span style={{ color: '#c23030' }}>Error:</span> {err.message}
             </div>
