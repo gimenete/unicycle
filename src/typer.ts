@@ -83,6 +83,11 @@ class Typer {
     this.calculateType('', doc)
   }
 
+  addRootField(keyPath: string, type: string, required: boolean) {
+    this.keypaths[''].object[keyPath] = required
+    this.keypaths[keyPath] = { [type]: {} }
+  }
+
   createAST(prefix: string) {
     this.prefix = prefix
     this.interfaces = []
