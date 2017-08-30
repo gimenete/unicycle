@@ -1,6 +1,6 @@
 import Editor from './'
 
-import { States } from '../types'
+import { State, States } from '../types'
 
 class JSONEditor extends Editor {
   latestJSON: States | null
@@ -28,9 +28,14 @@ class JSONEditor extends Editor {
   addState(name: string) {
     const str = this.editor.getValue()
     try {
-      const data = JSON.parse(str)
+      const data = JSON.parse(str) as States
       const currentValues = Object.values(data)
-      data[name] = currentValues[currentValues.length - 1] || {}
+      const oldValue = currentValues[currentValues.length - 1] as State
+      const newValue: State = oldValue
+        ? Object.assign({}, oldValue)
+        : { props: {} }
+      delete newValue.hidden
+      data[name] = newValue
       this.editor.setValue(JSON.stringify(data, null, 2))
     } catch (e) {
       console.error(e)
