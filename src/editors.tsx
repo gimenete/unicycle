@@ -308,7 +308,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               style={{
                 display: 'inline-block',
                 color: '#444',
-                backgroundColor: 'rgba(219, 55, 55, 0.15)',
+                backgroundColor: '#FAE1E1',
                 padding: '3px 10px',
                 fontSize: 14,
                 fontWeight: 'bold'
