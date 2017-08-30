@@ -398,6 +398,81 @@ const validAttributes = new Set([
   // 'dangerouslySetInnerHTML'
 ])
 
+// See: https://facebook.github.io/react/docs/events.html
+const validEventNames = [
+  'onCopy',
+  'onCut',
+  'onPaste',
+  'onCompositionEnd',
+  'onCompositionStart',
+  'onCompositionUpdate',
+  'onKeyDown',
+  'onKeyPress',
+  'onKeyUp',
+  'onFocus',
+  'onBlur',
+  'onChange',
+  'onInput',
+  'onSubmit',
+  'onClick',
+  'onContextMenu',
+  'onDoubleClick',
+  'onDrag',
+  'onDragEnd',
+  'onDragEnter',
+  'onDragExit',
+  'onDragLeave',
+  'onDragOver',
+  'onDragStart',
+  'onDrop',
+  'onMouseDown',
+  'onMouseEnter',
+  'onMouseLeave',
+  'onMouseMove',
+  'onMouseOut',
+  'onMouseOver',
+  'onMouseUp',
+  'onSelect',
+  'onTouchCancel',
+  'onTouchEnd',
+  'onTouchMove',
+  'onTouchStart',
+  'onScroll',
+  'onWheel',
+  'onAbort',
+  'onCanPlay',
+  'onCanPlayThrough',
+  'onDurationChange',
+  'onEmptied',
+  'onEncrypted',
+  'onEnded',
+  'onError',
+  'onLoadedData',
+  'onLoadedMetadata',
+  'onLoadStart',
+  'onPause',
+  'onPlay',
+  'onPlaying',
+  'onProgress',
+  'onRateChange',
+  'onSeeked',
+  'onSeeking',
+  'onStalled',
+  'onSuspend',
+  'onTimeUpdate',
+  'onVolumeChange',
+  'onWaiting',
+  'onLoad',
+  'onError',
+  'onAnimationStart',
+  'onAnimationEnd',
+  'onAnimationIteration',
+  'onTransitionEnd'
+].reduce((map, value) => {
+  map.set(value.toLowerCase(), value)
+  return map
+}, new Map<string, string>())
+
 export function isPackaged() {
   const { mainModule } = process
   return mainModule && mainModule.filename.includes('app.asar')
@@ -418,4 +493,8 @@ export function toReactAttributeName(name: string): string | null {
   }
   const rname = camelcase(mapping[name] || name)
   return validAttributes.has(rname) ? rname : null
+}
+
+export function toReactEventName(name: string): string | null {
+  return validEventNames.get(name) || null
 }

@@ -3,7 +3,11 @@ import * as prettier from 'prettier'
 
 import Typer from '../typer'
 import { ComponentInformation } from '../types'
-import { uppercamelcase, toReactAttributeName } from '../utils'
+import {
+  uppercamelcase,
+  toReactAttributeName,
+  toReactEventName
+} from '../utils'
 import css2obj from '../css2obj'
 
 const generateReact = (information: ComponentInformation): string => {
@@ -53,7 +57,9 @@ import PropTypes from 'prop-types';
 const ${componentName} = (props) => {`
 
   if (keys.size > 0) {
-    code += `const {${Array.from(keys).join(', ')}} = props;`
+    code += `const {${Array.from(keys)
+      .concat(Array.from(eventHandlers.keys()))
+      .join(', ')}} = props;`
   }
 
   const renderNode = (node: parse5.AST.Default.Node) => {
@@ -66,9 +72,17 @@ const ${componentName} = (props) => {`
     const toString = () => {
       let code = `<${node.nodeName}`
       element.attrs.forEach(attr => {
-        if (attr.name.startsWith(':') || attr.name.startsWith('@')) {
-          return
+        if (attr.name.startsWith(':')) return
+        if (attr.name.startsWith('@on')) {
+          const required = attr.name.endsWith('!')
+          const name = toReactEventName(
+            attr.name.substring(1, attr.name.length - (required ? 1 : 0))
+          )
+          if (name) {
+            code += ` ${name}={${attr.value}}`
+          }
         }
+        if (attr.name.startsWith('@')) return
         const name = toReactAttributeName(attr.name)
         if (name === 'style') {
           code += ` ${name}={${JSON.stringify(css2obj(attr.value))}}`
