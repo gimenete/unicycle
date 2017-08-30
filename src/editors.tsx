@@ -456,16 +456,29 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                             {errors}
                           </span>}
                         <button
-                          className={`pt-button pt-minimal pt-icon-eye-open ${hiddenClass}`}
+                          className={`pt-button pt-minimal pt-small pt-icon-eye-open ${hiddenClass}`}
                           type="button"
                           onClick={() => this.toggleHiddenState(state)}
+                        />
+                        <button
+                          className="pt-button pt-minimal pt-small pt-icon-widget"
+                          type="button"
+                        />
+                        <button
+                          className="pt-button pt-minimal pt-small pt-icon-duplicate"
+                          type="button"
+                        />
+                        <button
+                          className="pt-button pt-minimal pt-small pt-icon-trash"
+                          type="button"
                         />
                       </span>
                       {key}
                     </p>
                     <div
-                      className="preview-content"
-                      style={{ display: state.hidden ? 'none' : 'block' }}
+                      className={`preview-content ${state.hidden
+                        ? 'hidden'
+                        : ''}`}
                     >
                       {preview}
                     </div>

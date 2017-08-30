@@ -98,7 +98,6 @@ body {
 
 #previews-markup .preview-bar {
   float: right;
-  margin-top: -4px;
   font-size: 14px;
 }
 
@@ -119,6 +118,10 @@ body {
   padding: 20px;
   display: flex;
   justify-content: space-around;
+}
+
+#previews-markup .preview .preview-content.hidden {
+  display: none;
 }
 
 #previews-markup.show-grid .preview .preview-content {
