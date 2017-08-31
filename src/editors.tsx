@@ -12,6 +12,7 @@ import {
   State,
   States
 } from './types'
+import { increment, decrement } from './actions/increment'
 import { toReactAttributeName } from './utils'
 import Inspector from './inspector'
 import Editor from './editors/index'
@@ -185,7 +186,9 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
         run: () => this.selectEditor(2)
-      }
+      },
+      increment,
+      decrement
     ]
 
     this.editors.forEach(editor => {
