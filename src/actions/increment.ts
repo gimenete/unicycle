@@ -50,7 +50,7 @@ export const increment = {
   id: 'increment-value',
   label: 'Increment value',
   keybindings: [
-    monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_J
+    monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_K
   ],
   contextMenuGroupId: 'navigation',
   contextMenuOrder: 1.5,
@@ -61,7 +61,7 @@ export const decrement = {
   id: 'decrement-value',
   label: 'Decrement value',
   keybindings: [
-    monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_K
+    monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_J
   ],
   contextMenuGroupId: 'navigation',
   contextMenuOrder: 1.5,
