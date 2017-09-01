@@ -48,7 +48,7 @@ class Workspace extends EventEmitter {
           style: ''
         }
     const initialState = JSON.stringify(
-      { 'Some state': { props: {} } } as States,
+      [{ name: 'Some state', props: {} }] as States,
       null,
       2
     )

@@ -32,12 +32,12 @@ const generateReact = (information: ComponentInformation): string => {
   }
   calculateEventHanlders(markup.childNodes[0])
 
-  const keys = Object.values(data).reduce((set: Set<string>, value) => {
+  const keys = data.reduce((set: Set<string>, value) => {
     Object.keys(value.props).forEach(key => set.add(key))
     return set
   }, new Set<string>())
   const typer = new Typer()
-  Object.values(data).forEach(state => typer.addDocument(state.props))
+  data.forEach(state => typer.addDocument(state.props))
 
   for (const entry of eventHandlers.entries()) {
     const [key, value] = entry

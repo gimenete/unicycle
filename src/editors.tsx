@@ -366,7 +366,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         }
       }
 
-      const data = this.dataEditor.latestJSON || ({} as States)
+      const data: States = this.dataEditor.latestJSON || []
       return (
         <div>
           <div
@@ -443,51 +443,48 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             id="previews-markup"
             className={this.state.showGrid ? 'show-grid' : ''}
           >
-            {Object.keys(data)
-              .filter(key => !key.startsWith('!'))
-              .map((key, i) => {
-                const state = data[key]
-                const hiddenClass = state.hidden ? '' : 'pt-active'
-                errors = 0
-                const preview = renderNode(state.props, rootNode)
-                return (
-                  <div className="preview" key={i}>
-                    <p>
-                      <span className="preview-bar">
-                        {errors > 0 &&
-                          <span className="pt-icon-error">
-                            {errors}
-                          </span>}
-                        <button
-                          className={`pt-button pt-minimal pt-small pt-icon-eye-open ${hiddenClass}`}
-                          type="button"
-                          onClick={() => this.toggleHiddenState(state)}
-                        />
-                        <button
-                          className="pt-button pt-minimal pt-small pt-icon-widget"
-                          type="button"
-                        />
-                        <button
-                          className="pt-button pt-minimal pt-small pt-icon-duplicate"
-                          type="button"
-                        />
-                        <button
-                          className="pt-button pt-minimal pt-small pt-icon-trash"
-                          type="button"
-                        />
-                      </span>
-                      {key}
-                    </p>
-                    <div
-                      className={`preview-content ${state.hidden
-                        ? 'hidden'
-                        : ''}`}
-                    >
-                      {preview}
-                    </div>
+            {data.map((state, i) => {
+              const hiddenClass = state.hidden ? '' : 'pt-active'
+              errors = 0
+              const preview = renderNode(state.props, rootNode)
+              return (
+                <div className="preview" key={i}>
+                  <p>
+                    <span className="preview-bar">
+                      {errors > 0 &&
+                        <span className="pt-icon-error">
+                          {errors}
+                        </span>}
+                      <button
+                        className={`pt-button pt-minimal pt-small pt-icon-eye-open ${hiddenClass}`}
+                        type="button"
+                        onClick={() => this.toggleHiddenState(state)}
+                      />
+                      <button
+                        className="pt-button pt-minimal pt-small pt-icon-widget"
+                        type="button"
+                      />
+                      <button
+                        className="pt-button pt-minimal pt-small pt-icon-duplicate"
+                        type="button"
+                      />
+                      <button
+                        className="pt-button pt-minimal pt-small pt-icon-trash"
+                        type="button"
+                      />
+                    </span>
+                    {state.name}
+                  </p>
+                  <div
+                    className={`preview-content ${state.hidden
+                      ? 'hidden'
+                      : ''}`}
+                  >
+                    {preview}
                   </div>
-                )
-              })}
+                </div>
+              )
+            })}
           </div>
         </div>
       )

@@ -7,13 +7,12 @@ export interface SassResult {
 
 export interface State {
   id?: string
+  name: string
   hidden?: boolean
   props: { [index: string]: any }
 }
 
-export interface States {
-  [index: string]: State
-}
+export type States = State[]
 
 export interface ComponentInformation {
   name: string

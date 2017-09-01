@@ -29,14 +29,14 @@ class JSONEditor extends Editor {
     const str = this.editor.getValue()
     try {
       const data = JSON.parse(str) as States
-      const currentValues = Object.values(data)
-      const oldValue = currentValues[currentValues.length - 1] as State
+      const oldValue = data[data.length - 1] as State
       const newValue: State = oldValue
         ? Object.assign({}, oldValue)
-        : { props: {} }
+        : { name, props: {} }
       delete newValue.hidden
       delete newValue.id
-      data[name] = newValue
+      newValue.name = name
+      data.push(newValue)
       this.editor.setValue(JSON.stringify(data, null, 2))
     } catch (e) {
       console.error(e)
