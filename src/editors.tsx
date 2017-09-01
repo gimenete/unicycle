@@ -19,6 +19,7 @@ import Editor from './editors/index'
 import MarkupEditor from './editors/markup'
 import StyleEditor from './editors/style'
 import JSONEditor from './editors/json'
+import InputPopover from './components/InpuPopover'
 
 import reactGenerator from './generators/react'
 
@@ -96,8 +97,6 @@ interface CssObject {
 interface ComponentEditorState {
   inspecting: boolean
   showGrid: boolean
-  newStateIsOpen: boolean
-  newStateName: string
 }
 
 class ComponentEditor extends React.Component<any, ComponentEditorState> {
@@ -213,9 +212,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
 
     this.state = {
       inspecting: false,
-      showGrid: false,
-      newStateIsOpen: false,
-      newStateName: ''
+      showGrid: false
     }
   }
 
@@ -391,50 +388,22 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           </div>
           <div className="pt-button-group pt-minimal">
             <button className="pt-button pt-icon-comparison" type="button" />
-            <Popover
+            <InputPopover
               position={Position.BOTTOM}
-              isOpen={this.state.newStateIsOpen}
-              isModal
-              onInteraction={interaction =>
-                !interaction && this.setState({ newStateIsOpen: false })}
-            >
-              <button
-                className="pt-button pt-icon-new-object"
-                type="button"
-                onClick={() =>
-                  this.setState({ newStateIsOpen: !this.state.newStateIsOpen })}
-              />
-              <div style={{ padding: 10 }}>
-                <input
-                  type="text"
-                  className="pt-input"
-                  placeholder="New state"
-                  autoFocus
-                  value={this.state.newStateName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    this.setState({ newStateName: e.target.value })}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (e.key === 'Escape')
-                      this.setState({ newStateIsOpen: false })
-                  }}
-                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (e.key !== 'Enter') return
-                    const lines = this.dataEditor.editor
-                      .getModel()
-                      .getLineCount()
-                    this.dataEditor.addState(this.state.newStateName)
-                    this.setState({ newStateName: '', newStateIsOpen: false })
-                    this.selectEditor(2)
-                    this.dataEditor.scrollDown()
-                    this.dataEditor.editor.setPosition({
-                      lineNumber: lines,
-                      column: 3
-                    })
-                    this.scrollDown = true
-                  }}
-                />
-              </div>
-            </Popover>
+              placeholder="New state"
+              buttonClassName="pt-button pt-icon-new-object"
+              onEnter={name => {
+                const lines = this.dataEditor.editor.getModel().getLineCount()
+                this.dataEditor.addState(name)
+                this.selectEditor(2)
+                this.dataEditor.scrollDown()
+                this.dataEditor.editor.setPosition({
+                  lineNumber: lines,
+                  column: 3
+                })
+                this.scrollDown = true
+              }}
+            />
           </div>
           <style>
             {this.styleEditor.lastResult.css}
