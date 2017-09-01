@@ -20,6 +20,7 @@ import MarkupEditor from './editors/markup'
 import StyleEditor from './editors/style'
 import JSONEditor from './editors/json'
 import InputPopover from './components/InpuPopover'
+import ConfirmPopover from './components/ConfirmPopover'
 
 import reactGenerator from './generators/react'
 
@@ -433,13 +434,25 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                         className="pt-button pt-minimal pt-small pt-icon-widget"
                         type="button"
                       />
-                      <button
-                        className="pt-button pt-minimal pt-small pt-icon-duplicate"
-                        type="button"
+                      <InputPopover
+                        position={Position.BOTTOM}
+                        placeholder="New state"
+                        buttonClassName="pt-button pt-minimal pt-small pt-icon-duplicate"
+                        onEnter={name => {
+                          this.dataEditor.addState(name, i)
+                        }}
                       />
-                      <button
-                        className="pt-button pt-minimal pt-small pt-icon-trash"
-                        type="button"
+                      <ConfirmPopover
+                        position={Position.BOTTOM}
+                        buttonClassName="pt-button pt-minimal pt-small pt-icon-trash"
+                        message="Are you sure you want to delete this state?"
+                        confirmText="Yes, delete it"
+                        cancelText="Cancel"
+                        confirmClassName="pt-button pt-intent-danger"
+                        cancelClassName="pt-button"
+                        onConfirm={() => {
+                          this.dataEditor.deleteState(i)
+                        }}
                       />
                     </span>
                     {state.name}

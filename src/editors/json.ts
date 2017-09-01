@@ -25,22 +25,26 @@ class JSONEditor extends Editor {
     })
   }
 
-  addState(name: string) {
+  addState(name: string, index?: number) {
     const str = this.editor.getValue()
-    try {
-      const data = JSON.parse(str) as States
-      const oldValue = data[data.length - 1] as State
-      const newValue: State = oldValue
-        ? Object.assign({}, oldValue)
-        : { name, props: {} }
-      delete newValue.hidden
-      delete newValue.id
-      newValue.name = name
-      data.push(newValue)
-      this.editor.setValue(JSON.stringify(data, null, 2))
-    } catch (e) {
-      console.error(e)
-    }
+    const data = JSON.parse(str) as States
+    index = index !== undefined ? index : data.length - 1
+    const oldValue = data[index] as State
+    const newValue: State = oldValue
+      ? Object.assign({}, oldValue)
+      : { name, props: {} }
+    delete newValue.hidden
+    delete newValue.id
+    newValue.name = name
+    data.splice(index + 1, 0, newValue)
+    this.editor.setValue(JSON.stringify(data, null, 2))
+  }
+
+  deleteState(index: number) {
+    const str = this.editor.getValue()
+    const data = JSON.parse(str) as States
+    data.splice(index, 1)
+    this.editor.setValue(JSON.stringify(data, null, 2))
   }
 }
 
