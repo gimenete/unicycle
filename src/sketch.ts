@@ -1,6 +1,5 @@
 import * as parse5 from 'parse5'
 
-const sass = require('sass.js')
 const prettier = require('prettier')
 
 interface Frame {

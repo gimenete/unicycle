@@ -437,7 +437,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             </Popover>
           </div>
           <style>
-            {this.styleEditor.lastResult.text}
+            {this.styleEditor.lastResult.css}
           </style>
           <div
             id="previews-markup"

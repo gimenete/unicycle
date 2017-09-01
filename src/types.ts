@@ -1,11 +1,7 @@
 import * as parse5 from 'parse5'
 
 export interface SassResult {
-  status: number
-  text: string
-  message?: string
-  line?: number
-  column?: number
+  css: string
   map: sourceMap.RawSourceMap
 }
 
