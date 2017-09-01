@@ -194,3 +194,7 @@ input,
 .pt-tab-list {
   margin: 0 auto;
 }
+
+.pt-popover-backdrop {
+  background: rgba(0, 0, 0, 0.2);
+}
