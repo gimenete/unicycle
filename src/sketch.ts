@@ -439,7 +439,17 @@ export default async (input: string): Promise<SketchResult> => {
     createNode(doc, data[0], 0)
     resolve({
       markup: parse5.serialize(doc),
-      style: prettier.format(serializeCSS(css), { parser: 'postcss' })
+      style: prettier.format(
+        `/*
+This SCSS was generated automatically. It is not perfect.
+It is meant to be a good starting point.
+You will specially need to add margins and paddings to the elements to
+recreate the full layout.
+*/
+
+` + serializeCSS(css),
+        { parser: 'postcss' }
+      )
     })
   })
 }

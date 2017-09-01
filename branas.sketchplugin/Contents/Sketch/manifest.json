@@ -1,0 +1,20 @@
+{
+  "name": "Branas exporting tool",
+  "description": "Exports the current selection to Branas",
+  "author": "Level Apps S.L.",
+  "homepage": "http://branas.io",
+  "version": "1.0",
+  "identifier": "io.branas.sketch",
+  "compatibleVersion": "3",
+  "bundleVersion": 1,
+  "commands": [
+    {
+      "name": "Export current selection",
+      "identifier": "export",
+      "script": "export.cocoascript"
+    }
+  ],
+  "menu": {
+    "items": ["export"]
+  }
+}

@@ -86,6 +86,8 @@ class Menu extends React.Component<MenuProps, MenuState> {
               src="./assets/sketch-mac-icon@2x.png"
               style={{ width: 50, marginTop: 5 }}
             />
+            <br />
+            Import from Sketch
           </InputPopover>
         </p>
       </div>

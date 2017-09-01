@@ -68,7 +68,7 @@ const ${componentName} = (props) => {`
       return textNode.value
     }
     const element = node as parse5.AST.Default.Element
-    if (!element.childNodes) return null
+    if (!element.childNodes) return ''
     const toString = () => {
       let code = `<${node.nodeName}`
       element.attrs.forEach(attr => {
