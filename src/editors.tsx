@@ -4,7 +4,7 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Popover, Position, Overlay } from '@blueprintjs/core'
+import { Position, Overlay } from '@blueprintjs/core'
 
 import {
   ObjectStringToString,
@@ -120,6 +120,9 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
 
     this.inspector = new Inspector()
+    this.inspector.on('stopInspecting', () => {
+      this.styleEditor.cleanUpMessages('inspector')
+    })
     this.inspector.on('inspect', (data: any) => {
       const element = data.target as HTMLElement
       const location = element.getAttribute('data-location')

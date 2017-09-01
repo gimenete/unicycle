@@ -39,6 +39,9 @@ body {
 #menu > div > p {
   margin: 10px;
 }
+#menu .pt-popover-target {
+  width: 100%;
+}
 #editors .pt-tabs {
   display: flex;
   flex-direction: column;
@@ -122,7 +125,7 @@ body {
 }
 
 #previews-markup.show-grid .preview .preview-content {
-  background: url('./grid.png');
+  background: url('./assets/grid.png');
   background-size: 16px 16px;
 }
 
@@ -202,4 +205,8 @@ input,
 
 .pt-popover-backdrop {
   background: rgba(0, 0, 0, 0.2);
+}
+
+.input-popover input {
+  width: 300px;
 }

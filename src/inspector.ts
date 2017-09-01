@@ -81,6 +81,7 @@ class Inspector extends EventEmitter {
   startInspecting() {
     this.inspecting = true
     this.marginOverlay.style.display = 'block'
+    this.emit('startInspecting')
   }
 
   stopInspecting() {
@@ -91,6 +92,7 @@ class Inspector extends EventEmitter {
     this.marginOverlay.style.height = '0px'
     this.paddingOverlay.style.width = '0px'
     this.paddingOverlay.style.height = '0px'
+    this.emit('stopInspecting')
   }
 }
 

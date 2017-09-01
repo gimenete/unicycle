@@ -40,7 +40,7 @@ class Workspace extends EventEmitter {
     // TODO
   }
 
-  async addComponent(name: string, structure: string) {
+  async addComponent(name: string, structure?: string) {
     const initial = structure
       ? await sketch(structure)
       : {

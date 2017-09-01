@@ -6,6 +6,7 @@ interface InputPopoverProps {
   position?: Position
   placeholder: string
   buttonClassName: string
+  popoverClassName?: string
   onEnter: ((value: string) => void)
 }
 
@@ -31,6 +32,7 @@ export default class InputPopover extends React.Component<
         position={this.props.position}
         isOpen={this.state.isOpen}
         isModal
+        popoverClassName={this.props.popoverClassName || 'input-popover'}
         onInteraction={interaction =>
           !interaction && this.setState({ isOpen: false })}
       >
@@ -38,7 +40,9 @@ export default class InputPopover extends React.Component<
           className={this.props.buttonClassName}
           type="button"
           onClick={() => this.setState({ isOpen: !this.state.isOpen })}
-        />
+        >
+          {this.props.children}
+        </button>
         <div style={{ padding: 10 }}>
           <input
             type="text"

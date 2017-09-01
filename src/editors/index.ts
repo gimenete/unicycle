@@ -66,6 +66,11 @@ class Editor extends EventEmitter {
     })
   }
 
+  cleanUpMessages(type: string) {
+    this.editor.deltaDecorations(this.oldDecorations[type], [])
+    this.oldDecorations[type] = []
+  }
+
   calculateMessages<T>(type: string, runner: MessageRunner<T>): T {
     const messages = new Array<Message>()
     const returnValue = runner({
