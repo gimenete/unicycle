@@ -2,11 +2,11 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Overlay } from '@blueprintjs/core'
 import electron = require('electron')
+import workspace from './workspace'
 
 const { BrowserWindow, dialog } = electron.remote
 
 interface NavbarState {
-  isExportOpen: boolean
   isCreateProjectOpen: boolean
 }
 
@@ -14,7 +14,6 @@ class Navbar extends React.Component<any, NavbarState> {
   constructor(props: any) {
     super(props)
     this.state = {
-      isExportOpen: false,
       isCreateProjectOpen: false
     }
     this.onClick = this.onClick.bind(this)
@@ -50,7 +49,7 @@ class Navbar extends React.Component<any, NavbarState> {
             <button
               className="pt-button pt-minimal pt-icon-export"
               onClick={() => {
-                console.log('export')
+                workspace.emit('export')
               }}
             >
               Export

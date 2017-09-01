@@ -51,9 +51,6 @@ body {
   height: calc(100vh - 120px);
   width: 600px;
 }
-#output .editor {
-  width: 400px;
-}
 #previews {
   flex-grow: 1;
 }
@@ -165,19 +162,27 @@ input,
   box-shadow: none;
 }
 
-#output {
+.output {
+  right: 0;
+  width: 30vw;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-#output > div {
-  padding: 0px 4px;
+.output button {
+  float: right;
 }
 
-#output-editor {
-  /* flex-grow: 1; */
-  height: calc(100vh - 100px);
+.output-code {
+  flex-grow: 1;
+  display: flex;
+}
+
+.output-code textarea {
+  flex-grow: 1;
+  font-family: Menlo, Monaco, "Courier New", monospace;
+  font-size: 12px;
 }
 
 #editors .pt-tab-panel[aria-hidden="true"] {

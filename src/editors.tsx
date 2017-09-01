@@ -4,7 +4,7 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Popover, Position } from '@blueprintjs/core'
+import { Popover, Position, Overlay } from '@blueprintjs/core'
 
 import {
   ObjectStringToString,
@@ -98,6 +98,7 @@ interface CssObject {
 interface ComponentEditorState {
   inspecting: boolean
   showGrid: boolean
+  isOutputOpen: boolean
 }
 
 class ComponentEditor extends React.Component<any, ComponentEditorState> {
@@ -105,7 +106,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   styleEditor: StyleEditor
   dataEditor: JSONEditor
   editors: Editor[]
-  outputEditor: monaco.editor.IStandaloneCodeEditor
+  output: string
   inspector: Inspector
   tabs: Element[]
   panels: Element[]
@@ -150,16 +151,6 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           }
         })
       })
-    })
-
-    const outputEditor = document.getElementById('output-editor')!
-    this.outputEditor = monaco.editor.create(outputEditor, {
-      lineNumbers: 'off',
-      readOnly: true,
-      scrollBeyondLastLine: false,
-      minimap: { enabled: false },
-      value: '',
-      automaticLayout: true
     })
 
     const actions = [
@@ -211,9 +202,14 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       tab.addEventListener('click', () => this.selectEditor(i))
     })
 
+    workspace.on('export', () => {
+      this.setState({ isOutputOpen: true })
+    })
+
     this.state = {
       inspecting: false,
-      showGrid: false
+      showGrid: false,
+      isOutputOpen: false
     }
   }
 
@@ -243,7 +239,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   }
 
   render(): JSX.Element | null {
-    this.generateOutput()
+    const code = this.generateOutput()
 
     const dom = this.markupEditor.latestDOM
     if (!dom) return <div />
@@ -468,6 +464,43 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               )
             })}
           </div>
+          <Overlay
+            isOpen={this.state.isOutputOpen}
+            onClose={() => this.setState({ isOutputOpen: false })}
+          >
+            <div className="pt-card output">
+              <div>
+                <button
+                  className="pt-button pt-minimal pt-icon-cross"
+                  onClick={() => this.setState({ isOutputOpen: false })}
+                />
+                <div className="pt-select pt-minimal">
+                  <select defaultValue="0">
+                    <option value="0">React.js</option>
+                    <option value="1">Angular.js</option>
+                    <option value="2">Vue.js</option>
+                    <option value="3">Elm</option>
+                  </select>
+                </div>
+                <div className="pt-select pt-minimal">
+                  <select defaultValue="0">
+                    <option value="0">SCSS</option>
+                    <option value="1">CSS</option>
+                  </select>
+                </div>
+                <div className="pt-select pt-minimal">
+                  <select defaultValue="0">
+                    <option value="0">ES 2017</option>
+                    <option value="1">TypeScript</option>
+                    <option value="2">Flow</option>
+                  </select>
+                </div>
+              </div>
+              <div className="output-code">
+                <textarea className="pt-input pt-fill" value={code} readOnly />
+              </div>
+            </div>
+          </Overlay>
         </div>
       )
     })
@@ -498,13 +531,12 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     }
   }
 
-  generateOutput() {
+  generateOutput(): string {
     const markup = this.markupEditor.latestDOM
     const data = this.dataEditor.latestJSON
     const name = workspace.activeComponent
     if (!markup || !data || !name) {
-      this.outputEditor.setValue('')
-      return
+      return ''
     }
 
     const componentInformation = {
@@ -513,7 +545,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       data
     } as ComponentInformation
     const code = reactGenerator(componentInformation)
-    this.outputEditor.setValue(code)
+    return code
   }
 }
 
