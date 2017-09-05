@@ -5,6 +5,7 @@ import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Position, Overlay } from '@blueprintjs/core'
+import { difference } from 'lodash'
 
 import {
   ObjectStringToString,
@@ -26,6 +27,8 @@ import reactGenerator from './generators/react'
 
 import workspace from './workspace'
 import css2obj from './css2obj'
+
+const mediaQuery = require('css-mediaquery')
 
 monaco.languages.registerCompletionItemProvider('html', {
   provideCompletionItems: (model, position) => {
@@ -244,10 +247,14 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   render(): JSX.Element | null {
     const code = this.generateOutput()
 
+    if (!this.styleEditor.lastResult) return <div />
     const dom = this.markupEditor.latestDOM
     if (!dom) return <div />
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
+    const mediaQueriesCount = Object.keys(
+      this.styleEditor.lastResult.mediaQueries
+    ).length
 
     return this.markupEditor.calculateMessages('error', handler => {
       let errors = 0
@@ -405,9 +412,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               }}
             />
           </div>
-          <style>
-            {this.styleEditor.lastResult.css}
-          </style>
+          {this.styleEditor.lastResult.chunks.map((chunk, i) => {
+            const mq = chunk.mediaQueries
+            const classes = chunk.mediaQueries.map(id => `.${id}`).join('')
+            const repeat = '.preview-content'.repeat(
+              mediaQueriesCount - chunk.mediaQueries.length
+            )
+            return (
+              <style key={i}>
+                {chunk.addPrefix
+                  ? `${StyleEditor.CSS_PREFIX}${classes}${repeat} ${chunk.css}`
+                  : chunk.css}
+              </style>
+            )
+          })}
           <div
             id="previews-markup"
             className={this.state.showGrid ? 'show-grid' : ''}
@@ -416,6 +434,21 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               const hiddenClass = state.hidden ? '' : 'pt-active'
               errors = 0
               const preview = renderNode(state.props, rootNode)
+              const classNames: string[] = ['preview-content']
+              if (state.hidden) {
+                classNames.push('hidden')
+              }
+              const { mediaQueries } = this.styleEditor.lastResult
+              const media = state.media || { type: 'screen' }
+              Object.keys(mediaQueries).forEach(id => {
+                const condition = mediaQueries[id]
+                const matches = mediaQuery.match(condition, {
+                  type: media.type || 'screen'
+                })
+                if (matches) {
+                  classNames.push(id)
+                }
+              })
               return (
                 <div className="preview" key={i}>
                   <p>
@@ -456,11 +489,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                     </span>
                     {state.name}
                   </p>
-                  <div
-                    className={`preview-content ${state.hidden
-                      ? 'hidden'
-                      : ''}`}
-                  >
+                  <div className={classNames.join(' ')}>
                     {preview}
                   </div>
                 </div>
