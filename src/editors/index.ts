@@ -6,7 +6,6 @@ import workspace from '../workspace'
 interface Message {
   text: string
   position: monaco.Position
-  widget?: any
 }
 
 interface MessagesResolver {

@@ -434,7 +434,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                         type="button"
                       />
                       <InputPopover
-                        position={Position.BOTTOM}
+                        position={Position.LEFT}
                         placeholder="New state"
                         buttonClassName="pt-button pt-minimal pt-small pt-icon-duplicate"
                         onEnter={name => {
@@ -442,7 +442,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                         }}
                       />
                       <ConfirmPopover
-                        position={Position.BOTTOM}
+                        position={Position.LEFT}
                         buttonClassName="pt-button pt-minimal pt-small pt-icon-trash"
                         message="Are you sure you want to delete this state?"
                         confirmText="Yes, delete it"

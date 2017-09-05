@@ -52,7 +52,7 @@ body {
 }
 #editors .pt-tabs .pt-tab-panel .editor {
   height: calc(100vh - 120px);
-  width: 600px;
+  width: 800px;
 }
 #previews {
   flex-grow: 1;
