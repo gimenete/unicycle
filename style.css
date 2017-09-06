@@ -118,6 +118,7 @@ body {
   padding: 20px;
   display: flex;
   justify-content: space-around;
+  position: relative;
 }
 
 #previews-markup .preview .preview-content.hidden {
@@ -209,4 +210,22 @@ input,
 
 .input-popover input {
   width: 300px;
+}
+
+.preview-content-overlay {
+  position: absolute;
+  content: '';
+  color: transparent;
+  background-color: white;
+  background-image: url(file:///Users/gimenete/Downloads/twitter.com_v8js.png);
+  background-repeat: no-repeat;
+  background-size: 588px 110px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  margin: 20px;
+}
+
+.preview-diff {
+  padding: 5px;
 }

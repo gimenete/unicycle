@@ -4,7 +4,7 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Position, Overlay } from '@blueprintjs/core'
+import { Position, Overlay, Slider } from '@blueprintjs/core'
 
 import {
   ObjectStringToString,
@@ -103,6 +103,7 @@ interface ComponentEditorState {
   inspecting: boolean
   showGrid: boolean
   isOutputOpen: boolean
+  value: number
 }
 
 class ComponentEditor extends React.Component<any, ComponentEditorState> {
@@ -216,7 +217,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     this.state = {
       inspecting: false,
       showGrid: false,
-      isOutputOpen: false
+      isOutputOpen: false,
+      value: 50
     }
   }
 
@@ -442,6 +444,17 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             id="previews-markup"
             className={this.state.showGrid ? 'show-grid' : ''}
           >
+            <div className="preview-diff">
+              <Slider
+                min={0}
+                max={100}
+                stepSize={1}
+                onChange={value => this.setState({ value })}
+                showTrackFill={false}
+                renderLabel={false}
+                value={this.state.value}
+              />
+            </div>
             {data.map((state, i) => {
               const hiddenClass = state.hidden ? '' : 'pt-active'
               errors = 0
@@ -501,8 +514,14 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                     </span>
                     {state.name}
                   </p>
-                  <div className={classNames.join(' ')}>
-                    {preview}
+                  <div style={{ position: 'relative' }}>
+                    <div className={classNames.join(' ')}>
+                      {preview}
+                    </div>
+                    <div
+                      className="preview-content-overlay"
+                      style={{ right: `${100 - this.state.value}%` }}
+                    />
                   </div>
                 </div>
               )
