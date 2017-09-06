@@ -57,14 +57,19 @@ export interface SassResult {
   }
 }
 
+export interface Media {
+  type?: string
+  orientation?: string
+  width?: string
+  height?: string
+}
+
 export interface State {
   id?: string
   name: string
   hidden?: boolean
   props: { [index: string]: any }
-  media?: {
-    type?: string
-  }
+  media?: Media
 }
 
 export type States = State[]

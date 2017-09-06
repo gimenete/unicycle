@@ -10,6 +10,7 @@ import { difference } from 'lodash'
 import {
   ObjectStringToString,
   ComponentInformation,
+  Media,
   State,
   States
 } from './types'
@@ -22,6 +23,7 @@ import StyleEditor from './editors/style'
 import JSONEditor from './editors/json'
 import InputPopover from './components/InpuPopover'
 import ConfirmPopover from './components/ConfirmPopover'
+import MediaPopoverProps from './components/MediaPopover'
 
 import reactGenerator from './generators/react'
 
@@ -450,12 +452,10 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 classNames.push('hidden')
               }
               const { mediaQueries } = this.styleEditor.lastResult
-              const media = state.media || { type: 'screen' }
+              const media: Media = state.media || {}
               Object.keys(mediaQueries).forEach(id => {
                 const condition = mediaQueries[id]
-                const matches = mediaQuery.match(condition, {
-                  type: media.type || 'screen'
-                })
+                const matches = mediaQuery.match(condition, media)
                 if (matches) {
                   classNames.push(id)
                 }
@@ -473,9 +473,11 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                         type="button"
                         onClick={() => this.toggleHiddenState(state)}
                       />
-                      <button
-                        className="pt-button pt-minimal pt-small pt-icon-widget"
-                        type="button"
+                      <MediaPopoverProps
+                        position={Position.LEFT_TOP}
+                        buttonClassName="pt-button pt-minimal pt-small pt-icon-widget"
+                        media={media}
+                        onConfirm={media => this.dataEditor.setMedia(media, i)}
                       />
                       <InputPopover
                         position={Position.LEFT}
