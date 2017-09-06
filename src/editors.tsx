@@ -9,6 +9,7 @@ import { Position, Overlay } from '@blueprintjs/core'
 import {
   ObjectStringToString,
   ComponentInformation,
+  Media,
   State,
   States
 } from './types'
@@ -21,11 +22,14 @@ import StyleEditor from './editors/style'
 import JSONEditor from './editors/json'
 import InputPopover from './components/InpuPopover'
 import ConfirmPopover from './components/ConfirmPopover'
+import MediaPopoverProps from './components/MediaPopover'
 
 import reactGenerator from './generators/react'
 
 import workspace from './workspace'
 import css2obj from './css2obj'
+
+const mediaQuery = require('css-mediaquery')
 
 monaco.languages.registerCompletionItemProvider('html', {
   provideCompletionItems: (model, position) => {
@@ -139,7 +143,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         lineNumber,
         column
       })
-      this.markupEditor.editor.focus()
+      this.focusVisibleEditor()
 
       this.styleEditor.calculateMessages('inspector', handler => {
         this.styleEditor.iterateSelectors(info => {
@@ -225,6 +229,17 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     this.editors[index].editor.focus()
   }
 
+  selectedTabIndex(): number {
+    return this.panels.findIndex(
+      panel => panel.getAttribute('aria-hidden') === 'false'
+    )
+  }
+
+  focusVisibleEditor() {
+    const tabIndex = this.selectedTabIndex()
+    this.editors[tabIndex].editor.focus()
+  }
+
   toggleInspecting() {
     this.state.inspecting
       ? this.inspector.stopInspecting()
@@ -244,10 +259,14 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   render(): JSX.Element | null {
     const code = this.generateOutput()
 
+    if (!this.styleEditor.lastResult) return <div />
     const dom = this.markupEditor.latestDOM
     if (!dom) return <div />
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
+    const mediaQueriesCount = Object.keys(
+      this.styleEditor.lastResult.mediaQueries
+    ).length
 
     return this.markupEditor.calculateMessages('error', handler => {
       let errors = 0
@@ -405,9 +424,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               }}
             />
           </div>
-          <style>
-            {this.styleEditor.lastResult.css}
-          </style>
+          {this.styleEditor.lastResult.chunks.map((chunk, i) => {
+            const mq = chunk.mediaQueries
+            const classes = chunk.mediaQueries.map(id => `.${id}`).join('')
+            const repeat = '.preview-content'.repeat(
+              mediaQueriesCount - chunk.mediaQueries.length
+            )
+            return (
+              <style key={i}>
+                {chunk.addPrefix
+                  ? `${StyleEditor.CSS_PREFIX}${classes}${repeat} ${chunk.css}`
+                  : chunk.css}
+              </style>
+            )
+          })}
           <div
             id="previews-markup"
             className={this.state.showGrid ? 'show-grid' : ''}
@@ -416,6 +446,19 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               const hiddenClass = state.hidden ? '' : 'pt-active'
               errors = 0
               const preview = renderNode(state.props, rootNode)
+              const classNames: string[] = ['preview-content']
+              if (state.hidden) {
+                classNames.push('hidden')
+              }
+              const { mediaQueries } = this.styleEditor.lastResult
+              const media: Media = state.media || {}
+              Object.keys(mediaQueries).forEach(id => {
+                const condition = mediaQueries[id]
+                const matches = mediaQuery.match(condition, media)
+                if (matches) {
+                  classNames.push(id)
+                }
+              })
               return (
                 <div className="preview" key={i}>
                   <p>
@@ -429,9 +472,11 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                         type="button"
                         onClick={() => this.toggleHiddenState(state)}
                       />
-                      <button
-                        className="pt-button pt-minimal pt-small pt-icon-widget"
-                        type="button"
+                      <MediaPopoverProps
+                        position={Position.LEFT_TOP}
+                        buttonClassName="pt-button pt-minimal pt-small pt-icon-widget"
+                        media={media}
+                        onConfirm={media => this.dataEditor.setMedia(media, i)}
                       />
                       <InputPopover
                         position={Position.LEFT}
@@ -456,11 +501,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                     </span>
                     {state.name}
                   </p>
-                  <div
-                    className={`preview-content ${state.hidden
-                      ? 'hidden'
-                      : ''}`}
-                  >
+                  <div className={classNames.join(' ')}>
                     {preview}
                   </div>
                 </div>

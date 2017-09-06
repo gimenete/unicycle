@@ -1,8 +1,68 @@
 import * as parse5 from 'parse5'
 
+export type CSSMediaQuery = string // conditions
+
+export interface CSSChunk {
+  mediaQueries: string[]
+  css: string
+  addPrefix: boolean
+}
+
+export interface PostCSSPosition {
+  column: number
+  line: number
+}
+
+export interface PostCSSNode {
+  type: 'root' | 'atrule' | 'rule' | 'decl'
+  source: {
+    input: {
+      css: string
+      id: string
+    }
+    start: PostCSSPosition
+    end: PostCSSPosition
+  }
+  nodes?: PostCSSNode[]
+}
+
+export interface PostCSSRoot extends PostCSSNode {
+  type: 'root'
+}
+
+export interface PostCSSAtRule extends PostCSSNode {
+  type: 'atrule'
+  name: string
+  params: string
+}
+
+export interface PostCSSRule extends PostCSSNode {
+  type: 'rule'
+  selector: string
+  ids?: string[] // custom: media query ids
+}
+
+export interface PostCSSDeclaration extends PostCSSNode {
+  type: 'decl'
+  prop: string
+  value: string
+}
+
 export interface SassResult {
   css: string
   map: sourceMap.RawSourceMap
+  ast: PostCSSRoot
+  chunks: CSSChunk[]
+  mediaQueries: {
+    [index: string]: CSSMediaQuery
+  }
+}
+
+export interface Media {
+  type?: string
+  orientation?: string
+  width?: string
+  height?: string
 }
 
 export interface State {
@@ -10,6 +70,7 @@ export interface State {
   name: string
   hidden?: boolean
   props: { [index: string]: any }
+  media?: Media
 }
 
 export type States = State[]

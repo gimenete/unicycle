@@ -1,6 +1,6 @@
 import Editor from './'
 
-import { State, States } from '../types'
+import { Media, State, States } from '../types'
 
 class JSONEditor extends Editor {
   latestJSON: States | null
@@ -44,6 +44,13 @@ class JSONEditor extends Editor {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
     data.splice(index, 1)
+    this.editor.setValue(JSON.stringify(data, null, 2))
+  }
+
+  setMedia(media: Media, index: number) {
+    const str = this.editor.getValue()
+    const data = JSON.parse(str) as States
+    data[index].media = media
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 }

@@ -14,6 +14,16 @@ interface MessagesResolver {
 
 type MessageRunner<T> = (resolve: MessagesResolver) => T
 
+const defaultOptions: monaco.editor.IEditorConstructionOptions = {
+  lineNumbers: 'on',
+  scrollBeyondLastLine: false,
+  minimap: { enabled: false },
+  autoIndent: true,
+  theme: 'vs',
+  automaticLayout: true,
+  fontLigatures: false // true
+}
+
 class Editor extends EventEmitter {
   editor: monaco.editor.IStandaloneCodeEditor
   oldDecorations: {
@@ -29,18 +39,7 @@ class Editor extends EventEmitter {
     this.oldDecorations = {}
     this.editor = monaco.editor.create(
       element,
-      Object.assign(
-        options,
-        {
-          lineNumbers: 'on',
-          scrollBeyondLastLine: false,
-          minimap: { enabled: false },
-          autoIndent: true,
-          theme: 'vs',
-          automaticLayout: true,
-          fontLigatures: false // true
-        } as monaco.editor.IEditorConstructionOptions
-      )
+      Object.assign(options, defaultOptions)
     )
     const saveFile = throttle(() => {
       workspace
