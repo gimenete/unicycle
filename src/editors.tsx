@@ -5,7 +5,6 @@ import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Position, Overlay } from '@blueprintjs/core'
-import { difference } from 'lodash'
 
 import {
   ObjectStringToString,

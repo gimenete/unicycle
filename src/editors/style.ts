@@ -72,6 +72,7 @@ class StyleEditor extends Editor {
               const iterateNode = (node: PostCSSNode, ids: string[]) => {
                 if (node.type === 'rule') {
                   const rule = node as PostCSSRule
+                  rule.ids = ids
                   chunks.push({
                     mediaQueries: ids,
                     css: node.toString(),
@@ -158,7 +159,8 @@ class StyleEditor extends Editor {
         // increase lineNumber depending on arr.length - 1
         // calculate column with last line's length
         if (startMapping) {
-          const selector = rule.selector
+          const selector =
+            rule.ids!.map(id => `.${id}`).join('') + ' ' + rule.selector
           iterator({
             selector,
             originalSelector: selector.substring(StyleEditor.CSS_PREFIX.length),

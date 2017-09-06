@@ -39,6 +39,7 @@ export interface PostCSSAtRule extends PostCSSNode {
 export interface PostCSSRule extends PostCSSNode {
   type: 'rule'
   selector: string
+  ids?: string[] // custom: media query ids
 }
 
 export interface PostCSSDeclaration extends PostCSSNode {

@@ -31,7 +31,18 @@ export default class MediaPopover extends React.Component<
       mediaWidth: props.media.width || '',
       mediaHeight: props.media.height || ''
     }
+    this.sendChanges = this.sendChanges.bind(this)
   }
+
+  sendChanges() {
+    this.props.onConfirm({
+      type: this.state.mediaType || undefined,
+      orientation: this.state.mediaOrientation || undefined,
+      width: this.state.mediaWidth || undefined,
+      height: this.state.mediaHeight || undefined
+    })
+  }
+
   render() {
     return (
       <Popover
@@ -52,7 +63,11 @@ export default class MediaPopover extends React.Component<
             <div className="pt-select">
               <select
                 value={this.state.mediaType}
-                onChange={e => this.setState({ mediaType: e.target.value })}
+                onChange={e =>
+                  this.setState(
+                    { mediaType: e.target.value },
+                    this.sendChanges
+                  )}
               >
                 <option value="">None</option>
                 <option value="screen">Screen</option>
@@ -66,7 +81,10 @@ export default class MediaPopover extends React.Component<
               <select
                 value={this.state.mediaOrientation}
                 onChange={e =>
-                  this.setState({ mediaOrientation: e.target.value })}
+                  this.setState(
+                    { mediaOrientation: e.target.value },
+                    this.sendChanges
+                  )}
               >
                 <option value="">None</option>
                 <option value="portrait">Portrait</option>
@@ -82,7 +100,11 @@ export default class MediaPopover extends React.Component<
                 type="text"
                 placeholder="960px"
                 dir="auto"
-                onChange={e => this.setState({ mediaWidth: e.target.value })}
+                onChange={e =>
+                  this.setState(
+                    { mediaWidth: e.target.value },
+                    this.sendChanges
+                  )}
                 value={this.state.mediaWidth}
               />
               <button
@@ -99,42 +121,20 @@ export default class MediaPopover extends React.Component<
                 type="text"
                 placeholder="960px"
                 dir="auto"
-                onChange={e => this.setState({ mediaHeight: e.target.value })}
+                onChange={e =>
+                  this.setState(
+                    { mediaHeight: e.target.value },
+                    this.sendChanges
+                  )}
                 value={this.state.mediaHeight}
               />
               <button
                 className="pt-button pt-minimal pt-icon-cross"
-                onClick={e => this.setState({ mediaHeight: '' })}
+                onClick={e =>
+                  this.setState({ mediaHeight: '' }, this.sendChanges)}
               />
             </div>
           </label>
-          <div style={{ textAlign: 'right' }}>
-            <button
-              className="pt-button pt-intent-success"
-              type="button"
-              onClick={e => {
-                this.props.onConfirm({
-                  type: this.state.mediaType || undefined,
-                  orientation: this.state.mediaOrientation || undefined,
-                  width: this.state.mediaWidth || undefined,
-                  height: this.state.mediaHeight || undefined
-                })
-                this.setState({ isOpen: false })
-              }}
-            >
-              Apply
-            </button>
-            &nbsp;
-            <button
-              className="pt-button"
-              type="button"
-              onClick={e => {
-                this.setState({ isOpen: false })
-              }}
-            >
-              Cancel
-            </button>
-          </div>
         </div>
       </Popover>
     )
