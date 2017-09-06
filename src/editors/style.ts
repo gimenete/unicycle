@@ -8,6 +8,7 @@ import {
   PostCSSNode,
   PostCSSRule,
   PostCSSAtRule,
+  PostCSSPosition,
   SassResult
 } from '../types'
 
@@ -22,11 +23,20 @@ interface ParseImportValue {
   rule: string
 }
 
+interface SourceMapMapping {
+  generatedLine: number
+  generatedColumn: number
+  source: string
+  name: string | null
+  originalLine: number
+  originalColumn: number
+}
+
 type SelectorIterator = (
   info: {
     selector: string
     originalSelector: string
-    mapping: { originalLine: number; originalColumn: number }
+    mapping: SourceMapMapping
   }
 ) => any
 
@@ -127,22 +137,29 @@ class StyleEditor extends Editor {
   iterateSelectors(iterator: SelectorIterator) {
     if (!this.lastResult || !this.lastResult.ast) return
     const smc = new SourceMapConsumer(this.lastResult.map)
+    const allMappings: SourceMapMapping[] = []
+    smc.eachMapping((m: SourceMapMapping) => {
+      allMappings.push(m)
+    })
+    const findMapping = (position: PostCSSPosition) => {
+      let lastMapping: SourceMapMapping | null = null
+      for (const m of allMappings) {
+        if (m.generatedLine === position.line) {
+          lastMapping = m
+        }
+      }
+      return lastMapping
+    }
     const iterateNode = (node: PostCSSNode) => {
       if (node.type === 'rule') {
         const rule = node as PostCSSRule
-        const generatedPosition = node.source.start
-        let lastMapping: any = null
-        smc.eachMapping((m: any) => {
-          if (m.generatedLine === generatedPosition.line) {
-            lastMapping = m
-          }
-        })
-        if (lastMapping) {
+        const startMapping = findMapping(node.source.start)
+        if (startMapping) {
           const selector = rule.selector
           iterator({
             selector,
             originalSelector: selector.substring(StyleEditor.CSS_PREFIX.length),
-            mapping: lastMapping
+            mapping: startMapping
           })
         }
       } else if (node.nodes) {
