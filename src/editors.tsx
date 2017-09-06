@@ -142,7 +142,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         lineNumber,
         column
       })
-      this.markupEditor.editor.focus()
+      this.focusVisibleEditor()
 
       this.styleEditor.calculateMessages('inspector', handler => {
         this.styleEditor.iterateSelectors(info => {
@@ -226,6 +226,17 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     this.tabs[index].setAttribute('aria-selected', 'true')
     this.panels[index].setAttribute('aria-hidden', 'false')
     this.editors[index].editor.focus()
+  }
+
+  selectedTabIndex(): number {
+    return this.panels.findIndex(
+      panel => panel.getAttribute('aria-hidden') === 'false'
+    )
+  }
+
+  focusVisibleEditor() {
+    const tabIndex = this.selectedTabIndex()
+    this.editors[tabIndex].editor.focus()
   }
 
   toggleInspecting() {

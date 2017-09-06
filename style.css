@@ -63,15 +63,15 @@ body {
 }
 
 .monaco-editor .error {
-  background-color: #ff7373;
+  background-color: rgba(255, 115, 115, 0.5);
 }
 
 .monaco-editor .warning {
-  background-color: #ffc940;
+  background-color: rgba(255, 201, 64, 0.5);
 }
 
 .monaco-editor .inspector {
-  background-color: #a0c6e8;
+  background-color: rgba(160, 198, 232, 0.5);
 }
 
 #previews-markup {

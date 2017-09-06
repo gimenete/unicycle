@@ -154,6 +154,9 @@ class StyleEditor extends Editor {
       if (node.type === 'rule') {
         const rule = node as PostCSSRule
         const startMapping = findMapping(node.source.start)
+        // TODO: calculate endMapping with rule.selector.split(/[\\r\\n]/)
+        // increase lineNumber depending on arr.length - 1
+        // calculate column with last line's length
         if (startMapping) {
           const selector = rule.selector
           iterator({
