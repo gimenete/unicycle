@@ -424,7 +424,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             className="pt-button-group pt-minimal"
             style={{ float: 'right' }}
           >
-            <button className="pt-button pt-icon-grid" type="button" />
+            {/* <button className="pt-button pt-icon-grid" type="button" /> */}
             <button
               className={`pt-button pt-icon-grid-view ${this.state.showGrid
                 ? 'pt-active'
@@ -441,7 +441,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             />
           </div>
           <div className="pt-button-group pt-minimal">
-            <button className="pt-button pt-icon-comparison" type="button" />
+            {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
             <InputPopover
               position={Position.BOTTOM}
               placeholder="New state"
