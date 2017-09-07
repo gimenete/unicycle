@@ -407,7 +407,17 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         }
       }
 
+      const hasDiffImage = (state: State) => {
+        return !!state.diffImage
+      }
+
+      const hasMediaInfo = (state: State) => {
+        return !!state.media
+      }
+
       const data: States = this.dataEditor.latestJSON || []
+      const someHaveDiffImage = data.some(hasDiffImage)
+
       return (
         <div>
           <div
@@ -448,14 +458,15 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 this.scrollDown = true
               }}
             />
-            <button
-              type="button"
-              className={`pt-button pt-minimal ${this.state.diffMode ===
-              'slider'
-                ? 'pt-icon-layers'
-                : 'pt-icon-contrast'}`}
-              onClick={() => this.toggleDiffMode()}
-            />
+            {someHaveDiffImage &&
+              <button
+                type="button"
+                className={`pt-button pt-minimal ${this.state.diffMode ===
+                'slider'
+                  ? 'pt-icon-layers'
+                  : 'pt-icon-contrast'}`}
+                onClick={() => this.toggleDiffMode()}
+              />}
           </div>
           {this.styleEditor.lastResult.chunks.map((chunk, i) => {
             const mq = chunk.mediaQueries
@@ -475,17 +486,18 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             id="previews-markup"
             className={this.state.showGrid ? 'show-grid' : ''}
           >
-            <div className="preview-diff">
-              <Slider
-                min={0}
-                max={100}
-                stepSize={1}
-                onChange={diffValue => this.setState({ diffValue })}
-                showTrackFill={false}
-                renderLabel={false}
-                value={this.state.diffValue}
-              />
-            </div>
+            {someHaveDiffImage &&
+              <div className="preview-diff">
+                <Slider
+                  min={0}
+                  max={100}
+                  stepSize={1}
+                  onChange={diffValue => this.setState({ diffValue })}
+                  showTrackFill={false}
+                  renderLabel={false}
+                  value={this.state.diffValue}
+                />
+              </div>}
             {data.map((state, i) => {
               const hiddenClass = state.hidden ? '' : 'pt-active'
               errors = 0
@@ -520,14 +532,22 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                       <DiffImagePopoverProps
                         position={Position.LEFT_TOP}
                         diffImage={diffImage}
-                        buttonClassName="pt-button pt-minimal pt-small pt-icon-media"
+                        buttonClassName={`pt-button pt-minimal pt-small pt-icon-media ${hasDiffImage(
+                          state
+                        )
+                          ? 'pt-active'
+                          : ''}`}
                         onDelete={() => this.dataEditor.deleteDiffImage(i)}
                         onChange={diffImage =>
                           this.dataEditor.setDiffImage(diffImage, i)}
                       />
                       <MediaPopoverProps
                         position={Position.LEFT_TOP}
-                        buttonClassName="pt-button pt-minimal pt-small pt-icon-widget"
+                        buttonClassName={`pt-button pt-minimal pt-small pt-icon-widget ${hasMediaInfo(
+                          state
+                        )
+                          ? 'pt-active'
+                          : ''}`}
                         media={media}
                         onChange={media => this.dataEditor.setMedia(media, i)}
                       />

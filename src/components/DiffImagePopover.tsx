@@ -31,7 +31,7 @@ interface DiffImagePopoverState {
 const defaultState: DiffImagePopoverState = {
   isOpen: false,
   resolution: '@2x',
-  align: 'center center',
+  align: 'center',
   width: 0,
   height: 0,
   path: undefined
