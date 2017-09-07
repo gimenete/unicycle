@@ -50,7 +50,11 @@ class JSONEditor extends Editor {
   setMedia(media: Media, index: number) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
-    data[index].media = media
+    if (Object.values(media).filter(value => value != null).length === 0) {
+      delete data[index].media
+    } else {
+      data[index].media = media
+    }
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 
