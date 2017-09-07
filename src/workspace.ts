@@ -1,6 +1,7 @@
 import * as EventEmitter from 'events'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as fse from 'fs-extra'
 
 import sketch from './sketch'
 import { States } from './types'
@@ -105,6 +106,32 @@ class Workspace extends EventEmitter {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
     return writeFile(fullPath, data, 'utf8')
+  }
+
+  async copyComponentFile(fullPath: string): Promise<string> {
+    const basename = path.basename(fullPath)
+    if (!this.activeComponent) {
+      return Promise.reject(
+        new Error(
+          `Trying to write ${basename} but not active component at this moment`
+        )
+      )
+    }
+    await fse.copy(
+      fullPath,
+      path.join(this.dir, 'components', this.activeComponent, basename)
+    )
+    return basename
+  }
+
+  pathForComponentFile(basename: string) {
+    if (!this.activeComponent) {
+      console.warn(
+        `Trying to calculate path for ${basename} but not active component at this moment`
+      )
+      return ''
+    }
+    return path.join(this.dir, 'components', this.activeComponent, basename)
   }
 }
 

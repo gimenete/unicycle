@@ -9,6 +9,7 @@ import { Position, Overlay, Slider } from '@blueprintjs/core'
 import {
   ObjectStringToString,
   ComponentInformation,
+  DiffImage,
   Media,
   State,
   States
@@ -23,6 +24,7 @@ import JSONEditor from './editors/json'
 import InputPopover from './components/InpuPopover'
 import ConfirmPopover from './components/ConfirmPopover'
 import MediaPopoverProps from './components/MediaPopover'
+import DiffImagePopoverProps from './components/DiffImagePopover'
 
 import reactGenerator from './generators/react'
 
@@ -103,7 +105,8 @@ interface ComponentEditorState {
   inspecting: boolean
   showGrid: boolean
   isOutputOpen: boolean
-  value: number
+  diffMode: string
+  diffValue: number
 }
 
 class ComponentEditor extends React.Component<any, ComponentEditorState> {
@@ -218,8 +221,14 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       inspecting: false,
       showGrid: false,
       isOutputOpen: false,
-      value: 50
+      diffValue: 50,
+      diffMode: 'slider'
     }
+  }
+
+  toggleDiffMode() {
+    const diffMode = this.state.diffMode === 'slider' ? 'opacity' : 'slider'
+    this.setState({ diffMode })
   }
 
   selectEditor(index: number) {
@@ -384,6 +393,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         }
       }
 
+      const diffImageProperties = (
+        diffImage: DiffImage
+      ): React.CSSProperties => {
+        const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
+        const { width, height } = diffImage
+        return {
+          backgroundImage: `url(${workspace.pathForComponentFile(
+            diffImage.file
+          )})`,
+          backgroundSize: `${width / multiplier}px ${height / multiplier}px`
+          // backgroundPosition: diffImage.align
+        }
+      }
+
       const data: States = this.dataEditor.latestJSON || []
       return (
         <div>
@@ -425,6 +448,14 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 this.scrollDown = true
               }}
             />
+            <button
+              type="button"
+              className={`pt-button pt-minimal ${this.state.diffMode ===
+              'slider'
+                ? 'pt-icon-layers'
+                : 'pt-icon-contrast'}`}
+              onClick={() => this.toggleDiffMode()}
+            />
           </div>
           {this.styleEditor.lastResult.chunks.map((chunk, i) => {
             const mq = chunk.mediaQueries
@@ -449,10 +480,10 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 min={0}
                 max={100}
                 stepSize={1}
-                onChange={value => this.setState({ value })}
+                onChange={diffValue => this.setState({ diffValue })}
                 showTrackFill={false}
                 renderLabel={false}
-                value={this.state.value}
+                value={this.state.diffValue}
               />
             </div>
             {data.map((state, i) => {
@@ -465,6 +496,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               }
               const { mediaQueries } = this.styleEditor.lastResult
               const media: Media = state.media || {}
+              const diffImage = state.diffImage
               Object.keys(mediaQueries).forEach(id => {
                 const condition = mediaQueries[id]
                 const matches = mediaQuery.match(condition, media)
@@ -485,11 +517,19 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                         type="button"
                         onClick={() => this.toggleHiddenState(state)}
                       />
+                      <DiffImagePopoverProps
+                        position={Position.LEFT_TOP}
+                        diffImage={diffImage}
+                        buttonClassName="pt-button pt-minimal pt-small pt-icon-media"
+                        onDelete={() => this.dataEditor.deleteDiffImage(i)}
+                        onChange={diffImage =>
+                          this.dataEditor.setDiffImage(diffImage, i)}
+                      />
                       <MediaPopoverProps
                         position={Position.LEFT_TOP}
                         buttonClassName="pt-button pt-minimal pt-small pt-icon-widget"
                         media={media}
-                        onConfirm={media => this.dataEditor.setMedia(media, i)}
+                        onChange={media => this.dataEditor.setMedia(media, i)}
                       />
                       <InputPopover
                         position={Position.LEFT}
@@ -518,10 +558,21 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                     <div className={classNames.join(' ')}>
                       {preview}
                     </div>
-                    <div
-                      className="preview-content-overlay"
-                      style={{ right: `${100 - this.state.value}%` }}
-                    />
+                    {state.diffImage &&
+                      <div
+                        className="preview-content-overlay"
+                        style={{
+                          right:
+                            this.state.diffMode === 'slider'
+                              ? `${100 - this.state.diffValue}%`
+                              : '0',
+                          opacity:
+                            this.state.diffMode === 'opacity'
+                              ? this.state.diffValue / 100
+                              : 1,
+                          ...diffImageProperties(state.diffImage)
+                        }}
+                      />}
                   </div>
                 </div>
               )

@@ -7,7 +7,7 @@ interface MediaPopoverProps {
   position?: Position
   buttonClassName: string
   media: Media
-  onConfirm: (media: Media) => void
+  onChange: (media: Media) => void
 }
 
 interface MediaPopoverState {
@@ -35,7 +35,7 @@ export default class MediaPopover extends React.Component<
   }
 
   sendChanges() {
-    this.props.onConfirm({
+    this.props.onChange({
       type: this.state.mediaType || undefined,
       orientation: this.state.mediaOrientation || undefined,
       width: this.state.mediaWidth || undefined,

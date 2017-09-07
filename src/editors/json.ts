@@ -1,6 +1,6 @@
 import Editor from './'
 
-import { Media, State, States } from '../types'
+import { DiffImage, Media, State, States } from '../types'
 
 class JSONEditor extends Editor {
   latestJSON: States | null
@@ -51,6 +51,21 @@ class JSONEditor extends Editor {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
     data[index].media = media
+    this.editor.setValue(JSON.stringify(data, null, 2))
+  }
+
+  setDiffImage(diffImage: DiffImage, index: number) {
+    const str = this.editor.getValue()
+    const data = JSON.parse(str) as States
+    data[index].diffImage = diffImage
+    this.editor.setValue(JSON.stringify(data, null, 2))
+  }
+
+  deleteDiffImage(index: number) {
+    const str = this.editor.getValue()
+    const data = JSON.parse(str) as States
+    // TODO: delete file
+    delete data[index].diffImage
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 }

@@ -65,12 +65,21 @@ export interface Media {
   height?: string
 }
 
+export interface DiffImage {
+  file: string
+  resolution: string
+  width: number
+  height: number
+  align: string
+}
+
 export interface State {
   id?: string
   name: string
   hidden?: boolean
   props: { [index: string]: any }
   media?: Media
+  diffImage?: DiffImage
 }
 
 export type States = State[]

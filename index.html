@@ -70,6 +70,17 @@
         nodeRequire('./lib/renderer.js')
       })
     </script>
+
+    <script>
+      const disableDragAndDrop = (e) => {
+        if (e.target.classList.contains('drop-zone')) return
+        e.preventDefault()
+        e.dataTransfer.effectAllowed = 'none'
+        e.dataTransfer.dropEffect = 'none'
+      }
+      window.addEventListener('dragover', disableDragAndDrop, false)
+      window.addEventListener('drop', disableDragAndDrop, false)
+    </script>
 </body>
 
 </html>
