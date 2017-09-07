@@ -71,6 +71,7 @@ export interface DiffImage {
   width: number
   height: number
   align: string
+  adjustWidthPreview: boolean
 }
 
 export interface State {

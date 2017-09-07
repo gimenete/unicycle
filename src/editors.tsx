@@ -284,7 +284,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       const renderNode = (
         data: {},
         node: parse5.AST.Default.Node,
-        key?: string | number
+        key?: string | number,
+        additionalStyles?: React.CSSProperties
       ): React.ReactNode => {
         const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
           JSON.stringify({
@@ -356,6 +357,11 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           if (location) {
             attrs['data-location'] = locationJSON(location)
           }
+          attrs['style'] = Object.assign(
+            {},
+            attrs['style'] || {},
+            additionalStyles
+          )
           return React.createElement.apply(
             null,
             new Array<any>(node.nodeName, attrs).concat(childNodes)
@@ -402,8 +408,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           backgroundImage: `url(${workspace.pathForComponentFile(
             diffImage.file
           )})`,
-          backgroundSize: `${width / multiplier}px ${height / multiplier}px`
-          // backgroundPosition: diffImage.align
+          backgroundSize: `${width / multiplier}px ${height / multiplier}px`,
+          backgroundPosition: diffImage.align
+        }
+      }
+
+      const rootNodeProperties = (
+        diffImage?: DiffImage
+      ): React.CSSProperties => {
+        if (!diffImage || !diffImage.adjustWidthPreview) return {}
+        const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
+        const { width, height } = diffImage
+        return {
+          width: width / multiplier,
+          boxSizing: 'border-box'
         }
       }
 
@@ -499,16 +517,21 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 />
               </div>}
             {data.map((state, i) => {
+              const diffImage = state.diffImage
               const hiddenClass = state.hidden ? '' : 'pt-active'
               errors = 0
-              const preview = renderNode(state.props, rootNode)
+              const preview = renderNode(
+                state.props,
+                rootNode,
+                undefined,
+                rootNodeProperties(state.diffImage)
+              )
               const classNames: string[] = ['preview-content']
               if (state.hidden) {
                 classNames.push('hidden')
               }
               const { mediaQueries } = this.styleEditor.lastResult
               const media: Media = state.media || {}
-              const diffImage = state.diffImage
               Object.keys(mediaQueries).forEach(id => {
                 const condition = mediaQueries[id]
                 const matches = mediaQuery.match(condition, media)
@@ -582,10 +605,10 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                       <div
                         className="preview-content-overlay"
                         style={{
-                          right:
+                          clipPath:
                             this.state.diffMode === 'slider'
-                              ? `${100 - this.state.diffValue}%`
-                              : '0',
+                              ? `inset(0 ${100 - this.state.diffValue}% 0 0)`
+                              : undefined,
                           opacity:
                             this.state.diffMode === 'opacity'
                               ? this.state.diffValue / 100

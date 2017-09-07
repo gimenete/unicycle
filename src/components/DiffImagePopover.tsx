@@ -26,6 +26,7 @@ interface DiffImagePopoverState {
   path?: string
   width?: number
   height?: number
+  adjustWidthPreview?: boolean
 }
 
 const defaultState: DiffImagePopoverState = {
@@ -34,7 +35,8 @@ const defaultState: DiffImagePopoverState = {
   align: 'center',
   width: 0,
   height: 0,
-  path: undefined
+  path: undefined,
+  adjustWidthPreview: false
 }
 
 export default class DiffImagePopover extends React.Component<
@@ -51,7 +53,8 @@ export default class DiffImagePopover extends React.Component<
           align: diffImage.align,
           width: diffImage.width,
           height: diffImage.height,
-          path: diffImage.file
+          path: diffImage.file,
+          adjustWidthPreview: diffImage.adjustWidthPreview
         }
       : defaultState
   }
@@ -62,7 +65,8 @@ export default class DiffImagePopover extends React.Component<
       resolution: this.state.resolution!,
       width: this.state.width!,
       height: this.state.height!,
-      align: this.state.align!
+      align: this.state.align!,
+      adjustWidthPreview: !!this.state.adjustWidthPreview
     })
   }
 
@@ -177,41 +181,61 @@ export default class DiffImagePopover extends React.Component<
             <p>Click or drop an image here</p>
           </div>
           {this.state.path &&
-            <div style={{ textAlign: 'center' }}>
-              <div className="pt-button-group">
-                {renderResolutionButton('@1x')}
-                {renderResolutionButton('@2x')}
+            <div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="pt-button-group">
+                  {renderResolutionButton('@1x')}
+                  {renderResolutionButton('@2x')}
+                </div>
+                <br />
+                <br />
+                <div className="pt-button-group">
+                  {renderAlignButton('arrow-top-left', 'top left')}
+                  {renderAlignButton('arrow-up', 'top')}
+                  {renderAlignButton('arrow-top-right', 'top right')}
+                </div>
+                <br />
+                <div className="pt-button-group">
+                  {renderAlignButton('arrow-left', 'left')}
+                  {renderAlignButton('symbol-circle', 'center')}
+                  {renderAlignButton('arrow-right', 'right')}
+                </div>
+                <br />
+                <div className="pt-button-group">
+                  {renderAlignButton('arrow-bottom-left', 'bottom left')}
+                  {renderAlignButton('arrow-down', 'bottom')}
+                  {renderAlignButton('arrow-bottom-right', 'bottom right')}
+                </div>
               </div>
-              <br />
-              <br />
-              <div className="pt-button-group">
-                {renderAlignButton('arrow-top-left', 'top left')}
-                {renderAlignButton('arrow-up', 'top')}
-                {renderAlignButton('arrow-top-right', 'top right')}
-              </div>
-              <br />
-              <div className="pt-button-group">
-                {renderAlignButton('arrow-left', 'left')}
-                {renderAlignButton('symbol-circle', 'center')}
-                {renderAlignButton('arrow-right', 'right')}
-              </div>
-              <br />
-              <div className="pt-button-group">
-                {renderAlignButton('arrow-bottom-left', 'bottom left')}
-                {renderAlignButton('arrow-down', 'bottom')}
-                {renderAlignButton('arrow-bottom-right', 'bottom right')}
-              </div>
+              <p>
+                <br />
+                <label className="pt-control pt-switch">
+                  <input
+                    type="checkbox"
+                    checked={!!this.state.adjustWidthPreview}
+                    onChange={e =>
+                      this.setState(
+                        {
+                          adjustWidthPreview: !this.state.adjustWidthPreview
+                        },
+                        () => this.sendChanges()
+                      )}
+                  />
+                  <span className="pt-control-indicator" />
+                  Adjust preview width to image width
+                </label>
+              </p>
+              <p>
+                <br />
+                <button
+                  className="pt-button pt-intent-danger pt-fill"
+                  onClick={e =>
+                    this.setState(defaultState, this.props.onDelete)}
+                >
+                  Delete diff image
+                </button>
+              </p>
             </div>}
-          {this.state.path &&
-            <p>
-              <br />
-              <button
-                className="pt-button pt-intent-danger pt-fill"
-                onClick={e => this.setState(defaultState, this.props.onDelete)}
-              >
-                Delete diff image
-              </button>
-            </p>}
         </div>
       </Popover>
     )
