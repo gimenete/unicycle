@@ -10,8 +10,18 @@ import {
 } from '../utils'
 import css2obj from '../css2obj'
 
-const generateReact = (information: ComponentInformation): string => {
+const docComment = (text: string) => {
+  const lines = text.trim().split('\n')
+  const docLines = lines.map(line => ` * ${line}\n`)
+  return `/*\n${docLines.join('')} */`
+}
+
+const generateReact = (
+  information: ComponentInformation,
+  options?: prettier.Options
+): string => {
   const { data, markup } = information
+  const componentName = uppercamelcase(information.name)
 
   const eventHandlers = new Map<string, boolean>()
   const calculateEventHanlders = (node: parse5.AST.Default.Node) => {
@@ -44,17 +54,48 @@ const generateReact = (information: ComponentInformation): string => {
     typer.addRootField(key, 'function', value)
   }
 
-  const componentName = uppercamelcase(information.name)
-  let code = `
-/**
-* This file was generated automatically. Do not change it.
-* Use composition if you want to extend it
-*/
-import React from 'react';
-import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
+  const example = () => {
+    const firstState = data[0]
+    if (!firstState || !firstState.props) return ''
+    const { props } = firstState
+    let code = `class MyContainer extends Component {
+      render() {
+      return <${componentName}`
+    Object.keys(props).forEach(key => {
+      const value = props[key]
+      if (typeof value === 'string') {
+        code += ` ${key}=${JSON.stringify(value)}`
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        code += ` ${key}=${value}`
+      } else {
+        code += ` ${key}={${JSON.stringify(value)}}`
+      }
+    })
+    for (const key of eventHandlers.keys()) {
+      code += ` ${key}={() => {}}`
+    }
+    code += '/> } }'
+    return prettier.format(code, options)
+  }
 
-const ${componentName} = (props) => {`
+  const exampleCode = example()
+  const lines = [
+    'This file was generated automatically. Do not change it. Use composition instead'
+  ]
+  if (exampleCode) {
+    lines.push('')
+    lines.push('This is an example of how to use the generated component:')
+    lines.push('')
+    lines.push(exampleCode)
+  }
+  const comment = docComment(lines.join('\n'))
+
+  let code = `${comment}
+  import React from 'react';
+  import PropTypes from 'prop-types'; // eslint-disable-line no-unused-vars
+  import './styles.css';
+
+  const ${componentName} = (props) => {`
 
   if (keys.size > 0) {
     code += `const {${Array.from(keys)
@@ -120,31 +161,9 @@ const ${componentName} = (props) => {`
   code += '}\n\n'
   code += typer.createPropTypes(`${componentName}.propTypes`)
   code += '\n\n'
-  const defaultState = Object.values(data).find(state => state.id === 'default')
-  if (defaultState) {
-    const props = Object.assign({}, defaultState.props)
-    for (const entry of eventHandlers.entries()) {
-      const [key, required] = entry
-      if (required) {
-        props[key] = () => {}
-      }
-    }
-    const requiredEventHandlers = Array.from(eventHandlers.keys()).filter(key =>
-      eventHandlers.get(key)
-    )
-    if (requiredEventHandlers.length > 0) {
-      code += `const noop = () => {}; ${componentName}.defaultProps = Object.assign(${JSON.stringify(
-        props
-      )}, {${requiredEventHandlers
-        .map(key => `"${key}": noop`)
-        .join(',')}})\n\n`
-    } else {
-      code += `${componentName}.defaultProps = ${JSON.stringify(props)}\n\n`
-    }
-  }
   code += 'export default ' + componentName
   try {
-    return prettier.format(code, { semi: false })
+    return prettier.format(code, options)
   } catch (err) {
     console.log('code', code)
     console.error(err)

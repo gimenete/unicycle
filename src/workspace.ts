@@ -2,14 +2,20 @@ import * as EventEmitter from 'events'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as fse from 'fs-extra'
+import * as parse5 from 'parse5'
+import * as sass from 'node-sass'
+import * as prettier from 'prettier'
 
 import sketch from './sketch'
-import { States } from './types'
+import { ComponentInformation, States } from './types'
+
+import reactGenerator from './generators/react'
 
 const pify = require('pify')
 const readFile = pify(fs.readFile)
 const writeFile = pify(fs.writeFile)
 const mkdir = pify(fs.mkdir)
+const mkdirp = pify(require('mkdirp'))
 
 interface Component {
   name: string
@@ -20,13 +26,18 @@ class Workspace extends EventEmitter {
   activeComponent: string | null
   metadata: {
     components: Component[]
+    source: string
+    export: {
+      dir: string
+      framework: string
+      style: string
+      language: string
+      prettier?: prettier.Options
+    }
   }
 
   constructor() {
     super()
-    this.metadata = {
-      components: []
-    }
   }
 
   async loadProject(dir: string) {
@@ -53,17 +64,20 @@ class Workspace extends EventEmitter {
       null,
       2
     )
-    await mkdir(path.join(this.dir, 'components', name))
+    await mkdir(path.join(this.dir, this.metadata.source, name))
     await Promise.all([
       this.writeFile(
-        path.join('components', name, 'index.html'),
+        path.join(this.metadata.source, name, 'index.html'),
         initial.markup
       ),
       this.writeFile(
-        path.join('components', name, 'styles.scss'),
+        path.join(this.metadata.source, name, 'styles.scss'),
         initial.style
       ),
-      this.writeFile(path.join('components', name, 'data.json'), initialState),
+      this.writeFile(
+        path.join(this.metadata.source, name, 'data.json'),
+        initialState
+      ),
       this.writeFile('project.json', JSON.stringify(this.metadata, null, 2))
     ])
     this.metadata.components.push({ name })
@@ -75,14 +89,15 @@ class Workspace extends EventEmitter {
     this.emit('activeComponent', name)
   }
 
-  readComponentFile(file: string): Promise<string> {
-    if (!this.activeComponent) {
+  readComponentFile(file: string, component?: string): Promise<string> {
+    const comp = component || this.activeComponent
+    if (!comp) {
       console.warn(
         `Trying to read ${file} but not active component at this moment`
       )
       return Promise.resolve('')
     }
-    return this.readFile(path.join('components', this.activeComponent, file))
+    return this.readFile(path.join(this.metadata.source, comp, file))
   }
 
   readFile(relativePath: string) {
@@ -98,7 +113,7 @@ class Workspace extends EventEmitter {
       )
       return Promise.resolve()
     }
-    const fullPath = path.join('components', this.activeComponent, file)
+    const fullPath = path.join(this.metadata.source, this.activeComponent, file)
     return this.writeFile(fullPath, data)
   }
 
@@ -119,7 +134,7 @@ class Workspace extends EventEmitter {
     }
     await fse.copy(
       fullPath,
-      path.join(this.dir, 'components', this.activeComponent, basename)
+      path.join(this.dir, this.metadata.source, this.activeComponent, basename)
     )
     return basename
   }
@@ -131,7 +146,41 @@ class Workspace extends EventEmitter {
       )
       return ''
     }
-    return path.join(this.dir, 'components', this.activeComponent, basename)
+    return path.join(
+      this.dir,
+      this.metadata.source,
+      this.activeComponent,
+      basename
+    )
+  }
+
+  async generate() {
+    const outDir = path.join(this.dir, this.metadata.export.dir)
+    await mkdirp(outDir)
+    for (const component of this.metadata.components) {
+      const name = component.name
+      const markup = parse5.parseFragment(
+        await this.readComponentFile('index.html', name)
+      ) as parse5.AST.Default.DocumentFragment
+      const data = JSON.parse(await this.readComponentFile('data.json', name))
+      const style = await this.readComponentFile('styles.scss', name)
+      const componentInformation = {
+        name,
+        markup,
+        data
+      } as ComponentInformation
+      const prettierOptions = this.metadata.export.prettier
+      const code = reactGenerator(componentInformation, prettierOptions)
+      await mkdirp(path.join(outDir, name))
+      await writeFile(path.join(outDir, name, 'index.jsx'), code, 'utf8')
+      const css = await new Promise<Buffer>((resolve, reject) => {
+        sass.render({ data: style }, (err, result) => {
+          if (err) return reject(err)
+          resolve(result.css)
+        })
+      })
+      await writeFile(path.join(outDir, name, 'styles.css'), css)
+    }
   }
 }
 

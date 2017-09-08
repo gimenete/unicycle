@@ -175,8 +175,6 @@ class Typer {
   }
 
   createPropTypes(initialCode: string) {
-    let nullValidator: string | null = null
-    let undefinedValidator: string | null = null
     const ast = this.createAST('')
     const codeForArray = (values: AST[]): string =>
       values.length === 1
@@ -208,37 +206,23 @@ class Typer {
         const definition = this.interfaces.find(i => i.name === interfaceName)!
         const fields = definition.fields
         if (fields.length === 0) {
-          return 'PropTypes.object'
+          return isRoot ? '' : 'PropTypes.object'
         }
         const code = `{
-          ${fields.map(
-            field =>
-              `"${field.name}": ${codeForArray(field.value)}${field.required
-                ? '.isRequired'
-                : ''}`
-          )}
+          ${fields.map(field => {
+            let required = field.required
+            const values = field.value.filter(val => {
+              const notNullable =
+                val.type !== 'null' && val.type !== 'undefined'
+              required = required && notNullable
+              return notNullable
+            })
+            return `"${field.name}": ${codeForArray(values)}${required
+              ? '.isRequired'
+              : ''}`
+          })}
         }`
         return isRoot ? code : `PropTypes.shape(${code})`
-      }
-      if (value.type === 'null') {
-        nullValidator = `
-          const nullValidator = (props, propName, componentName) => {
-            if (props[propName] !== null) {
-              return new Error(\`Invalid prop \${propName} supplied to \${componentName}\. Validation failed.\`)
-            }
-          }
-        `
-        return 'nullValidator'
-      }
-      if (value.type === 'undefined') {
-        undefinedValidator = `
-          const undefinedValidator = (props, propName, componentName) => {
-            if (typeof props[propName] !== 'undefined') {
-              return new Error(\`Invalid prop \${propName} supplied to \${componentName}\. Validation failed.\`)
-            }
-          }
-      `
-        return 'undefinedValidator'
       }
       return 'Unknown'
     }
@@ -247,12 +231,9 @@ class Typer {
         ? codeForValue(ast.root[0], true)
         : codeForArray(ast.root)
 
-    return prettier.format(
-      [nullValidator, undefinedValidator, `${initialCode} = ${code}`]
-        .filter(Boolean)
-        .join(';\n\n'),
-      { semi: false }
-    )
+    return code
+      ? prettier.format(`${initialCode} = ${code}`, { semi: false })
+      : ''
   }
 }
 

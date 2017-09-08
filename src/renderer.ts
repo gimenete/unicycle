@@ -14,9 +14,9 @@ if (isPackaged()) {
 }
 
 ;(async () => {
-  await workspace.loadProject(path.join(__dirname, '..', '..', 'example'))
+  await workspace.loadProject(path.join(__dirname, '..', '..', 'react-example'))
+  workspace.generate()
+  require('./editors')
+  require('./menu')
+  require('./navbar')
 })()
-
-require('./editors')
-require('./menu')
-require('./navbar')
