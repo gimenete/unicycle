@@ -2,48 +2,92 @@ import * as parse5 from 'parse5'
 import * as prettier from 'prettier'
 
 import Typer from '../typer'
-import { ComponentInformation } from '../types'
-import { uppercamelcase } from '../utils'
+import { ComponentInformation, GeneratedCode } from '../types'
+import {
+  uppercamelcase,
+  docComment,
+  calculateEventHanlders,
+  calculateTyper
+} from '../utils'
 
-const generateVue = (information: ComponentInformation): string => {
-  const dom = information.markup
+const dashify = require('dashify')
 
-  const manipulateNode = (node: parse5.AST.Default.Element) => {
-    const copy = Object.assign({}, node)
-    if (node.nodeName === '#text') {
-      return Object.assign(
-        {},
-        node,
-        {
-          // value: node.value.replace(/{([^}]+)?}/g, str => `{${str}}`)
-        }
-      )
-    }
+const generateVue = (
+  information: ComponentInformation,
+  options?: prettier.Options
+): GeneratedCode => {
+  const { markup, name, data } = information
+  const componentName = dashify(information.name)
+  const eventHandlers = calculateEventHanlders(markup)
+  const typer = calculateTyper(data, eventHandlers)
 
-    copy.attrs = node.attrs.map((attr: parse5.AST.Default.Attribute) => {
-      if (attr.name === '@if') {
-        return {
-          name: 'v-if',
-          value: attr.value.replace(/state\./g, '')
-        }
+  const cloned = parse5.parseFragment(parse5.serialize(markup), {
+    locationInfo: true
+  }) as parse5.AST.Default.DocumentFragment
+
+  const example = () => {
+    const firstState = data[0]
+    if (!firstState || !firstState.props) return ''
+    const { props } = firstState
+    let code = `<${componentName}`
+    Object.keys(props).forEach(key => {
+      const value = props[key]
+      const type = typeof value
+      if (value === null || type === 'undefined') return
+      if (type === 'string') {
+        code += `\n  ${key}=${JSON.stringify(value)}`
+      } else if (type === 'number' || type === 'boolean') {
+        code += `\n  ${key}="${value}"`
+      } else {
+        code += `\n  :${key}='${JSON.stringify(value).replace(/\'/g, "\\'")}'`
       }
-      return attr
     })
-    copy.childNodes = node.childNodes.map(manipulateNode)
-    return copy
+    for (const key of eventHandlers.keys()) {
+      code += `\n  :${key}="() => {}"`
+    }
+    code += '\n/>'
+    return code
   }
 
-  const scriptCode = prettier.format(
-    `
-export default {
-}
-`,
-    { semi: false }
-  )
-  let code = `<template>\n${parse5.serialize(dom)}\n</template>\n\n`
-  code += `<script>\n${scriptCode}\n</script>`
+  const manipulateNode = (node: parse5.AST.Default.Node) => {
+    if (node.nodeName === '#text') {
+      const textNode = node as parse5.AST.Default.TextNode
+      textNode.value = textNode.value.replace(/{([^}]+)?}/g, str => `{${str}}`)
+    }
+    const element = node as parse5.AST.Default.Element
+    if (!element.childNodes) {
+      return
+    }
+    element.attrs.forEach(attr => {
+      if (attr.name === '@if') {
+        attr.name = 'v-if'
+      } else if (attr.name.startsWith('@on')) {
+        attr.name = 'v-on:' + attr.name.substring('@on'.length)
+      }
+    })
 
-  return code
+    element.childNodes.forEach(manipulateNode)
+  }
+
+  cloned.childNodes.forEach(manipulateNode)
+
+  const scriptCode = prettier.format(
+    `${docComment([example()].join('\n'))}
+      export default {
+        props: ${typer.createVueValidation(options)}
+      }
+    `,
+    options
+  )
+  let code = `<template>\n${parse5.serialize(cloned)}\n</template>\n\n`
+  code += `<script>\n${scriptCode}\n</script>\n\n`
+  code += `<style lang="scss">\n${information.style}\n</style>`
+
+  return {
+    code,
+    path: componentName + '.vue',
+    embeddedStyle: true
+  }
 }
 
 export default generateVue

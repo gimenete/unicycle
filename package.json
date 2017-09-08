@@ -1,5 +1,6 @@
 {
-  "name": "electron-quick-start",
+  "name": "stellator",
+  "private": true,
   "version": "1.0.0",
   "description": "A minimal Electron application",
   "main": "lib/main.js",
@@ -7,18 +8,12 @@
     "start": "electron .",
     "lint": "eslint -- .",
     "lint:fix": "npm run lint -- --fix",
-    "tsc": "tsc --watch"
+    "tsc": "tsc --watch",
+    "generate:react": "node lib/generator.js react",
+    "generate:vue": "node lib/generator.js vue"
   },
   "repository": "https://github.com/electron/electron-quick-start",
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
-  ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "author": "Level Apps S.L.",
   "devDependencies": {
     "@types/node": "^8.0.24",
     "electron": "^1.6.12",
@@ -42,6 +37,7 @@
     "@types/source-map": "^0.5.1",
     "camelcase": "^4.1.0",
     "css-mediaquery": "^0.1.2",
+    "dashify": "^0.2.2",
     "dedent": "^0.7.0",
     "fs-extra": "^4.0.1",
     "lodash": "^4.17.4",

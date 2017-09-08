@@ -89,6 +89,13 @@ export interface ComponentInformation {
   name: string
   markup: parse5.AST.Default.DocumentFragment
   data: States
+  style: string
+}
+
+export interface GeneratedCode {
+  path: string
+  code: string
+  embeddedStyle: boolean
 }
 
 export type ObjectStringToString = { [index: string]: string }

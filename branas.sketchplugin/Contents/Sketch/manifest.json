@@ -1,10 +1,10 @@
 {
-  "name": "Branas exporting tool",
-  "description": "Exports the current selection to Branas",
+  "name": "Stellator exporting tool",
+  "description": "Exports the current selection to Stellator",
   "author": "Level Apps S.L.",
-  "homepage": "http://branas.io",
+  "homepage": "http://stellator.io",
   "version": "1.0",
-  "identifier": "io.branas.sketch",
+  "identifier": "io.stellator.sketch",
   "compatibleVersion": "3",
   "bundleVersion": 1,
   "commands": [

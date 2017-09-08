@@ -1,5 +1,6 @@
+import * as prettier from 'prettier'
+
 const camelcase = require('camelcase')
-const prettier = require('prettier')
 
 type StringToBoolean = {
   [index: string]: boolean
@@ -174,6 +175,19 @@ class Typer {
     return prettier.format(code, { semi: false })
   }
 
+  _filterNotNullables(field: Field) {
+    let required = field.required
+    const value = field.value.filter(val => {
+      const notNullable = val.type !== 'null' && val.type !== 'undefined'
+      required = required && notNullable
+      return notNullable
+    })
+    return {
+      value,
+      required
+    }
+  }
+
   createPropTypes(initialCode: string) {
     const ast = this.createAST('')
     const codeForArray = (values: AST[]): string =>
@@ -210,16 +224,10 @@ class Typer {
         }
         const code = `{
           ${fields.map(field => {
-            let required = field.required
-            const values = field.value.filter(val => {
-              const notNullable =
-                val.type !== 'null' && val.type !== 'undefined'
-              required = required && notNullable
-              return notNullable
-            })
-            return `"${field.name}": ${codeForArray(values)}${required
-              ? '.isRequired'
-              : ''}`
+            const _field = this._filterNotNullables(field)
+            return `"${field.name}": ${codeForArray(
+              _field.value
+            )}${_field.required ? '.isRequired' : ''}`
           })}
         }`
         return isRoot ? code : `PropTypes.shape(${code})`
@@ -234,6 +242,43 @@ class Typer {
     return code
       ? prettier.format(`${initialCode} = ${code}`, { semi: false })
       : ''
+  }
+
+  createVueValidation(options?: prettier.Options) {
+    const ast = this.createAST('')
+    if (ast.root.length !== 1 || ast.root[0].type !== 'object') return ''
+    const root = ast.root[0]
+    const interfaceName = root.interfaceName!
+    const definition = this.interfaces.find(i => i.name === interfaceName)!
+    const fields = definition.fields
+
+    const codeForSingleValue = (value: AST, required: boolean): string => {
+      const type = value.type
+      const upper = type.substring(0, 1).toUpperCase() + type.substring(1)
+      if (!required) {
+        return upper
+      }
+      return `{ type: ${upper}, required: true }`
+    }
+
+    const codeForValue = (value: AST[], required: boolean): string => {
+      if (value.length === 1) return codeForSingleValue(value[0], required)
+      return `[${value
+        .map(val => codeForSingleValue(val, required))
+        .join(', ')}]`
+    }
+
+    const codeForField = (field: Field): string => {
+      const _field = this._filterNotNullables(field)
+      return `${JSON.stringify(field.name)}: ${codeForValue(
+        _field.value,
+        _field.required
+      )}`
+    }
+
+    const code = `{ ${fields.map(field => codeForField(field)).join(', ')} }`
+    const prefix = 'const foo = '
+    return prettier.format(prefix + code, options).substring(prefix.length)
   }
 }
 

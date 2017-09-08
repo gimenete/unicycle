@@ -1,6 +1,61 @@
-import { ObjectStringToString } from './types'
+import * as parse5 from 'parse5'
+import Typer from './typer'
+import { ObjectStringToString, States } from './types'
 
 const camelcase = require('camelcase')
+
+export const calculateTyper = (
+  data: States,
+  eventHandlers?: Map<string, boolean>
+) => {
+  const typer = new Typer()
+  data.forEach(state => typer.addDocument(state.props))
+
+  if (eventHandlers) {
+    for (const entry of eventHandlers.entries()) {
+      const [key, value] = entry
+      typer.addRootField(key, 'function', value)
+    }
+  }
+  return typer
+}
+
+export const calculateEventHanlders = (
+  markup: parse5.AST.Default.DocumentFragment
+) => {
+  const eventHandlers = new Map<string, boolean>()
+  const calculate = (node: parse5.AST.Default.Node) => {
+    const element = node as parse5.AST.Default.Element
+    if (!element.childNodes) return
+    element.attrs.forEach(attr => {
+      if (attr.name.startsWith('@on')) {
+        const required = !attr.name.endsWith('?')
+        const value = attr.value
+        if (eventHandlers.has(value)) {
+          eventHandlers.set(value, eventHandlers.get(value)! || required)
+        } else {
+          eventHandlers.set(value, required)
+        }
+      }
+    })
+    element.childNodes.forEach(child => calculate(child))
+  }
+  calculate(markup.childNodes[0])
+  return eventHandlers
+}
+
+export const docComment = (text: string) => {
+  const lines = text.trim().split('\n')
+  const docLines = lines.map(line => ` * ${line}\n`)
+  return `/*\n${docLines.join('')} */`
+}
+
+export const replaceRoot = (selector: string, text: string) => {
+  return selector.replace(
+    /\\"|"(?:\\"|[^"])*"|\\'|'(?:\\'|[^'])*'|(\:root)/g,
+    str => (str.charAt(0) === ':' ? text : str)
+  )
+}
 
 // see https://facebook.github.io/react/docs/dom-elements.html
 const validAttributes = new Set([

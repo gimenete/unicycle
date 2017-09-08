@@ -7,9 +7,10 @@ import * as sass from 'node-sass'
 import * as prettier from 'prettier'
 
 import sketch from './sketch'
-import { ComponentInformation, States } from './types'
+import { ComponentInformation, GeneratedCode, States } from './types'
 
 import reactGenerator from './generators/react'
+import vueGenerator from './generators/vuejs'
 
 const pify = require('pify')
 const readFile = pify(fs.readFile)
@@ -155,31 +156,58 @@ class Workspace extends EventEmitter {
   }
 
   async generate() {
+    const generators: {
+      [index: string]: (
+        information: ComponentInformation,
+        options?: prettier.Options
+      ) => GeneratedCode
+    } = {
+      react: reactGenerator,
+      vue: vueGenerator
+    }
+
     const outDir = path.join(this.dir, this.metadata.export.dir)
     await mkdirp(outDir)
+    console.log('outDir', outDir)
     for (const component of this.metadata.components) {
+      console.log('+', component.name)
       const name = component.name
       const markup = parse5.parseFragment(
         await this.readComponentFile('index.html', name)
       ) as parse5.AST.Default.DocumentFragment
       const data = JSON.parse(await this.readComponentFile('data.json', name))
       const style = await this.readComponentFile('styles.scss', name)
-      const componentInformation = {
+      const componentInformation: ComponentInformation = {
         name,
         markup,
-        data
-      } as ComponentInformation
+        data,
+        style
+      }
       const prettierOptions = this.metadata.export.prettier
-      const code = reactGenerator(componentInformation, prettierOptions)
+      const code = generators[this.metadata.export.framework](
+        componentInformation,
+        prettierOptions
+      )
       await mkdirp(path.join(outDir, name))
-      await writeFile(path.join(outDir, name, 'index.jsx'), code, 'utf8')
+      console.log('-', path.join(outDir, code.path))
+      await writeFile(path.join(outDir, code.path), code.code, 'utf8')
       const css = await new Promise<Buffer>((resolve, reject) => {
         sass.render({ data: style }, (err, result) => {
           if (err) return reject(err)
           resolve(result.css)
         })
       })
-      await writeFile(path.join(outDir, name, 'styles.css'), css)
+      if (!code.embeddedStyle) {
+        console.log('-', path.join(outDir, code.path))
+        await writeFile(
+          path.join(outDir, name, 'styles.css'),
+          prettier.format(css.toString(), {
+            parser: 'postcss',
+            ...prettierOptions
+          }),
+          'utf8'
+        )
+      }
     }
   }
 }

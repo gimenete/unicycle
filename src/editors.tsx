@@ -703,7 +703,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     } as ComponentInformation
     const prettierOptions = workspace.metadata.export.prettier
     const code = reactGenerator(componentInformation, prettierOptions)
-    return code
+    return code.code
   }
 }
 

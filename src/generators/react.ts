@@ -1,58 +1,30 @@
 import * as parse5 from 'parse5'
 import * as prettier from 'prettier'
 
-import Typer from '../typer'
-import { ComponentInformation } from '../types'
+import { ComponentInformation, GeneratedCode } from '../types'
 import {
   uppercamelcase,
   toReactAttributeName,
-  toReactEventName
+  toReactEventName,
+  docComment,
+  calculateEventHanlders,
+  calculateTyper
 } from '../utils'
 import css2obj from '../css2obj'
-
-const docComment = (text: string) => {
-  const lines = text.trim().split('\n')
-  const docLines = lines.map(line => ` * ${line}\n`)
-  return `/*\n${docLines.join('')} */`
-}
 
 const generateReact = (
   information: ComponentInformation,
   options?: prettier.Options
-): string => {
+): GeneratedCode => {
   const { data, markup } = information
   const componentName = uppercamelcase(information.name)
-
-  const eventHandlers = new Map<string, boolean>()
-  const calculateEventHanlders = (node: parse5.AST.Default.Node) => {
-    const element = node as parse5.AST.Default.Element
-    if (!element.childNodes) return
-    element.attrs.forEach(attr => {
-      if (attr.name.startsWith('@on')) {
-        const required = !attr.name.endsWith('?')
-        const value = attr.value
-        if (eventHandlers.has(value)) {
-          eventHandlers.set(value, eventHandlers.get(value)! || required)
-        } else {
-          eventHandlers.set(value, required)
-        }
-      }
-    })
-    element.childNodes.forEach(child => calculateEventHanlders(child))
-  }
-  calculateEventHanlders(markup.childNodes[0])
+  const eventHandlers = calculateEventHanlders(markup)
+  const typer = calculateTyper(data, eventHandlers)
 
   const keys = data.reduce((set: Set<string>, value) => {
     Object.keys(value.props).forEach(key => set.add(key))
     return set
   }, new Set<string>())
-  const typer = new Typer()
-  data.forEach(state => typer.addDocument(state.props))
-
-  for (const entry of eventHandlers.entries()) {
-    const [key, value] = entry
-    typer.addRootField(key, 'function', value)
-  }
 
   const example = () => {
     const firstState = data[0]
@@ -163,11 +135,15 @@ const generateReact = (
   code += '\n\n'
   code += 'export default ' + componentName
   try {
-    return prettier.format(code, options)
+    return {
+      code: prettier.format(code, options),
+      path: componentName + '/index.jsx',
+      embeddedStyle: false
+    }
   } catch (err) {
     console.log('code', code)
     console.error(err)
-    return ''
+    throw err
   }
 }
 
