@@ -4,6 +4,7 @@ import * as sharp from 'sharp'
 import { Popover, Position } from '@blueprintjs/core'
 import electron = require('electron')
 import workspace from '../workspace'
+import errorHandler from '../error-handler'
 
 import * as path from 'path'
 
@@ -86,9 +87,7 @@ export default class DiffImagePopover extends React.Component<
           )
         })
       })
-      .catch((e: any) => {
-        console.error(e)
-      })
+      .catch(errorHandler)
   }
 
   handleDrop(e: React.DragEvent<HTMLDivElement>) {
@@ -180,7 +179,7 @@ export default class DiffImagePopover extends React.Component<
           >
             <p>Click or drop an image here</p>
           </div>
-          {this.state.path &&
+          {this.state.path && (
             <div>
               <div style={{ textAlign: 'center' }}>
                 <div className="pt-button-group">
@@ -235,7 +234,8 @@ export default class DiffImagePopover extends React.Component<
                   Delete diff image
                 </button>
               </p>
-            </div>}
+            </div>
+          )}
         </div>
       </Popover>
     )

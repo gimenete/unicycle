@@ -137,7 +137,7 @@ class StyleEditor extends Editor {
         }
       )
     } catch (e) {
-      console.error('Wrong CSS', e, Object.keys(e))
+      this.errorHandler(e)
     }
   }
 

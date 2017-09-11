@@ -16,6 +16,7 @@ class MarkupEditor extends Editor {
       errorHandler
     )
     this.latestDOM = null
+    this.errorHandler = errorHandler
   }
 
   update() {
@@ -26,7 +27,7 @@ class MarkupEditor extends Editor {
       this.emitUpdate()
     } catch (e) {
       if (e.name === 'SyntaxError') return // TODO: show error in editor
-      console.error(e)
+      this.errorHandler(e)
     }
   }
 }

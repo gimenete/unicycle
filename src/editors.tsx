@@ -695,7 +695,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         })
       })
     } catch (e) {
-      console.error(e)
+      errorHandler(e)
     }
     if (this.scrollDown) {
       this.scrollDown = false

@@ -30,6 +30,7 @@ class Editor extends EventEmitter {
   oldDecorations: {
     [index: string]: string[]
   }
+  errorHandler: ErrorHandler
   emitUpdate: () => void
 
   constructor(
@@ -70,6 +71,7 @@ class Editor extends EventEmitter {
     })
 
     this.emitUpdate = throttle(() => this.emit('update'), 500)
+    this.errorHandler = errorHandler
   }
 
   cleanUpMessages(type: string) {
