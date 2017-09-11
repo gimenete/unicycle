@@ -18,8 +18,8 @@ function createWindow() {
   const isPackaged = utils.isPackaged()
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: isPackaged ? 1008 : 1008 + 400,
-    height: 800,
+    width: isPackaged ? 800 : 800 + 400,
+    height: 600,
     titleBarStyle: isPackaged ? 'hidden' : undefined
   })
 

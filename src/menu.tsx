@@ -30,7 +30,9 @@ class Menu extends React.Component<MenuProps, MenuState> {
   }
 
   render() {
-    const { components } = workspace.metadata
+    const { metadata } = workspace
+    if (!metadata) return <div />
+    const { components } = metadata
     return (
       <div>
         <ul className="pt-tree-node-list pt-tree-root">

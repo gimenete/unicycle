@@ -287,3 +287,29 @@ body.loading #app {
 #content.blank-slate #blank-slate {
   display: block;
 }
+
+#open {
+  height: 100%;
+  display: none;
+}
+
+body.opening #open {
+  display: block;
+}
+
+#open [data-reactroot] {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+body #open .pt-non-ideal-state {
+  cursor: pointer;
+  border: 10px solid white;
+  border-top: 40px solid white;
+  border-bottom: 40px solid white;
+}
+
+body #open .pt-non-ideal-state:hover {
+  background: #eee;
+}

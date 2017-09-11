@@ -3,7 +3,6 @@ import workspace from './workspace'
 import { isPackaged } from './utils'
 
 import { FocusStyleManager } from '@blueprintjs/core'
-import errorHandler from './error-handler'
 
 FocusStyleManager.onlyShowFocusOnTabs()
 
@@ -23,14 +22,7 @@ workspace.on('activeComponent', name => {
   }
 })
 
-workspace
-  .loadProject(path.join(__dirname, '..', '..', 'react-example'))
-  .then(() => {
-    require('./editors')
-    require('./menu')
-    require('./navbar')
-    const loader = document.querySelector('#loading')
-    loader && loader.parentNode!.removeChild(loader)
-    document.body.classList.remove('loading')
-  })
-  .catch(errorHandler)
+require('./open')
+require('./editors')
+require('./menu')
+require('./navbar')
