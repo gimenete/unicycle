@@ -29,6 +29,7 @@ class Editor extends EventEmitter {
   oldDecorations: {
     [index: string]: string[]
   }
+  emitUpdate: () => void
 
   constructor(
     file: string,
@@ -58,10 +59,15 @@ class Editor extends EventEmitter {
       workspace
         .readComponentFile(file)
         .then(data => {
-          this.editor.setValue(data)
+          if (workspace.activeComponent === name) {
+            // avoid race condition
+            this.editor.setValue(data)
+          }
         })
         .catch((e: Error) => console.error(e))
     })
+
+    this.emitUpdate = throttle(() => this.emit('update'), 500)
   }
 
   cleanUpMessages(type: string) {
@@ -100,10 +106,6 @@ class Editor extends EventEmitter {
   }
 
   update() {}
-
-  emitUpdate() {
-    this.emit('update')
-  }
 
   scrollDown() {
     const lines = this.editor.getModel().getLineCount()
