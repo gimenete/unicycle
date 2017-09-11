@@ -45,8 +45,6 @@ class Workspace extends EventEmitter {
     this.dir = dir
     this.metadata = JSON.parse(await this.readFile('project.json'))
     this.emit('projectLoaded')
-    const firstComponent = this.metadata.components[0]
-    this.setActiveComponent((firstComponent && firstComponent.name) || null) // or first component
   }
 
   createProject(dir: string) {
@@ -103,8 +101,6 @@ class Workspace extends EventEmitter {
       component => component.name !== name
     )
     await this._saveMetadata()
-    const first = this.metadata.components[0]
-    this.setActiveComponent(first ? first.name : null)
   }
 
   readComponentFile(file: string, component?: string): Promise<string> {

@@ -199,6 +199,17 @@ input,
   font-size: 12px;
 }
 
+#loading {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 100%;
+}
+
+body.loading #app {
+  display: none;
+}
+
 #editors .pt-tab-panel[aria-hidden='true'] {
   display: block;
   visibility: hidden;
@@ -261,4 +272,18 @@ input,
 
 .hidden-action-group:hover .hidden-action {
   visibility: visible;
+}
+
+#blank-slate {
+  display: none;
+  width: calc(100vw - 200px);
+}
+
+#content.blank-slate #previews,
+#content.blank-slate #editors {
+  display: none;
+}
+
+#content.blank-slate #blank-slate {
+  display: block;
 }

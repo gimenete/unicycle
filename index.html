@@ -10,10 +10,20 @@
   <script src="./node_modules/mousetrap/mousetrap.min.js"></script>
 </head>
 
-<body>
+<body class="loading">
+  <div id="loading">
+    <div class="pt-spinner pt-large">
+      <div class="pt-spinner-svg-container">
+        <svg viewBox="0 0 100 100">
+          <path class="pt-spinner-track" d="M 50,50 m 0,-44.5 a 44.5,44.5 0 1 1 0,89 a 44.5,44.5 0 1 1 0,-89"></path>
+          <path class="pt-spinner-head" d="M 94.5 50 A 44.5 44.5 0 0 0 50 5.5"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
   <div id="app">
     <div id="navbar"></div>
-    <div id="content">
+    <div id="content" class="blank-slate">
       <aside id="menu">
       </aside>
       <div id="editors">
@@ -35,6 +45,17 @@
         </div>
       </div>
       <div id="previews">
+      </div>
+      <div id="blank-slate">
+        <div class="pt-non-ideal-state">
+          <div class="pt-non-ideal-state-visual pt-non-ideal-state-icon">
+            <span class="pt-icon pt-icon-home"></span>
+          </div>
+          <h4 class="pt-non-ideal-state-title">No component selected</h4>
+          <div class="pt-non-ideal-state-description">
+            Select a component or create one
+          </div>
+        </div>
       </div>
     </div>
     <script>

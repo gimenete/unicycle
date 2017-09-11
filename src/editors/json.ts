@@ -1,14 +1,19 @@
 import Editor from './'
 
-import { DiffImage, Media, State, States } from '../types'
+import { DiffImage, Media, State, States, ErrorHandler } from '../types'
 
 class JSONEditor extends Editor {
   latestJSON: States | null
 
-  constructor(element: HTMLElement) {
-    super('data.json', element, {
-      language: 'json'
-    })
+  constructor(element: HTMLElement, errorHandler: ErrorHandler) {
+    super(
+      'data.json',
+      element,
+      {
+        language: 'json'
+      },
+      errorHandler
+    )
     this.latestJSON = null
   }
 

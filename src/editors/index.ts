@@ -1,6 +1,7 @@
 import EventEmitter = require('events')
 import { throttle } from 'lodash'
 
+import { ErrorHandler } from '../types'
 import workspace from '../workspace'
 
 interface Message {
@@ -34,7 +35,8 @@ class Editor extends EventEmitter {
   constructor(
     file: string,
     element: HTMLElement,
-    options: monaco.editor.IEditorConstructionOptions
+    options: monaco.editor.IEditorConstructionOptions,
+    errorHandler: ErrorHandler
   ) {
     super()
     this.oldDecorations = {}
@@ -45,7 +47,7 @@ class Editor extends EventEmitter {
     const saveFile = throttle(() => {
       workspace
         .writeComponentFile(file, this.editor.getValue())
-        .catch((e: Error) => console.error(e))
+        .catch(errorHandler)
     }, 2000)
     this.editor.getModel().updateOptions({ tabSize: 2 })
     this.editor.onDidChangeModelContent(
@@ -64,7 +66,7 @@ class Editor extends EventEmitter {
             this.editor.setValue(data)
           }
         })
-        .catch((e: Error) => console.error(e))
+        .catch(errorHandler)
     })
 
     this.emitUpdate = throttle(() => this.emit('update'), 500)

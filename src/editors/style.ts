@@ -9,7 +9,8 @@ import {
   PostCSSRule,
   PostCSSAtRule,
   PostCSSPosition,
-  SassResult
+  SassResult,
+  ErrorHandler
 } from '../types'
 
 import * as sass from 'node-sass'
@@ -45,10 +46,15 @@ class StyleEditor extends Editor {
 
   static CSS_PREFIX = '#previews-markup .preview-content'
 
-  constructor(element: HTMLElement) {
-    super('styles.scss', element, {
-      language: 'scss'
-    })
+  constructor(element: HTMLElement, errorHandler: ErrorHandler) {
+    super(
+      'styles.scss',
+      element,
+      {
+        language: 'scss'
+      },
+      errorHandler
+    )
   }
 
   update() {

@@ -27,7 +27,7 @@ import MediaPopoverProps from './components/MediaPopover'
 import DiffImagePopoverProps from './components/DiffImagePopover'
 
 import reactGenerator from './generators/react'
-
+import errorHandler from './error-handler'
 import workspace from './workspace'
 import css2obj from './css2obj'
 
@@ -122,9 +122,18 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
 
   constructor(props: any) {
     super(props)
-    this.markupEditor = new MarkupEditor(document.getElementById('markup')!)
-    this.styleEditor = new StyleEditor(document.getElementById('style')!)
-    this.dataEditor = new JSONEditor(document.getElementById('state')!)
+    this.markupEditor = new MarkupEditor(
+      document.getElementById('markup')!,
+      errorHandler
+    )
+    this.styleEditor = new StyleEditor(
+      document.getElementById('style')!,
+      errorHandler
+    )
+    this.dataEditor = new JSONEditor(
+      document.getElementById('state')!,
+      errorHandler
+    )
     this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
 
     this.inspector = new Inspector()

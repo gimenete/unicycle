@@ -99,3 +99,5 @@ export interface GeneratedCode {
 }
 
 export type ObjectStringToString = { [index: string]: string }
+
+export type ErrorHandler = (e: Error) => void
