@@ -45,8 +45,8 @@ class OpenPage extends React.Component<any, any> {
   }
 
   componentDidMount() {
-    if (!isPackaged()) {
-      this.loadProject(path.join(__dirname, '..', '..', 'react-example'))
+    if (!isPackaged() && process.env.FIRST_WINDOW === 'true') {
+      this.loadProject(path.join(__dirname, '..', '..', 'example'))
     }
   }
 

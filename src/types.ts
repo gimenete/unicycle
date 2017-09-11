@@ -1,4 +1,5 @@
 import * as parse5 from 'parse5'
+import * as prettier from 'prettier'
 
 export type CSSMediaQuery = string // conditions
 
@@ -101,3 +102,19 @@ export interface GeneratedCode {
 export type ObjectStringToString = { [index: string]: string }
 
 export type ErrorHandler = (e: Error) => void
+
+export interface Component {
+  name: string
+}
+
+export interface Metadata {
+  components: Component[]
+  source: string
+  export?: {
+    dir: string
+    framework: string
+    style: string
+    language: string
+    prettier?: prettier.Options
+  }
+}

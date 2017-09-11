@@ -7,35 +7,24 @@ import * as sass from 'node-sass'
 import * as prettier from 'prettier'
 
 import sketch from './sketch'
-import { ComponentInformation, GeneratedCode, States } from './types'
+import {
+  ComponentInformation,
+  GeneratedCode,
+  States,
+  Metadata,
+  ErrorHandler
+} from './types'
 
 import reactGenerator from './generators/react'
 import vueGenerator from './generators/vuejs'
 
-const pify = require('pify')
-const readFile = pify(fs.readFile)
-const writeFile = pify(fs.writeFile)
-const mkdir = pify(fs.mkdir)
-const mkdirp = pify(require('mkdirp'))
-
-interface Component {
-  name: string
-}
+const metadataFile = 'unicycle.json'
+const sourceDir = 'components'
 
 class Workspace extends EventEmitter {
   dir: string
   activeComponent: string | null
-  metadata: {
-    components: Component[]
-    source: string
-    export: {
-      dir: string
-      framework: string
-      style: string
-      language: string
-      prettier?: prettier.Options
-    }
-  }
+  metadata: Metadata
 
   constructor() {
     super()
@@ -43,12 +32,21 @@ class Workspace extends EventEmitter {
 
   async loadProject(dir: string) {
     this.dir = dir
-    this.metadata = JSON.parse(await this.readFile('project.json'))
+    this.metadata = JSON.parse(await this.readFile(metadataFile))
     this.emit('projectLoaded')
   }
 
-  createProject(dir: string) {
-    // TODO
+  async createProject(dir: string) {
+    this.dir = dir
+    const initialMetadata: Metadata = {
+      components: [],
+      source: sourceDir
+    }
+    await fse.writeFile(
+      path.join(this.dir, metadataFile),
+      JSON.stringify(initialMetadata)
+    )
+    await fse.mkdirp(path.join(this.dir, sourceDir))
   }
 
   async addComponent(name: string, structure?: string) {
@@ -63,7 +61,7 @@ class Workspace extends EventEmitter {
       null,
       2
     )
-    await mkdir(path.join(this.dir, this.metadata.source, name))
+    await fse.mkdir(path.join(this.dir, this.metadata.source, name))
     await Promise.all([
       this.writeFile(
         path.join(this.metadata.source, name, 'index.html'),
@@ -84,10 +82,7 @@ class Workspace extends EventEmitter {
   }
 
   _saveMetadata() {
-    return this.writeFile(
-      'project.json',
-      JSON.stringify(this.metadata, null, 2)
-    )
+    return this.writeFile(metadataFile, JSON.stringify(this.metadata, null, 2))
   }
 
   setActiveComponent(name: string | null) {
@@ -114,10 +109,10 @@ class Workspace extends EventEmitter {
     return this.readFile(path.join(this.metadata.source, comp, file))
   }
 
-  readFile(relativePath: string) {
+  readFile(relativePath: string): Promise<string> {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
-    return readFile(fullPath, 'utf8') as Promise<string>
+    return fse.readFile(fullPath, 'utf8')
   }
 
   writeComponentFile(file: string, data: string) {
@@ -134,7 +129,7 @@ class Workspace extends EventEmitter {
   writeFile(relativePath: string, data: string): Promise<void> {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
-    return writeFile(fullPath, data, 'utf8')
+    return fse.writeFile(fullPath, data)
   }
 
   async copyComponentFile(fullPath: string): Promise<string> {
@@ -168,7 +163,7 @@ class Workspace extends EventEmitter {
     )
   }
 
-  async generate() {
+  async generate(errorHandler: ErrorHandler) {
     const generators: {
       [index: string]: (
         information: ComponentInformation,
@@ -179,8 +174,13 @@ class Workspace extends EventEmitter {
       vue: vueGenerator
     }
 
-    const outDir = path.join(this.dir, this.metadata.export.dir)
-    await mkdirp(outDir)
+    const exportOptions = this.metadata.export!
+    if (!exportOptions) {
+      return errorHandler(new Error('No export options set'))
+    }
+
+    const outDir = path.join(this.dir, exportOptions.dir)
+    await fse.mkdirp(outDir)
     console.log('outDir', outDir)
     for (const component of this.metadata.components) {
       console.log('+', component.name)
@@ -196,14 +196,14 @@ class Workspace extends EventEmitter {
         data,
         style
       }
-      const prettierOptions = this.metadata.export.prettier
-      const code = generators[this.metadata.export.framework](
+      const prettierOptions = exportOptions.prettier
+      const code = generators[exportOptions.framework](
         componentInformation,
         prettierOptions
       )
-      await mkdirp(path.join(outDir, name))
+      await fse.mkdirp(path.join(outDir, name))
       console.log('-', path.join(outDir, code.path))
-      await writeFile(path.join(outDir, code.path), code.code, 'utf8')
+      await fse.writeFile(path.join(outDir, code.path), code.code)
       const css = await new Promise<Buffer>((resolve, reject) => {
         sass.render({ data: style }, (err, result) => {
           if (err) return reject(err)
@@ -212,13 +212,12 @@ class Workspace extends EventEmitter {
       })
       if (!code.embeddedStyle) {
         console.log('-', path.join(outDir, code.path))
-        await writeFile(
+        await fse.writeFile(
           path.join(outDir, name, 'styles.css'),
           prettier.format(css.toString(), {
             parser: 'postcss',
             ...prettierOptions
-          }),
-          'utf8'
+          })
         )
       }
     }
