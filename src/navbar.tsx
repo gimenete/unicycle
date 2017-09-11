@@ -26,7 +26,7 @@ class Navbar extends React.Component<any, NavbarState> {
       <div>
         <nav className="pt-navbar">
           <div className="pt-navbar-group pt-align-left">
-            <div className="pt-navbar-heading">Stellator</div>
+            <div className="pt-navbar-heading">Unicycle</div>
             <input
               className="pt-input"
               placeholder="Search files..."

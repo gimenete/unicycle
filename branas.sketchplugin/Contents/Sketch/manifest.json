@@ -1,10 +1,10 @@
 {
-  "name": "Stellator exporting tool",
-  "description": "Exports the current selection to Stellator",
+  "name": "Unicycle exporting tool",
+  "description": "Exports the current selection to Unicycle",
   "author": "Level Apps S.L.",
-  "homepage": "http://stellator.io",
+  "homepage": "http://unicycle.io",
   "version": "1.0",
-  "identifier": "io.stellator.sketch",
+  "identifier": "io.unicycle.sketch",
   "compatibleVersion": "3",
   "bundleVersion": 1,
   "commands": [
