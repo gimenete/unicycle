@@ -13,6 +13,7 @@ class Inspector extends EventEmitter {
     this.inspecting = false
 
     window.addEventListener('scroll', () => this.recalculate(), true)
+    window.addEventListener('resize', () => this.recalculate(), true)
 
     const marginOverlay = (this.marginOverlay = document.createElement('div'))
     marginOverlay.style.backgroundColor = '#C4DFB8'

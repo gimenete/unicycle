@@ -333,13 +333,16 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             .filter(
               attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
             )
-            .reduce((obj, attr) => {
-              const name = toReactAttributeName(attr.name)
-              if (name) {
-                obj[name] = attr.value
-              }
-              return obj
-            }, {} as ObjectStringToString)
+            .reduce(
+              (obj, attr) => {
+                const name = toReactAttributeName(attr.name)
+                if (name) {
+                  obj[name] = attr.value
+                }
+                return obj
+              },
+              {} as ObjectStringToString
+            )
           attrs['key'] = String(key)
           element.attrs.forEach(attr => {
             if (!attr.name.startsWith(':')) return
@@ -476,7 +479,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 this.scrollDown = true
               }}
             />
-            {someHaveDiffImage &&
+            {someHaveDiffImage && (
               <button
                 type="button"
                 className={`pt-button pt-minimal ${this.state.diffMode ===
@@ -484,7 +487,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                   ? 'pt-icon-layers'
                   : 'pt-icon-contrast'}`}
                 onClick={() => this.toggleDiffMode()}
-              />}
+              />
+            )}
           </div>
           {this.styleEditor.lastResult.chunks.map((chunk, i) => {
             const mq = chunk.mediaQueries
@@ -494,28 +498,31 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             )
             return (
               <style key={i}>
-                {chunk.addPrefix
-                  ? `${StyleEditor.CSS_PREFIX}${classes}${repeat} ${chunk.css}`
-                  : chunk.css}
+                {chunk.addPrefix ? (
+                  `${StyleEditor.CSS_PREFIX}${classes}${repeat} ${chunk.css}`
+                ) : (
+                  chunk.css
+                )}
               </style>
             )
           })}
+          {someHaveDiffImage && (
+            <div className="preview-diff">
+              <Slider
+                min={0}
+                max={100}
+                stepSize={1}
+                onChange={diffValue => this.setState({ diffValue })}
+                showTrackFill={false}
+                renderLabel={false}
+                value={this.state.diffValue}
+              />
+            </div>
+          )}
           <div
             id="previews-markup"
             className={this.state.showGrid ? 'show-grid' : ''}
           >
-            {someHaveDiffImage &&
-              <div className="preview-diff">
-                <Slider
-                  min={0}
-                  max={100}
-                  stepSize={1}
-                  onChange={diffValue => this.setState({ diffValue })}
-                  showTrackFill={false}
-                  renderLabel={false}
-                  value={this.state.diffValue}
-                />
-              </div>}
             {data.map((state, i) => {
               const diffImage = state.diffImage
               const hiddenClass = state.hidden ? '' : 'pt-active'
@@ -543,10 +550,9 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                 <div className="preview" key={i}>
                   <p>
                     <span className="preview-bar">
-                      {errors > 0 &&
-                        <span className="pt-icon-error">
-                          {errors}
-                        </span>}
+                      {errors > 0 && (
+                        <span className="pt-icon-error">{errors}</span>
+                      )}
                       <button
                         className={`pt-button pt-minimal pt-small pt-icon-eye-open ${hiddenClass}`}
                         type="button"
@@ -598,12 +604,12 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                     {state.name}
                   </p>
                   <div style={{ position: 'relative' }}>
-                    <div className={classNames.join(' ')}>
-                      {preview}
-                    </div>
-                    {state.diffImage &&
+                    <div className={classNames.join(' ')}>{preview}</div>
+                    {state.diffImage && (
                       <div
-                        className="preview-content-overlay"
+                        className={`preview-content-overlay ${state.hidden
+                          ? 'hidden'
+                          : ''}`}
                         style={{
                           clipPath:
                             this.state.diffMode === 'slider'
@@ -615,7 +621,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                               : 1,
                           ...diffImageProperties(state.diffImage)
                         }}
-                      />}
+                      />
+                    )}
                   </div>
                 </div>
               )
