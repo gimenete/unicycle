@@ -27,11 +27,11 @@ class Navbar extends React.Component<any, NavbarState> {
         <nav className="pt-navbar">
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">Unicycle</div>
-            <input
+            {/* <input
               className="pt-input"
               placeholder="Search files..."
               type="text"
-            />
+            /> */}
           </div>
           <div className="pt-navbar-group pt-align-right">
             <button

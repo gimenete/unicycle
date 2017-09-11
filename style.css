@@ -1,6 +1,7 @@
 :root {
   --black: #22282d;
   --gray: #dbdddd;
+  -webkit-font-smoothing: antialiased;
 }
 
 html,
@@ -185,11 +186,11 @@ input,
 
 .output-code textarea {
   flex-grow: 1;
-  font-family: Menlo, Monaco, "Courier New", monospace;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
   font-size: 12px;
 }
 
-#editors .pt-tab-panel[aria-hidden="true"] {
+#editors .pt-tab-panel[aria-hidden='true'] {
   display: block;
   visibility: hidden;
   margin-left: -100vw;
@@ -243,4 +244,12 @@ input,
   pointer-events: none;
   text-align: center;
   width: 100%;
+}
+
+.hidden-action-group .hidden-action {
+  visibility: hidden;
+}
+
+.hidden-action-group:hover .hidden-action {
+  visibility: visible;
 }

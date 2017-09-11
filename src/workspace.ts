@@ -78,16 +78,33 @@ class Workspace extends EventEmitter {
       this.writeFile(
         path.join(this.metadata.source, name, 'data.json'),
         initialState
-      ),
-      this.writeFile('project.json', JSON.stringify(this.metadata, null, 2))
+      )
     ])
     this.metadata.components.push({ name })
+    await this._saveMetadata()
     this.setActiveComponent(name)
+  }
+
+  _saveMetadata() {
+    return this.writeFile(
+      'project.json',
+      JSON.stringify(this.metadata, null, 2)
+    )
   }
 
   setActiveComponent(name: string | null) {
     this.activeComponent = name
     this.emit('activeComponent', name)
+  }
+
+  async deleteComponent(name: string) {
+    await fse.remove(path.join(this.dir, this.metadata.source, name))
+    this.metadata.components = this.metadata.components.filter(
+      component => component.name !== name
+    )
+    await this._saveMetadata()
+    const first = this.metadata.components[0]
+    this.setActiveComponent(first ? first.name : null)
   }
 
   readComponentFile(file: string, component?: string): Promise<string> {

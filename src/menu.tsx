@@ -4,6 +4,7 @@ import { Button, Intent, Dialog, Position } from '@blueprintjs/core'
 import { remote } from 'electron'
 
 import InputPopover from './components/InpuPopover'
+import ConfirmPopover from './components/ConfirmPopover'
 
 import workspace from './workspace'
 
@@ -40,7 +41,7 @@ class Menu extends React.Component<MenuProps, MenuState> {
               <span className="pt-tree-node-label">Components</span>
             </div>
             <ul className="pt-tree-node-list">
-              {components.map(component =>
+              {components.map(component => (
                 <li
                   key={component.name}
                   className={`pt-tree-node ${workspace.activeComponent ===
@@ -51,15 +52,27 @@ class Menu extends React.Component<MenuProps, MenuState> {
                     workspace.setActiveComponent(component.name)
                   }}
                 >
-                  <div className="pt-tree-node-content">
+                  <div className="pt-tree-node-content hidden-action-group">
                     <span className="pt-tree-node-caret-none pt-icon-standard" />
                     <span className="pt-tree-node-icon pt-icon-standard pt-icon-document" />
-                    <span className="pt-tree-node-label">
-                      {component.name}
+                    <span className="pt-tree-node-label">{component.name}</span>
+                    <span className="pt-tree-node-secondary-label">
+                      <ConfirmPopover
+                        position={Position.RIGHT}
+                        buttonClassName="pt-button pt-minimal pt-small pt-icon-trash hidden-action"
+                        message="Are you sure you want to delete this component?"
+                        confirmText="Yes, delete it"
+                        cancelText="Cancel"
+                        confirmClassName="pt-button pt-intent-danger"
+                        cancelClassName="pt-button"
+                        onConfirm={() => {
+                          workspace.deleteComponent(component.name)
+                        }}
+                      />
                     </span>
                   </div>
                 </li>
-              )}
+              ))}
             </ul>
           </li>
         </ul>
