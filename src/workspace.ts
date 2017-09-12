@@ -39,8 +39,7 @@ class Workspace extends EventEmitter {
   async createProject(dir: string) {
     this.dir = dir
     const initialMetadata: Metadata = {
-      components: [],
-      source: sourceDir
+      components: []
     }
     await fse.writeFile(
       path.join(this.dir, metadataFile),
@@ -61,20 +60,11 @@ class Workspace extends EventEmitter {
       null,
       2
     )
-    await fse.mkdir(path.join(this.dir, this.metadata.source, name))
+    await fse.mkdir(path.join(this.dir, sourceDir, name))
     await Promise.all([
-      this.writeFile(
-        path.join(this.metadata.source, name, 'index.html'),
-        initial.markup
-      ),
-      this.writeFile(
-        path.join(this.metadata.source, name, 'styles.scss'),
-        initial.style
-      ),
-      this.writeFile(
-        path.join(this.metadata.source, name, 'data.json'),
-        initialState
-      )
+      this.writeFile(path.join(sourceDir, name, 'index.html'), initial.markup),
+      this.writeFile(path.join(sourceDir, name, 'styles.scss'), initial.style),
+      this.writeFile(path.join(sourceDir, name, 'data.json'), initialState)
     ])
     this.metadata.components.push({ name })
     await this._saveMetadata()
@@ -91,7 +81,7 @@ class Workspace extends EventEmitter {
   }
 
   async deleteComponent(name: string) {
-    await fse.remove(path.join(this.dir, this.metadata.source, name))
+    await fse.remove(path.join(this.dir, sourceDir, name))
     this.metadata.components = this.metadata.components.filter(
       component => component.name !== name
     )
@@ -106,7 +96,7 @@ class Workspace extends EventEmitter {
       )
       return Promise.resolve('')
     }
-    return this.readFile(path.join(this.metadata.source, comp, file))
+    return this.readFile(path.join(sourceDir, comp, file))
   }
 
   readFile(relativePath: string): Promise<string> {
@@ -122,7 +112,7 @@ class Workspace extends EventEmitter {
       )
       return Promise.resolve()
     }
-    const fullPath = path.join(this.metadata.source, this.activeComponent, file)
+    const fullPath = path.join(sourceDir, this.activeComponent, file)
     return this.writeFile(fullPath, data)
   }
 
@@ -143,7 +133,7 @@ class Workspace extends EventEmitter {
     }
     await fse.copy(
       fullPath,
-      path.join(this.dir, this.metadata.source, this.activeComponent, basename)
+      path.join(this.dir, sourceDir, this.activeComponent, basename)
     )
     return basename
   }
@@ -155,12 +145,7 @@ class Workspace extends EventEmitter {
       )
       return ''
     }
-    return path.join(
-      this.dir,
-      this.metadata.source,
-      this.activeComponent,
-      basename
-    )
+    return path.join(this.dir, sourceDir, this.activeComponent, basename)
   }
 
   async generate(errorHandler: ErrorHandler) {

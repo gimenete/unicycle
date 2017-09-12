@@ -109,7 +109,6 @@ export interface Component {
 
 export interface Metadata {
   components: Component[]
-  source: string
   export?: {
     dir: string
     framework: string
