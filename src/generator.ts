@@ -28,10 +28,12 @@ if (module.id === require.main!.id) {
 
     const data = frameworks[framework]
     workspace.metadata.export = data
-    workspace.metadata.export.framework = framework
-    workspace.metadata.export.prettier = {
+    workspace.metadata.export!.framework = framework
+    workspace.metadata.export!.prettier = {
       semi: false
     }
-    workspace.generate()
+    workspace.generate(err => {
+      console.error(err)
+    })
   })()
 }

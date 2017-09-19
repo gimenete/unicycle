@@ -117,3 +117,11 @@ export interface Metadata {
     prettier?: prettier.Options
   }
 }
+
+export interface ReactAttributes {
+  [index: string]: string | CssObject
+}
+
+export interface CssObject {
+  [index: string]: string | number
+}

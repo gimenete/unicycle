@@ -1,7 +1,6 @@
 /// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
 /// <reference path='../node_modules/@types/mousetrap/index.d.ts' />
 
-import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Position, Overlay, Slider } from '@blueprintjs/core'
@@ -15,7 +14,6 @@ import {
   States
 } from './types'
 import { increment, decrement } from './actions/increment'
-import { toReactAttributeName } from './utils'
 import Inspector from './inspector'
 import Editor from './editors/index'
 import MarkupEditor from './editors/markup'
@@ -29,7 +27,7 @@ import DiffImagePopoverProps from './components/DiffImagePopover'
 import reactGenerator from './generators/react'
 import errorHandler from './error-handler'
 import workspace from './workspace'
-import css2obj from './css2obj'
+import renderComponent from './preview-render'
 
 const mediaQuery = require('css-mediaquery')
 
@@ -76,30 +74,6 @@ monaco.languages.registerCompletionItemProvider('html', {
     return []
   }
 })
-
-const evaluate = (code: string, options: { [index: string]: any }) => {
-  const keys: string[] = []
-  const values: Array<any> = []
-  Object.keys(options).forEach(key => {
-    keys.push(key)
-    values.push(options[key])
-  })
-  keys.push(code)
-  const f = Function.apply({}, keys)
-  return f.apply({}, values)
-}
-
-const evaluateExpression = (code: string, options: {}) => {
-  return evaluate(`return ${code}`, options)
-}
-
-interface ReactAttributes {
-  [index: string]: string | CssObject
-}
-
-interface CssObject {
-  [index: string]: string | number
-}
 
 interface ComponentEditorState {
   inspecting: boolean
@@ -290,127 +264,6 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
 
     return this.markupEditor.calculateMessages('error', handler => {
       let errors = 0
-      const renderNode = (
-        data: {},
-        node: parse5.AST.Default.Node,
-        key?: string | number,
-        additionalStyles?: React.CSSProperties
-      ): React.ReactNode => {
-        const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
-          JSON.stringify({
-            ln: location.line,
-            c: location.col,
-            eln:
-              location.endTag !== undefined
-                ? location.endTag.line
-                : location.line
-          })
-        try {
-          if (node.nodeName === '#text') {
-            const textNode = node as parse5.AST.Default.TextNode
-            return textNode.value.replace(/{([^}]+)?}/g, str => {
-              return evaluateExpression(str.substring(1, str.length - 1), data)
-            })
-          }
-          const element = node as parse5.AST.Default.Element
-          if (!element.childNodes) return undefined
-          const _if = element.attrs.find(attr => attr.name === '@if')
-          if (_if) {
-            const result = evaluateExpression(_if.value, data)
-            if (!result) return undefined
-          }
-          const loop = element.attrs.find(attr => attr.name === '@loop')
-          const as = element.attrs.find(attr => attr.name === '@as')
-          if (loop && as) {
-            const collection = evaluateExpression(loop.value, data) as any[]
-            if (!collection) return undefined
-            const template = Object.assign({}, node, {
-              attrs: element.attrs.filter(attr => !attr.name.startsWith('@'))
-            })
-            return collection.map((obj, i) =>
-              renderNode(
-                Object.assign({}, data, { [as.value]: obj }),
-                template,
-                i
-              )
-            )
-          }
-          const childNodes = element.childNodes.map((node, i) =>
-            renderNode(data, node, i)
-          )
-          const attrs: ReactAttributes = element.attrs
-            .filter(
-              attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
-            )
-            .reduce(
-              (obj, attr) => {
-                const name = toReactAttributeName(attr.name)
-                if (name) {
-                  obj[name] = attr.value
-                }
-                return obj
-              },
-              {} as ObjectStringToString
-            )
-          attrs['key'] = String(key)
-          element.attrs.forEach(attr => {
-            if (!attr.name.startsWith(':')) return
-            const name = attr.name.substring(1)
-            const expression = attr.value
-            const fname = toReactAttributeName(name)
-            if (fname) {
-              attrs[fname] = evaluateExpression(expression, data)
-            }
-          })
-          if (attrs['style']) {
-            attrs['style'] = css2obj(attrs['style'] as string)
-          }
-          const location = element.__location
-          if (location) {
-            attrs['data-location'] = locationJSON(location)
-          }
-          attrs['style'] = Object.assign(
-            {},
-            attrs['style'] || {},
-            additionalStyles
-          )
-          return React.createElement.apply(
-            null,
-            new Array<any>(node.nodeName, attrs).concat(childNodes)
-          )
-        } catch (err) {
-          const element = node as parse5.AST.Default.Element
-          if (!err.handled && node && element.__location) {
-            handler.addMessage(
-              new monaco.Position(
-                element.__location.line,
-                element.__location.col
-              ),
-              err.message
-            )
-            err.handled = true
-            errors++
-          }
-          return (
-            <span
-              style={{
-                display: 'inline-block',
-                color: '#444',
-                backgroundColor: '#FAE1E1',
-                padding: '3px 10px',
-                fontSize: 14,
-                fontWeight: 'bold'
-              }}
-              data-location={
-                element.__location && locationJSON(element.__location)
-              }
-            >
-              <span style={{ color: '#c23030' }}>Error:</span> {err.message}
-            </span>
-          )
-        }
-      }
-
       const diffImageProperties = (
         diffImage: DiffImage
       ): React.CSSProperties => {
@@ -536,11 +389,24 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               const diffImage = state.diffImage
               const hiddenClass = state.hidden ? '' : 'pt-active'
               errors = 0
-              const preview = renderNode(
-                state.props,
-                rootNode,
-                undefined,
-                rootNodeProperties(state.diffImage)
+              const componentInformation: ComponentInformation = {
+                name: workspace.activeComponent!,
+                markup: dom,
+                data,
+                style: ''
+              }
+              const preview = renderComponent(
+                componentInformation,
+                state,
+                rootNodeProperties(state.diffImage),
+                (
+                  component: string,
+                  position: monaco.Position,
+                  text: string
+                ) => {
+                  handler.addMessage(position, text)
+                  errors++
+                }
               )
               const classNames: string[] = ['preview-content']
               if (state.hidden) {
