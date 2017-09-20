@@ -6,7 +6,6 @@ import * as ReactDOM from 'react-dom'
 import * as sass from 'node-sass'
 
 import {
-  ComponentInformation,
   ReactAttributes,
   ObjectStringToString,
   State,
@@ -17,9 +16,10 @@ import { evaluateExpression } from './eval'
 import { toReactAttributeName } from './utils'
 import css2obj from './css2obj'
 import workspace from './workspace'
+import Component from './component'
 
 const renderComponent = (
-  info: ComponentInformation,
+  info: Component,
   state: State,
   rootNodeProperties: React.CSSProperties | null,
   components: Set<string>,
@@ -81,10 +81,6 @@ const renderComponent = (
       if (node.nodeName.startsWith(INCLUDE_PREFIX)) {
         const componentName = node.nodeName.substring(INCLUDE_PREFIX.length)
         const componentInfo = workspace.loadComponent(componentName)
-        const result = sass.renderSync({
-          data: componentInfo.style,
-          sourceMap: false
-        })
         const props = element.attrs.reduce(
           (props, attr) => {
             if (attr.name.startsWith(':')) {

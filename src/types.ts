@@ -81,13 +81,6 @@ export interface State {
 
 export type States = State[]
 
-export interface ComponentInformation {
-  name: string
-  markup: parse5.AST.Default.DocumentFragment
-  data: States
-  style: string
-}
-
 export interface GeneratedCode {
   path: string
   code: string
@@ -98,12 +91,12 @@ export type ObjectStringToString = { [index: string]: string }
 
 export type ErrorHandler = (e: Error) => void
 
-export interface Component {
+export interface ComponentMetadata {
   name: string
 }
 
 export interface Metadata {
-  components: Component[]
+  components: ComponentMetadata[]
   export?: {
     dir: string
     framework: string
@@ -119,6 +112,13 @@ export interface ReactAttributes {
 
 export interface CssObject {
   [index: string]: string | number
+}
+
+export interface StripedCSS {
+  mediaQueries: {
+    [index: string]: CSSMediaQuery
+  }
+  chunks: CSSChunk[]
 }
 
 export const CSS_PREFIX = '#previews-markup .preview-content'

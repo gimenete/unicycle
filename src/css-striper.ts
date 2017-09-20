@@ -9,7 +9,8 @@ import {
   SassResult,
   ErrorHandler,
   CSS_PREFIX,
-  componentClassName
+  componentClassName,
+  StripedCSS
 } from './types'
 
 const postcss = require('postcss')
@@ -22,14 +23,6 @@ interface ParseImportValue {
   rule: string
 }
 
-export interface StripedCSS {
-  mediaQueries: {
-    [index: string]: CSSMediaQuery
-  }
-  chunks: CSSChunk[]
-  ast: PostCSSRoot
-}
-
 export interface PreCSSChunk {
   mediaQueries: string[]
   css: string
@@ -37,12 +30,7 @@ export interface PreCSSChunk {
   component: string
 }
 
-export interface ComponentCSS {
-  component: string
-  css: string
-}
-
-export const stripeCSS = (components: ComponentCSS[]): StripedCSS => {
+export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
   const mediaQueries: {
     [index: string]: CSSMediaQuery
   } = {}
@@ -95,12 +83,7 @@ export const stripeCSS = (components: ComponentCSS[]): StripedCSS => {
     }
   }
 
-  let fisrtAST: PostCSSRoot
-  components.forEach(component => {
-    const ast = postcss.parse(component.css) as PostCSSRoot
-    iterateNode(component.component, ast, [])
-    if (!fisrtAST) fisrtAST = ast
-  })
+  iterateNode(component, ast, [])
 
   const mediaQueriesCount = Object.keys(mediaQueries).length
   chunks.forEach(chunk => {
@@ -116,7 +99,6 @@ export const stripeCSS = (components: ComponentCSS[]): StripedCSS => {
   })
   return {
     mediaQueries,
-    chunks,
-    ast: fisrtAST!
+    chunks
   }
 }

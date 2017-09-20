@@ -8,7 +8,7 @@ import { Position, Overlay, Slider } from '@blueprintjs/core'
 
 import {
   ObjectStringToString,
-  ComponentInformation,
+  ComponentMetadata,
   DiffImage,
   Media,
   State,
@@ -29,7 +29,6 @@ import reactGenerator from './generators/react'
 import errorHandler from './error-handler'
 import workspace from './workspace'
 import renderComponent from './preview-render'
-import { ComponentCSS, stripeCSS } from './css-striper'
 
 const mediaQuery = require('css-mediaquery')
 
@@ -134,8 +133,10 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       })
       this.focusVisibleEditor()
 
+      const component = workspace.getActiveComponent()!
+
       this.styleEditor.calculateMessages('inspector', handler => {
-        this.styleEditor.iterateSelectors(info => {
+        component.iterateSelectors(info => {
           if (element.matches(info.selector)) {
             handler.addMessage(
               new monaco.Position(
@@ -255,9 +256,10 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   render(): JSX.Element | null {
     const code = this.generateOutput()
 
-    if (!this.styleEditor.lastResult) return <div />
-    const dom = this.markupEditor.latestDOM
-    if (!dom) return <div />
+    const component = workspace.getActiveComponent()
+    if (!component) return <div />
+
+    const dom = component.markup
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
 
@@ -304,12 +306,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         const diffImage = state.diffImage
         const hiddenClass = state.hidden ? '' : 'pt-active'
         let errors = 0
-        const componentInformation: ComponentInformation = {
-          name: workspace.activeComponent!,
-          markup: dom,
-          data,
-          style: ''
-        }
+        const componentInformation = workspace.getActiveComponent()!
         const preview = renderComponent(
           componentInformation,
           state,
@@ -416,20 +413,9 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         )
       })
 
-      const componentCss: ComponentCSS[] = Array.from(components).map(name => {
-        const comp = workspace.loadComponent(name)
-        return {
-          component: comp.name,
-          css: sass
-            .renderSync({
-              data: comp.style,
-              sourceMap: false
-            })
-            .css.toString()
-        }
+      const componentsInformation = Array.from(components).map(name => {
+        return workspace.loadComponent(name)
       })
-      const styles = stripeCSS(componentCss)
-      const { mediaQueries } = styles
       return (
         <div>
           <div
@@ -482,7 +468,11 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             )}
           </div>
           <style>{'.COMPONENT-ROOT { all: initial }'}</style>
-          {styles.chunks.map((chunk, i) => <style key={i}>{chunk.css}</style>)}
+          {componentsInformation.map(component =>
+            component.css.striped.chunks.map((chunk, i) => (
+              <style key={i}>{chunk.css}</style>
+            ))
+          )}
           {someHaveDiffImage && (
             <div className="preview-diff">
               <Slider
@@ -546,8 +536,9 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
 
   componentDidUpdate() {
     try {
+      const component = workspace.getActiveComponent()!
       this.styleEditor.calculateMessages('warning', handler => {
-        this.styleEditor.iterateSelectors(info => {
+        component.iterateSelectors(info => {
           if (!document.querySelector(info.selector)) {
             handler.addMessage(
               new monaco.Position(
@@ -570,20 +561,10 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
   }
 
   generateOutput(): string {
-    const markup = this.markupEditor.latestDOM
-    const data = this.dataEditor.latestJSON
-    const name = workspace.activeComponent
-    if (!markup || !data || !name) {
-      return ''
-    }
-
-    const componentInformation = {
-      name,
-      markup,
-      data
-    } as ComponentInformation
+    const component = workspace.getActiveComponent()
+    if (!component) return ''
     const prettierOptions = workspace.metadata.export!.prettier
-    const code = reactGenerator(componentInformation, prettierOptions)
+    const code = reactGenerator(component, prettierOptions)
     return code.code
   }
 }

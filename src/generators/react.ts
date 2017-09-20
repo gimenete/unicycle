@@ -1,7 +1,8 @@
 import * as parse5 from 'parse5'
 import * as prettier from 'prettier'
 
-import { ComponentInformation, GeneratedCode } from '../types'
+import { GeneratedCode } from '../types'
+import Component from '../component'
 import {
   uppercamelcase,
   toReactAttributeName,
@@ -13,7 +14,7 @@ import {
 import css2obj from '../css2obj'
 
 const generateReact = (
-  information: ComponentInformation,
+  information: Component,
   options?: prettier.Options
 ): GeneratedCode => {
   const { data, markup } = information

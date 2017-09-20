@@ -2,18 +2,19 @@ import * as EventEmitter from 'events'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as fse from 'fs-extra'
-import * as parse5 from 'parse5'
-import * as sass from 'node-sass'
 import * as prettier from 'prettier'
 
+import Component from './component'
 import sketch from './sketch'
 import {
-  ComponentInformation,
   GeneratedCode,
   States,
   Metadata,
-  ErrorHandler
+  ErrorHandler,
+  PostCSSRoot,
+  StripedCSS
 } from './types'
+import { stripeCSS } from './css-striper'
 
 import reactGenerator from './generators/react'
 import vueGenerator from './generators/vuejs'
@@ -25,9 +26,11 @@ class Workspace extends EventEmitter {
   dir: string
   activeComponent: string | null
   metadata: Metadata
+  components: Map<string, Component>
 
   constructor() {
     super()
+    this.components = new Map<string, Component>()
   }
 
   async loadProject(dir: string) {
@@ -86,6 +89,7 @@ class Workspace extends EventEmitter {
       component => component.name !== name
     )
     await this._saveMetadata()
+    this.components.delete(name)
   }
 
   readComponentFile(file: string, component?: string): Promise<string> {
@@ -122,15 +126,24 @@ class Workspace extends EventEmitter {
     return fse.readFileSync(fullPath, 'utf8')
   }
 
-  writeComponentFile(file: string, data: string) {
-    if (!this.activeComponent) {
+  async writeComponentFile(file: string, data: string) {
+    const name = this.activeComponent
+    if (!name) {
       console.warn(
         `Trying to write ${file} but not active component at this moment`
       )
       return Promise.resolve()
     }
-    const fullPath = path.join(sourceDir, this.activeComponent, file)
-    return this.writeFile(fullPath, data)
+    const fullPath = path.join(sourceDir, name, file)
+    await this.writeFile(fullPath, data)
+    const component = this.getComponent(name)
+    if (file === 'index.html') {
+      component.setMarkup(data)
+    } else if (file === 'data.json') {
+      component.setData(data)
+    } else if (file === 'styles.css') {
+      component.setStyle(data)
+    }
   }
 
   writeFile(relativePath: string, data: string): Promise<void> {
@@ -165,35 +178,31 @@ class Workspace extends EventEmitter {
     return path.join(this.dir, sourceDir, this.activeComponent, basename)
   }
 
-  loadComponent(name: string): ComponentInformation {
-    const markup = parse5.parseFragment(
-      this.readComponentFileSync('index.html', name),
-      {
-        locationInfo: true
-      }
-    ) as parse5.AST.Default.DocumentFragment
-    const readData = () => {
-      try {
-        return JSON.parse(this.readComponentFileSync('data.json', name))
-      } catch (err) {
-        console.error(err)
-        return {}
-      }
-    }
-    const data = readData()
+  getActiveComponent(): Component | null {
+    return this.activeComponent ? this.getComponent(this.activeComponent) : null
+  }
+
+  getComponent(name: string): Component {
+    let info = this.components.get(name)
+    if (info) return info
+
+    info = this.loadComponent(name)
+    this.components.set(name, info)
+    return info
+  }
+
+  loadComponent(name: string): Component {
+    const markup = this.readComponentFileSync('index.html', name)
+    const data = this.readComponentFileSync('data.json', name)
     const style = this.readComponentFileSync('styles.scss', name)
-    return {
-      name,
-      markup,
-      data,
-      style
-    }
+
+    return new Component(name, markup, style, data)
   }
 
   async generate(errorHandler: ErrorHandler) {
     const generators: {
       [index: string]: (
-        information: ComponentInformation,
+        information: Component,
         options?: prettier.Options
       ) => GeneratedCode
     } = {
@@ -217,12 +226,7 @@ class Workspace extends EventEmitter {
       await fse.mkdirp(path.join(outDir, name))
       console.log('-', path.join(outDir, code.path))
       await fse.writeFile(path.join(outDir, code.path), code.code)
-      const css = await new Promise<Buffer>((resolve, reject) => {
-        sass.render({ data: info.style }, (err, result) => {
-          if (err) return reject(err)
-          resolve(result.css)
-        })
-      })
+      const css = info.css.source
       if (!code.embeddedStyle) {
         console.log('-', path.join(outDir, code.path))
         await fse.writeFile(
