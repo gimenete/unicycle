@@ -1,3 +1,5 @@
+import * as crypto from 'crypto'
+
 import {
   CSSChunk,
   CSSMediaQuery,
@@ -30,6 +32,17 @@ export interface PreCSSChunk {
   component: string
 }
 
+const mediaQueryClassName = (text: string) => {
+  return (
+    'mq-' +
+    crypto
+      .createHash('sha1')
+      .update(text)
+      .digest('hex')
+      .substr(0, 7)
+  )
+}
+
 export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
   const mediaQueries: {
     [index: string]: CSSMediaQuery
@@ -49,7 +62,7 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
     } else if (node.type === 'atrule') {
       const atrule = node as PostCSSAtRule
       if (atrule.name === 'media') {
-        const id = `mq-${Object.keys(mediaQueries).length + 1}`
+        const id = mediaQueryClassName(atrule.toString())
         mediaQueries[id] = atrule.params
         if (node.nodes) {
           const arr = ids.concat(id)

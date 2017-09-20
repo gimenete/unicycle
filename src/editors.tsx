@@ -306,14 +306,13 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         const diffImage = state.diffImage
         const hiddenClass = state.hidden ? '' : 'pt-active'
         let errors = 0
-        const componentInformation = workspace.getActiveComponent()!
         const preview = renderComponent(
-          componentInformation,
+          component,
           state,
           rootNodeProperties(state.diffImage),
           components,
-          (component: string, position: monaco.Position, text: string) => {
-            if (component === componentInformation.name) {
+          (name: string, position: monaco.Position, text: string) => {
+            if (name === component.name) {
               handler.addMessage(position, text)
             }
             errors++
@@ -323,16 +322,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         if (state.hidden) {
           classNames.push('hidden')
         }
-        const media: Media = state.media || {}
-        /*
-        Object.keys(mediaQueries).forEach(id => {
-          const condition = mediaQueries[id]
-          const matches = mediaQuery.match(condition, media)
-          if (matches) {
-            classNames.push(id)
-          }
+        const componentsInformation = Array.from(components).map(name => {
+          return workspace.loadComponent(name)
         })
-        */
+        const media: Media = state.media || {}
+        componentsInformation.forEach(component => {
+          const { mediaQueries } = component.css.striped
+          Object.keys(mediaQueries).forEach(id => {
+            const condition = mediaQueries[id]
+            const matches = mediaQuery.match(condition, media)
+            if (matches) {
+              classNames.push(id)
+            }
+          })
+        })
         return (
           <div className="preview" key={i}>
             <p>
