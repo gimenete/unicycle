@@ -10,42 +10,33 @@ import {
   ReactAttributes,
   ObjectStringToString,
   State,
-  PostCSSRoot,
-  PostCSSNode,
-  PostCSSRule,
-  PostCSSAtRule
+  INCLUDE_PREFIX,
+  componentClassName
 } from './types'
 import { evaluateExpression } from './eval'
 import { toReactAttributeName } from './utils'
 import css2obj from './css2obj'
 import workspace from './workspace'
 
-const { findDOMNode } = ReactDOM
-
-const postcss = require('postcss')
-const ShadowDOM = require('react-shadow').default
-
-const includePrefix = 'include:'
-
-const componentClassName = (name: string) => `COMPONENT-${name}`
-
 const renderComponent = (
   info: ComponentInformation,
   state: State,
   rootNodeProperties: React.CSSProperties | null,
-  styles: Map<string, string>,
+  components: Set<string>,
   errorHandler: (
     component: string,
     position: monaco.Position,
     text: string
   ) => void
 ): React.ReactNode => {
+  components.add(info.name)
   const renderNode = (
     data: {},
     node: parse5.AST.Default.Node,
     key: string | number | null,
     additionalStyles: React.CSSProperties | null,
-    additionalClassName: string | null
+    additionalClassName: string | null,
+    isRoot: boolean
   ): React.ReactNode => {
     const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
       JSON.stringify({
@@ -82,12 +73,13 @@ const renderComponent = (
             template,
             i,
             null,
-            additionalClassName
+            additionalClassName,
+            false
           )
         )
       }
-      if (node.nodeName.startsWith(includePrefix)) {
-        const componentName = node.nodeName.substring(includePrefix.length)
+      if (node.nodeName.startsWith(INCLUDE_PREFIX)) {
+        const componentName = node.nodeName.substring(INCLUDE_PREFIX.length)
         const componentInfo = workspace.loadComponent(componentName)
         const result = sass.renderSync({
           data: componentInfo.style,
@@ -113,12 +105,11 @@ const renderComponent = (
           props
         }
         // TODO: key?
-        // <style>{result.css.toString()}</style>
         return renderComponent(
           componentInfo,
           componentState,
           null,
-          styles,
+          components,
           errorHandler
         )
       }
@@ -156,12 +147,15 @@ const renderComponent = (
         attrs['data-location'] = locationJSON(location)
       }
       attrs['style'] = Object.assign({}, attrs['style'] || {}, additionalStyles)
+      if (isRoot) {
+        attrs['className'] = `COMPONENT-ROOT ${attrs['className'] || ''}`
+      }
       if (additionalClassName) {
         attrs['className'] = `${additionalClassName} ${attrs['className'] ||
           ''}`
       }
       const childNodes = element.childNodes.map((node, i) =>
-        renderNode(data, node, i, null, additionalClassName)
+        renderNode(data, node, i, null, additionalClassName, false)
       )
       return React.createElement.apply(
         null,
@@ -201,7 +195,8 @@ const renderComponent = (
     rootNode,
     null,
     rootNodeProperties,
-    rootNodeProperties ? null : componentClassName(info.name)
+    componentClassName(info.name),
+    true
   )
 }
 

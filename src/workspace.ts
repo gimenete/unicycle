@@ -172,7 +172,15 @@ class Workspace extends EventEmitter {
         locationInfo: true
       }
     ) as parse5.AST.Default.DocumentFragment
-    const data = JSON.parse(this.readComponentFileSync('data.json', name))
+    const readData = () => {
+      try {
+        return JSON.parse(this.readComponentFileSync('data.json', name))
+      } catch (err) {
+        console.error(err)
+        return {}
+      }
+    }
+    const data = readData()
     const style = this.readComponentFileSync('styles.scss', name)
     return {
       name,

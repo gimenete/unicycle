@@ -1,6 +1,7 @@
 import { Position, Toaster, Intent } from '@blueprintjs/core'
 
 const errorHandler = (err: Error) => {
+  console.error(err)
   Toaster.create({
     position: Position.TOP
   }).show({

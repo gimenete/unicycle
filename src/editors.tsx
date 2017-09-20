@@ -3,6 +3,7 @@
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as sass from 'node-sass'
 import { Position, Overlay, Slider } from '@blueprintjs/core'
 
 import {
@@ -28,6 +29,7 @@ import reactGenerator from './generators/react'
 import errorHandler from './error-handler'
 import workspace from './workspace'
 import renderComponent from './preview-render'
+import { ComponentCSS, stripeCSS } from './css-striper'
 
 const mediaQuery = require('css-mediaquery')
 
@@ -258,9 +260,6 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     if (!dom) return <div />
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
-    const mediaQueriesCount = Object.keys(
-      this.styleEditor.lastResult.mediaQueries
-    ).length
 
     return this.markupEditor.calculateMessages('error', handler => {
       const diffImageProperties = (
@@ -300,7 +299,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       const data: States = this.dataEditor.latestJSON || []
       const someHaveDiffImage = data.some(hasDiffImage)
 
-      const styles = new Map<string, string>()
+      const components = new Set<string>()
       const previews = data.map((state, i) => {
         const diffImage = state.diffImage
         const hiddenClass = state.hidden ? '' : 'pt-active'
@@ -315,7 +314,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           componentInformation,
           state,
           rootNodeProperties(state.diffImage),
-          styles,
+          components,
           (component: string, position: monaco.Position, text: string) => {
             if (component === componentInformation.name) {
               handler.addMessage(position, text)
@@ -327,8 +326,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         if (state.hidden) {
           classNames.push('hidden')
         }
-        const { mediaQueries } = this.styleEditor.lastResult
         const media: Media = state.media || {}
+        /*
         Object.keys(mediaQueries).forEach(id => {
           const condition = mediaQueries[id]
           const matches = mediaQuery.match(condition, media)
@@ -336,6 +335,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             classNames.push(id)
           }
         })
+        */
         return (
           <div className="preview" key={i}>
             <p>
@@ -416,6 +416,20 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         )
       })
 
+      const componentCss: ComponentCSS[] = Array.from(components).map(name => {
+        const comp = workspace.loadComponent(name)
+        return {
+          component: comp.name,
+          css: sass
+            .renderSync({
+              data: comp.style,
+              sourceMap: false
+            })
+            .css.toString()
+        }
+      })
+      const styles = stripeCSS(componentCss)
+      const { mediaQueries } = styles
       return (
         <div>
           <div
@@ -467,25 +481,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               />
             )}
           </div>
-          {this.styleEditor.lastResult.chunks.map((chunk, i) => {
-            const mq = chunk.mediaQueries
-            const classes = chunk.mediaQueries.map(id => `.${id}`).join('')
-            const repeat = '.preview-content'.repeat(
-              mediaQueriesCount - chunk.mediaQueries.length
-            )
-            return (
-              <style key={i}>
-                {chunk.addPrefix ? (
-                  `${StyleEditor.CSS_PREFIX}${classes}${repeat} ${chunk.css}`
-                ) : (
-                  chunk.css
-                )}
-              </style>
-            )
-          })}
-          {Array.from(styles.entries()).map(([key, value]) => (
-            <style key={key}>{value}</style>
-          ))}
+          <style>{'.COMPONENT-ROOT { all: initial }'}</style>
+          {styles.chunks.map((chunk, i) => <style key={i}>{chunk.css}</style>)}
           {someHaveDiffImage && (
             <div className="preview-diff">
               <Slider

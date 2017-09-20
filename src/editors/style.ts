@@ -10,20 +10,13 @@ import {
   PostCSSAtRule,
   PostCSSPosition,
   SassResult,
-  ErrorHandler
+  ErrorHandler,
+  CSS_PREFIX
 } from '../types'
 
 import * as sass from 'node-sass'
 
 const postcss = require('postcss')
-const parseImport = require('parse-import')
-
-interface ParseImportValue {
-  condition: string
-  path: string
-  rule: string
-}
-
 interface SourceMapMapping {
   generatedLine: number
   generatedColumn: number
@@ -43,8 +36,6 @@ type SelectorIterator = (
 
 class StyleEditor extends Editor {
   lastResult: SassResult
-
-  static CSS_PREFIX = '#previews-markup .preview-content'
 
   constructor(element: HTMLElement, errorHandler: ErrorHandler) {
     super(
@@ -66,65 +57,12 @@ class StyleEditor extends Editor {
           this.calculateMessages('error', handler => {
             if (!err) {
               const css = result.css.toString()
-              const ast = postcss.parse(css) as PostCSSRoot
               const map = JSON.parse(result.map.toString())
-              const mediaQueries: {
-                [index: string]: CSSMediaQuery
-              } = {}
-
-              const chunks: CSSChunk[] = []
-              let id = 1
-              const nextId = () => `mq-${id++}`
-              const iterateNode = (node: PostCSSNode, ids: string[]) => {
-                if (node.type === 'rule') {
-                  const rule = node as PostCSSRule
-                  rule.ids = ids
-                  chunks.push({
-                    mediaQueries: ids,
-                    css: node.toString(),
-                    addPrefix: true
-                  })
-                } else if (node.type === 'atrule') {
-                  const atrule = node as PostCSSAtRule
-                  if (atrule.name === 'media') {
-                    const id = nextId()
-                    mediaQueries[id] = atrule.params
-                    if (node.nodes) {
-                      const arr = ids.concat(id)
-                      node.nodes.forEach(node => iterateNode(node, arr))
-                    }
-                  } else if (atrule.name === 'import') {
-                    const values = parseImport(
-                      `@import ${atrule.params};`
-                    ) as ParseImportValue[]
-                    if (values.length > 0) {
-                      const condition = values[0].condition
-                      // TODO
-                      // console.log('@import condition', condition)
-                    }
-                    chunks.push({
-                      mediaQueries: ids,
-                      css: node.toString(),
-                      addPrefix: false
-                    })
-                  } else {
-                    chunks.push({
-                      mediaQueries: ids,
-                      css: node.toString(),
-                      addPrefix: false
-                    })
-                  }
-                } else if (node.nodes) {
-                  node.nodes.forEach(node => iterateNode(node, ids))
-                }
-              }
-              iterateNode(ast, [])
+              const ast = postcss.parse(css)
               this.lastResult = {
                 css,
                 map,
-                ast,
-                chunks,
-                mediaQueries
+                ast
               }
               this.emitUpdate()
             } else {
@@ -165,13 +103,17 @@ class StyleEditor extends Editor {
         // increase lineNumber depending on arr.length - 1
         // calculate column with last line's length
         if (startMapping) {
-          const selector =
-            rule.ids!.map(id => `.${id}`).join('') + ' ' + rule.selector
-          iterator({
-            selector,
-            originalSelector: selector.substring(StyleEditor.CSS_PREFIX.length),
-            mapping: startMapping
-          })
+          if (rule.ids) {
+            const selector =
+              rule.ids!.map(id => `.${id}`).join('') + ' ' + rule.selector
+            iterator({
+              selector,
+              originalSelector: selector.substring(CSS_PREFIX.length),
+              mapping: startMapping
+            })
+          } else {
+            console.warn('selector without ids', rule)
+          }
         }
       } else if (node.nodes) {
         node.nodes.forEach(iterateNode)

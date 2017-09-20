@@ -6,7 +6,6 @@ export type CSSMediaQuery = string // conditions
 export interface CSSChunk {
   mediaQueries: string[]
   css: string
-  addPrefix: boolean
 }
 
 export interface PostCSSPosition {
@@ -53,10 +52,6 @@ export interface SassResult {
   css: string
   map: sourceMap.RawSourceMap
   ast: PostCSSRoot
-  chunks: CSSChunk[]
-  mediaQueries: {
-    [index: string]: CSSMediaQuery
-  }
 }
 
 export interface Media {
@@ -125,3 +120,8 @@ export interface ReactAttributes {
 export interface CssObject {
   [index: string]: string | number
 }
+
+export const CSS_PREFIX = '#previews-markup .preview-content'
+export const INCLUDE_PREFIX = 'include:'
+
+export const componentClassName = (name: string) => `COMPONENT-${name}`
