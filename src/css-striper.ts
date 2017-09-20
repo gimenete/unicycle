@@ -28,8 +28,21 @@ interface ParseImportValue {
 export interface PreCSSChunk {
   mediaQueries: string[]
   css: string
-  addPrefix: boolean
+  selector?: string
   component: string
+}
+
+const addClass = (selector: string, clazz: string) => {
+  const transform = (selectors: any) => {
+    selectors.each((selector: any) => {
+      let node = null
+      selector.each((n: any) => {
+        if (n.type !== 'pseudo') node = n
+      })
+      selector.insertAfter(node, selectorParser.className({ value: clazz }))
+    })
+  }
+  return selectorParser(transform).process(selector).result
 }
 
 const mediaQueryClassName = (text: string) => {
@@ -55,8 +68,8 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
       rule.ids = ids
       chunks.push({
         mediaQueries: ids,
-        css: node.toString(),
-        addPrefix: true,
+        css: node.nodes!.map(node => node.toString()).join(';\n'),
+        selector: rule.selector,
         component
       })
     } else if (node.type === 'atrule') {
@@ -80,14 +93,12 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
         chunks.push({
           mediaQueries: ids,
           css: node.toString(),
-          addPrefix: false,
           component
         })
       } else {
         chunks.push({
           mediaQueries: ids,
           css: node.toString(),
-          addPrefix: false,
           component
         })
       }
@@ -100,15 +111,15 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
 
   const mediaQueriesCount = Object.keys(mediaQueries).length
   chunks.forEach(chunk => {
-    if (!chunk.addPrefix) return
+    if (!chunk.selector) return
     const mq = chunk.mediaQueries
     const classes = chunk.mediaQueries.map(id => `.${id}`).join('')
     const repeat = '.preview-content'.repeat(
       mediaQueriesCount - chunk.mediaQueries.length
     )
-    chunk.css = `${CSS_PREFIX}${classes}${repeat} .${componentClassName(
-      chunk.component
-    )}${chunk.css}`
+    const additionalClass = componentClassName(chunk.component)
+    const selector = addClass(chunk.selector, additionalClass)
+    chunk.css = `${CSS_PREFIX}${classes}${repeat} ${selector} { ${chunk.css} }`
   })
   return {
     mediaQueries,
