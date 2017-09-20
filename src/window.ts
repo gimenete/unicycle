@@ -8,8 +8,6 @@ import { isPackaged } from './utils'
 
 const windows: Electron.BrowserWindow[] = []
 
-let first = true
-
 export const createWindow = () => {
   const packaged = isPackaged()
   const window = new BrowserWindow({
@@ -18,19 +16,14 @@ export const createWindow = () => {
     titleBarStyle: packaged ? 'hidden' : undefined
   })
 
-  process.env.FIRST_WINDOW = String(first)
   window.loadURL(
     url.format({
       pathname: path.join(__dirname, '..', 'index.html'),
       protocol: 'file:',
-      slashes: true
+      slashes: true,
+      search: windows.length === 0 ? 'first' : ''
     })
   )
-
-  window.on('show', () => {
-    first = false
-    process.env.FIRST_WINDOW = String(first)
-  })
 
   window.on('closed', () => {
     const index = windows.indexOf(window)

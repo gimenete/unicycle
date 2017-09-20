@@ -99,10 +99,27 @@ class Workspace extends EventEmitter {
     return this.readFile(path.join(sourceDir, comp, file))
   }
 
+  readComponentFileSync(file: string, component?: string): string {
+    const comp = component || this.activeComponent
+    if (!comp) {
+      console.warn(
+        `Trying to read ${file} but not active component at this moment`
+      )
+      return ''
+    }
+    return this.readFileSync(path.join(sourceDir, comp, file))
+  }
+
   readFile(relativePath: string): Promise<string> {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
     return fse.readFile(fullPath, 'utf8')
+  }
+
+  readFileSync(relativePath: string): string {
+    // TODO: prevent '..' in relativePath
+    const fullPath = path.join(this.dir, relativePath)
+    return fse.readFileSync(fullPath, 'utf8')
   }
 
   writeComponentFile(file: string, data: string) {
@@ -148,6 +165,23 @@ class Workspace extends EventEmitter {
     return path.join(this.dir, sourceDir, this.activeComponent, basename)
   }
 
+  loadComponent(name: string): ComponentInformation {
+    const markup = parse5.parseFragment(
+      this.readComponentFileSync('index.html', name),
+      {
+        locationInfo: true
+      }
+    ) as parse5.AST.Default.DocumentFragment
+    const data = JSON.parse(this.readComponentFileSync('data.json', name))
+    const style = this.readComponentFileSync('styles.scss', name)
+    return {
+      name,
+      markup,
+      data,
+      style
+    }
+  }
+
   async generate(errorHandler: ErrorHandler) {
     const generators: {
       [index: string]: (
@@ -169,28 +203,14 @@ class Workspace extends EventEmitter {
     console.log('outDir', outDir)
     for (const component of this.metadata.components) {
       console.log('+', component.name)
-      const name = component.name
-      const markup = parse5.parseFragment(
-        await this.readComponentFile('index.html', name)
-      ) as parse5.AST.Default.DocumentFragment
-      const data = JSON.parse(await this.readComponentFile('data.json', name))
-      const style = await this.readComponentFile('styles.scss', name)
-      const componentInformation: ComponentInformation = {
-        name,
-        markup,
-        data,
-        style
-      }
+      const info = this.loadComponent(component.name)
       const prettierOptions = exportOptions.prettier
-      const code = generators[exportOptions.framework](
-        componentInformation,
-        prettierOptions
-      )
+      const code = generators[exportOptions.framework](info, prettierOptions)
       await fse.mkdirp(path.join(outDir, name))
       console.log('-', path.join(outDir, code.path))
       await fse.writeFile(path.join(outDir, code.path), code.code)
       const css = await new Promise<Buffer>((resolve, reject) => {
-        sass.render({ data: style }, (err, result) => {
+        sass.render({ data: info.style }, (err, result) => {
           if (err) return reject(err)
           resolve(result.css)
         })

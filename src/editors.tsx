@@ -204,7 +204,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       inspecting: false,
       showGrid: false,
       isOutputOpen: false,
-      diffValue: 50,
+      diffValue: 0,
       diffMode: 'slider'
     }
   }
@@ -263,7 +263,6 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     ).length
 
     return this.markupEditor.calculateMessages('error', handler => {
-      let errors = 0
       const diffImageProperties = (
         diffImage: DiffImage
       ): React.CSSProperties => {
@@ -300,6 +299,122 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
 
       const data: States = this.dataEditor.latestJSON || []
       const someHaveDiffImage = data.some(hasDiffImage)
+
+      const styles = new Map<string, string>()
+      const previews = data.map((state, i) => {
+        const diffImage = state.diffImage
+        const hiddenClass = state.hidden ? '' : 'pt-active'
+        let errors = 0
+        const componentInformation: ComponentInformation = {
+          name: workspace.activeComponent!,
+          markup: dom,
+          data,
+          style: ''
+        }
+        const preview = renderComponent(
+          componentInformation,
+          state,
+          rootNodeProperties(state.diffImage),
+          styles,
+          (component: string, position: monaco.Position, text: string) => {
+            if (component === componentInformation.name) {
+              handler.addMessage(position, text)
+            }
+            errors++
+          }
+        )
+        const classNames: string[] = ['preview-content']
+        if (state.hidden) {
+          classNames.push('hidden')
+        }
+        const { mediaQueries } = this.styleEditor.lastResult
+        const media: Media = state.media || {}
+        Object.keys(mediaQueries).forEach(id => {
+          const condition = mediaQueries[id]
+          const matches = mediaQuery.match(condition, media)
+          if (matches) {
+            classNames.push(id)
+          }
+        })
+        return (
+          <div className="preview" key={i}>
+            <p>
+              <span className="preview-bar">
+                {errors > 0 && <span className="pt-icon-error">{errors}</span>}
+                <button
+                  className={`pt-button pt-minimal pt-small pt-icon-eye-open ${hiddenClass}`}
+                  type="button"
+                  onClick={() => this.toggleHiddenState(state)}
+                />
+                <DiffImagePopoverProps
+                  position={Position.LEFT_TOP}
+                  diffImage={diffImage}
+                  buttonClassName={`pt-button pt-minimal pt-small pt-icon-media ${hasDiffImage(
+                    state
+                  )
+                    ? 'pt-active'
+                    : ''}`}
+                  onDelete={() => this.dataEditor.deleteDiffImage(i)}
+                  onChange={diffImage =>
+                    this.dataEditor.setDiffImage(diffImage, i)}
+                />
+                <MediaPopoverProps
+                  position={Position.LEFT_TOP}
+                  buttonClassName={`pt-button pt-minimal pt-small pt-icon-widget ${hasMediaInfo(
+                    state
+                  )
+                    ? 'pt-active'
+                    : ''}`}
+                  media={media}
+                  onChange={media => this.dataEditor.setMedia(media, i)}
+                />
+                <InputPopover
+                  position={Position.LEFT}
+                  placeholder="New state"
+                  buttonClassName="pt-button pt-minimal pt-small pt-icon-duplicate"
+                  onEnter={name => {
+                    this.dataEditor.addState(name, i)
+                  }}
+                />
+                <ConfirmPopover
+                  position={Position.LEFT}
+                  buttonClassName="pt-button pt-minimal pt-small pt-icon-trash"
+                  message="Are you sure you want to delete this state?"
+                  confirmText="Yes, delete it"
+                  cancelText="Cancel"
+                  confirmClassName="pt-button pt-intent-danger"
+                  cancelClassName="pt-button"
+                  onConfirm={() => {
+                    this.dataEditor.deleteState(i)
+                  }}
+                />
+              </span>
+              {state.name}
+            </p>
+            <div style={{ position: 'relative' }}>
+              <div className={classNames.join(' ')}>{preview}</div>
+              {state.diffImage && (
+                <div
+                  className={`preview-content-overlay ${state.hidden
+                    ? 'hidden'
+                    : ''}`}
+                  style={{
+                    clipPath:
+                      this.state.diffMode === 'slider'
+                        ? `inset(0 ${100 - this.state.diffValue}% 0 0)`
+                        : undefined,
+                    opacity:
+                      this.state.diffMode === 'opacity'
+                        ? this.state.diffValue / 100
+                        : 1,
+                    ...diffImageProperties(state.diffImage)
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        )
+      })
 
       return (
         <div>
@@ -368,6 +483,9 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               </style>
             )
           })}
+          {Array.from(styles.entries()).map(([key, value]) => (
+            <style key={key}>{value}</style>
+          ))}
           {someHaveDiffImage && (
             <div className="preview-diff">
               <Slider
@@ -385,123 +503,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             id="previews-markup"
             className={this.state.showGrid ? 'show-grid' : ''}
           >
-            {data.map((state, i) => {
-              const diffImage = state.diffImage
-              const hiddenClass = state.hidden ? '' : 'pt-active'
-              errors = 0
-              const componentInformation: ComponentInformation = {
-                name: workspace.activeComponent!,
-                markup: dom,
-                data,
-                style: ''
-              }
-              const preview = renderComponent(
-                componentInformation,
-                state,
-                rootNodeProperties(state.diffImage),
-                (
-                  component: string,
-                  position: monaco.Position,
-                  text: string
-                ) => {
-                  handler.addMessage(position, text)
-                  errors++
-                }
-              )
-              const classNames: string[] = ['preview-content']
-              if (state.hidden) {
-                classNames.push('hidden')
-              }
-              const { mediaQueries } = this.styleEditor.lastResult
-              const media: Media = state.media || {}
-              Object.keys(mediaQueries).forEach(id => {
-                const condition = mediaQueries[id]
-                const matches = mediaQuery.match(condition, media)
-                if (matches) {
-                  classNames.push(id)
-                }
-              })
-              return (
-                <div className="preview" key={i}>
-                  <p>
-                    <span className="preview-bar">
-                      {errors > 0 && (
-                        <span className="pt-icon-error">{errors}</span>
-                      )}
-                      <button
-                        className={`pt-button pt-minimal pt-small pt-icon-eye-open ${hiddenClass}`}
-                        type="button"
-                        onClick={() => this.toggleHiddenState(state)}
-                      />
-                      <DiffImagePopoverProps
-                        position={Position.LEFT_TOP}
-                        diffImage={diffImage}
-                        buttonClassName={`pt-button pt-minimal pt-small pt-icon-media ${hasDiffImage(
-                          state
-                        )
-                          ? 'pt-active'
-                          : ''}`}
-                        onDelete={() => this.dataEditor.deleteDiffImage(i)}
-                        onChange={diffImage =>
-                          this.dataEditor.setDiffImage(diffImage, i)}
-                      />
-                      <MediaPopoverProps
-                        position={Position.LEFT_TOP}
-                        buttonClassName={`pt-button pt-minimal pt-small pt-icon-widget ${hasMediaInfo(
-                          state
-                        )
-                          ? 'pt-active'
-                          : ''}`}
-                        media={media}
-                        onChange={media => this.dataEditor.setMedia(media, i)}
-                      />
-                      <InputPopover
-                        position={Position.LEFT}
-                        placeholder="New state"
-                        buttonClassName="pt-button pt-minimal pt-small pt-icon-duplicate"
-                        onEnter={name => {
-                          this.dataEditor.addState(name, i)
-                        }}
-                      />
-                      <ConfirmPopover
-                        position={Position.LEFT}
-                        buttonClassName="pt-button pt-minimal pt-small pt-icon-trash"
-                        message="Are you sure you want to delete this state?"
-                        confirmText="Yes, delete it"
-                        cancelText="Cancel"
-                        confirmClassName="pt-button pt-intent-danger"
-                        cancelClassName="pt-button"
-                        onConfirm={() => {
-                          this.dataEditor.deleteState(i)
-                        }}
-                      />
-                    </span>
-                    {state.name}
-                  </p>
-                  <div style={{ position: 'relative' }}>
-                    <div className={classNames.join(' ')}>{preview}</div>
-                    {state.diffImage && (
-                      <div
-                        className={`preview-content-overlay ${state.hidden
-                          ? 'hidden'
-                          : ''}`}
-                        style={{
-                          clipPath:
-                            this.state.diffMode === 'slider'
-                              ? `inset(0 ${100 - this.state.diffValue}% 0 0)`
-                              : undefined,
-                          opacity:
-                            this.state.diffMode === 'opacity'
-                              ? this.state.diffValue / 100
-                              : 1,
-                          ...diffImageProperties(state.diffImage)
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+            {previews}
           </div>
           <Overlay
             isOpen={this.state.isOutputOpen}

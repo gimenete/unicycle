@@ -3,32 +3,49 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as sass from 'node-sass'
 
 import {
   ComponentInformation,
   ReactAttributes,
   ObjectStringToString,
-  State
+  State,
+  PostCSSRoot,
+  PostCSSNode,
+  PostCSSRule,
+  PostCSSAtRule
 } from './types'
 import { evaluateExpression } from './eval'
 import { toReactAttributeName } from './utils'
 import css2obj from './css2obj'
+import workspace from './workspace'
+
+const { findDOMNode } = ReactDOM
+
+const postcss = require('postcss')
+const ShadowDOM = require('react-shadow').default
+
+const includePrefix = 'include:'
+
+const componentClassName = (name: string) => `COMPONENT-${name}`
 
 const renderComponent = (
   info: ComponentInformation,
   state: State,
-  rootNodeProperties: React.CSSProperties,
+  rootNodeProperties: React.CSSProperties | null,
+  styles: Map<string, string>,
   errorHandler: (
     component: string,
     position: monaco.Position,
     text: string
   ) => void
-) => {
+): React.ReactNode => {
   const renderNode = (
     data: {},
     node: parse5.AST.Default.Node,
-    key?: string | number,
-    additionalStyles?: React.CSSProperties
+    key: string | number | null,
+    additionalStyles: React.CSSProperties | null,
+    additionalClassName: string | null
   ): React.ReactNode => {
     const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
       JSON.stringify({
@@ -60,12 +77,51 @@ const renderComponent = (
           attrs: element.attrs.filter(attr => !attr.name.startsWith('@'))
         })
         return collection.map((obj, i) =>
-          renderNode(Object.assign({}, data, { [as.value]: obj }), template, i)
+          renderNode(
+            Object.assign({}, data, { [as.value]: obj }),
+            template,
+            i,
+            null,
+            additionalClassName
+          )
         )
       }
-      const childNodes = element.childNodes.map((node, i) =>
-        renderNode(data, node, i)
-      )
+      if (node.nodeName.startsWith(includePrefix)) {
+        const componentName = node.nodeName.substring(includePrefix.length)
+        const componentInfo = workspace.loadComponent(componentName)
+        const result = sass.renderSync({
+          data: componentInfo.style,
+          sourceMap: false
+        })
+        const props = element.attrs.reduce(
+          (props, attr) => {
+            if (attr.name.startsWith(':')) {
+              const name = attr.name.substring(1)
+              const expression = attr.value
+              props[name] = evaluateExpression(expression, data)
+            } else {
+              // TODO: convert to type
+              props[attr.name] = attr.value
+            }
+            return props
+          },
+          {} as any
+        )
+        // TODO: validate props
+        const componentState: State = {
+          name: 'Included',
+          props
+        }
+        // TODO: key?
+        // <style>{result.css.toString()}</style>
+        return renderComponent(
+          componentInfo,
+          componentState,
+          null,
+          styles,
+          errorHandler
+        )
+      }
       const attrs: ReactAttributes = element.attrs
         .filter(
           attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
@@ -80,7 +136,9 @@ const renderComponent = (
           },
           {} as ObjectStringToString
         )
-      attrs['key'] = String(key)
+      if (key !== null) {
+        attrs['key'] = String(key)
+      }
       element.attrs.forEach(attr => {
         if (!attr.name.startsWith(':')) return
         const name = attr.name.substring(1)
@@ -98,13 +156,20 @@ const renderComponent = (
         attrs['data-location'] = locationJSON(location)
       }
       attrs['style'] = Object.assign({}, attrs['style'] || {}, additionalStyles)
+      if (additionalClassName) {
+        attrs['className'] = `${additionalClassName} ${attrs['className'] ||
+          ''}`
+      }
+      const childNodes = element.childNodes.map((node, i) =>
+        renderNode(data, node, i, null, additionalClassName)
+      )
       return React.createElement.apply(
         null,
         new Array<any>(node.nodeName, attrs).concat(childNodes)
       )
     } catch (err) {
       const element = node as parse5.AST.Default.Element
-      if (!err.handled && node && element.__location) {
+      if (node && element.__location) {
         errorHandler(
           info.name,
           new monaco.Position(element.__location.line, element.__location.col),
@@ -114,6 +179,8 @@ const renderComponent = (
       return (
         <span
           style={{
+            all: 'initial',
+            fontFamily: 'sans-serif',
             display: 'inline-block',
             color: '#444',
             backgroundColor: '#FAE1E1',
@@ -129,7 +196,13 @@ const renderComponent = (
     }
   }
   const rootNode = info.markup.childNodes[0]
-  return renderNode(state.props, rootNode, undefined, rootNodeProperties)
+  return renderNode(
+    state.props,
+    rootNode,
+    null,
+    rootNodeProperties,
+    rootNodeProperties ? null : componentClassName(info.name)
+  )
 }
 
 export default renderComponent
