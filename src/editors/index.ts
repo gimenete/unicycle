@@ -45,16 +45,16 @@ class Editor extends EventEmitter {
       element,
       Object.assign(options, defaultOptions)
     )
-    const saveFile = throttle(() => {
-      workspace
-        .writeComponentFile(file, this.editor.getValue())
-        .catch(errorHandler)
-    }, 2000)
     this.editor.getModel().updateOptions({ tabSize: 2 })
     this.editor.onDidChangeModelContent(
       (e: monaco.editor.IModelContentChangedEvent) => {
-        this.update()
-        saveFile()
+        workspace
+          .writeComponentFile(file, this.editor.getValue())
+          .then(() => {
+            this.emitUpdate()
+            this.update()
+          })
+          .catch(errorHandler)
       }
     )
 

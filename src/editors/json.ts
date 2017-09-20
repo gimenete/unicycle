@@ -21,7 +21,6 @@ class JSONEditor extends Editor {
     this.calculateMessages('error', handler => {
       try {
         this.latestJSON = JSON.parse(this.editor.getValue())
-        this.emitUpdate()
       } catch (e) {
         const index = +e.message.match(/\d+/)
         const position = this.editor.getModel().getPositionAt(index)
