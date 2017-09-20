@@ -11,7 +11,7 @@ import {
   SassResult,
   ErrorHandler,
   CSS_PREFIX,
-  componentClassName,
+  componentDataAttribute,
   StripedCSS
 } from './types'
 
@@ -28,18 +28,18 @@ interface ParseImportValue {
 export interface PreCSSChunk {
   mediaQueries: string[]
   css: string
-  selector?: string
+  scopedCSS?: string
   component: string
 }
 
-const addClass = (selector: string, clazz: string) => {
+const addAttribute = (selector: string, value: string) => {
   const transform = (selectors: any) => {
     selectors.each((selector: any) => {
       let node = null
       selector.each((n: any) => {
         if (n.type !== 'pseudo') node = n
       })
-      selector.insertAfter(node, selectorParser.className({ value: clazz }))
+      selector.insertAfter(node, selectorParser.attribute({ attribute: value }))
     })
   }
   return selectorParser(transform).process(selector).result
@@ -61,6 +61,7 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
     [index: string]: CSSMediaQuery
   } = {}
   const chunks: PreCSSChunk[] = []
+  const scopedAttribute = componentDataAttribute(component)
 
   const iterateNode = (component: string, node: PostCSSNode, ids: string[]) => {
     if (node.type === 'rule') {
@@ -68,8 +69,10 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
       rule.ids = ids
       chunks.push({
         mediaQueries: ids,
-        css: node.nodes!.map(node => node.toString()).join(';\n'),
-        selector: rule.selector,
+        css: node.toString(),
+        scopedCSS: `${addAttribute(rule.selector, scopedAttribute)} {
+          ${node.nodes!.map(node => node.toString()).join(';\n')}
+        }`,
         component
       })
     } else if (node.type === 'atrule') {
@@ -111,15 +114,14 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
 
   const mediaQueriesCount = Object.keys(mediaQueries).length
   chunks.forEach(chunk => {
-    if (!chunk.selector) return
+    if (!chunk.scopedCSS) return
     const mq = chunk.mediaQueries
     const classes = chunk.mediaQueries.map(id => `.${id}`).join('')
     const repeat = '.preview-content'.repeat(
       mediaQueriesCount - chunk.mediaQueries.length
     )
-    const additionalClass = componentClassName(chunk.component)
-    const selector = addClass(chunk.selector, additionalClass)
-    chunk.css = `${CSS_PREFIX}${classes}${repeat} ${selector} { ${chunk.css} }`
+    chunk.css = `${CSS_PREFIX}${classes}${repeat} ${chunk.css}`
+    chunk.scopedCSS = `${CSS_PREFIX}${classes}${repeat} ${chunk.scopedCSS}`
   })
   return {
     mediaQueries,

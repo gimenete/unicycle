@@ -470,10 +470,10 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
               />
             )}
           </div>
-          <style>{'.COMPONENT-ROOT { all: initial }'}</style>
+          <style>{'[data-unicycle-component-root] { all: initial }'}</style>
           {componentsInformation.map(component =>
             component.css.striped.chunks.map((chunk, i) => (
-              <style key={i}>{chunk.css}</style>
+              <style key={i}>{chunk.scopedCSS || chunk.css}</style>
             ))
           )}
           {someHaveDiffImage && (

@@ -10,7 +10,7 @@ import {
   ObjectStringToString,
   State,
   INCLUDE_PREFIX,
-  componentClassName
+  componentDataAttribute
 } from './types'
 import { evaluateExpression } from './eval'
 import { toReactAttributeName } from './utils'
@@ -35,7 +35,7 @@ const renderComponent = (
     node: parse5.AST.Default.Node,
     key: string | number | null,
     additionalStyles: React.CSSProperties | null,
-    additionalClassName: string | null,
+    additionalDataAttribute: string | null,
     isRoot: boolean
   ): React.ReactNode => {
     const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
@@ -73,7 +73,7 @@ const renderComponent = (
             template,
             i,
             null,
-            additionalClassName,
+            additionalDataAttribute,
             false
           )
         )
@@ -144,14 +144,13 @@ const renderComponent = (
       }
       attrs['style'] = Object.assign({}, attrs['style'] || {}, additionalStyles)
       if (isRoot) {
-        attrs['className'] = `COMPONENT-ROOT ${attrs['className'] || ''}`
+        attrs['data-unicycle-component-root'] = ''
       }
-      if (additionalClassName) {
-        attrs['className'] = `${additionalClassName} ${attrs['className'] ||
-          ''}`
+      if (additionalDataAttribute) {
+        attrs[additionalDataAttribute] = ''
       }
       const childNodes = element.childNodes.map((node, i) =>
-        renderNode(data, node, i, null, additionalClassName, false)
+        renderNode(data, node, i, null, additionalDataAttribute, false)
       )
       return React.createElement.apply(
         null,
@@ -191,7 +190,7 @@ const renderComponent = (
     rootNode,
     null,
     rootNodeProperties,
-    componentClassName(info.name),
+    componentDataAttribute(info.name),
     true
   )
 }

@@ -6,6 +6,7 @@ export type CSSMediaQuery = string // conditions
 export interface CSSChunk {
   mediaQueries: string[]
   css: string
+  scopedCSS?: string
 }
 
 export interface PostCSSPosition {
@@ -124,4 +125,4 @@ export interface StripedCSS {
 export const CSS_PREFIX = '#previews-markup .preview-content'
 export const INCLUDE_PREFIX = 'include:'
 
-export const componentClassName = (name: string) => `COMPONENT-${name}`
+export const componentDataAttribute = (name: string) => `data-component-${name}`
