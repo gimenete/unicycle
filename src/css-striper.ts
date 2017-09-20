@@ -49,7 +49,7 @@ const mediaQueryClassName = (text: string) => {
   return (
     'mq-' +
     crypto
-      .createHash('sha1')
+      .createHash('md5')
       .update(text)
       .digest('hex')
       .substr(0, 7)
