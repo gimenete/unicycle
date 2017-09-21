@@ -1,21 +1,16 @@
 import * as crypto from 'crypto'
 
 import {
-  CSSChunk,
   CSSMediaQuery,
   PostCSSRoot,
   PostCSSNode,
   PostCSSRule,
   PostCSSAtRule,
-  PostCSSPosition,
-  SassResult,
-  ErrorHandler,
   CSS_PREFIX,
   componentDataAttribute,
   StripedCSS
 } from './types'
 
-const postcss = require('postcss')
 const parseImport = require('parse-import')
 const selectorParser = require('postcss-selector-parser')
 
@@ -89,8 +84,8 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
           `@import ${atrule.params};`
         ) as ParseImportValue[]
         if (values.length > 0) {
-          const condition = values[0].condition
           // TODO
+          // const condition = values[0].condition
           // console.log('@import condition', condition)
         }
         chunks.push({
@@ -115,7 +110,6 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
   const mediaQueriesCount = Object.keys(mediaQueries).length
   chunks.forEach(chunk => {
     if (!chunk.scopedCSS) return
-    const mq = chunk.mediaQueries
     const classes = chunk.mediaQueries.map(id => `.${id}`).join('')
     const repeat = '.preview-content'.repeat(
       mediaQueriesCount - chunk.mediaQueries.length

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Button, Intent, Dialog, Position } from '@blueprintjs/core'
+import { Position } from '@blueprintjs/core'
 import { remote } from 'electron'
 
 import InputPopover from './components/InpuPopover'

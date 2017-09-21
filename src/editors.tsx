@@ -3,17 +3,9 @@
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as sass from 'node-sass'
 import { Position, Overlay, Slider } from '@blueprintjs/core'
 
-import {
-  ObjectStringToString,
-  ComponentMetadata,
-  DiffImage,
-  Media,
-  State,
-  States
-} from './types'
+import { DiffImage, Media, State, States } from './types'
 import { increment, decrement } from './actions/increment'
 import Inspector from './inspector'
 import Editor from './editors/index'
@@ -191,9 +183,6 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     const tabs = (this.tabs = Array.from(
       document.querySelectorAll('#editors .pt-tabs li')
     ))
-    const panels = (this.panels = Array.from(
-      document.querySelectorAll('#editors .pt-tabs .pt-tab-panel')
-    ))
 
     tabs.forEach((tab, i) => {
       Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
@@ -286,7 +275,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       ): React.CSSProperties => {
         if (!diffImage || !diffImage.adjustWidthPreview) return {}
         const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
-        const { width, height } = diffImage
+        const { width } = diffImage
         return {
           width: width / multiplier,
           boxSizing: 'border-box'

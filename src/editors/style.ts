@@ -2,10 +2,6 @@ import Editor from './'
 
 import { ErrorHandler } from '../types'
 
-import * as sass from 'node-sass'
-
-const postcss = require('postcss')
-
 class StyleEditor extends Editor {
   constructor(element: HTMLElement, errorHandler: ErrorHandler) {
     super(

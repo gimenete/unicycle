@@ -5,7 +5,8 @@
     "outDir": "./lib",
     "strict": true,
     "inlineSourceMap": true,
-    "jsx": "react"
+    "jsx": "react",
+    "noUnusedLocals": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

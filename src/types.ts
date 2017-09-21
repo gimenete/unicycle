@@ -1,4 +1,3 @@
-import * as parse5 from 'parse5'
 import * as prettier from 'prettier'
 
 export type CSSMediaQuery = string // conditions

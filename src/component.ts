@@ -4,18 +4,11 @@ import { SourceMapConsumer } from 'source-map'
 
 import Typer from './typer'
 import {
-  CSSChunk,
-  CSSMediaQuery,
   PostCSSNode,
   PostCSSRule,
-  PostCSSAtRule,
   PostCSSPosition,
-  SassResult,
   CSS_PREFIX,
-  GeneratedCode,
   States,
-  Metadata,
-  ErrorHandler,
   PostCSSRoot,
   StripedCSS
 } from './types'

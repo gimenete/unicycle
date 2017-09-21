@@ -1,10 +1,9 @@
 import * as parse5 from 'parse5'
 import * as prettier from 'prettier'
 
-import Typer from '../typer'
 import Component from '../component'
 import { GeneratedCode } from '../types'
-import { uppercamelcase, docComment } from '../utils'
+import { docComment } from '../utils'
 
 const dashify = require('dashify')
 
@@ -12,7 +11,7 @@ const generateVue = (
   information: Component,
   options?: prettier.Options
 ): GeneratedCode => {
-  const { markup, name, data } = information
+  const { markup, data } = information
   const states = data.getStates()
   const componentName = dashify(information.name)
   const eventHandlers = markup.calculateEventHanlders()

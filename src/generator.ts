@@ -1,5 +1,4 @@
 import path = require('path')
-import * as fs from 'fs'
 import * as fse from 'fs-extra'
 
 import workspace from './workspace'

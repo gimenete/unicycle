@@ -1,5 +1,4 @@
-import * as parse5 from 'parse5'
-import { ObjectStringToString, States } from './types'
+import { ObjectStringToString } from './types'
 
 const camelcase = require('camelcase')
 

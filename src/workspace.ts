@@ -1,20 +1,11 @@
 import * as EventEmitter from 'events'
 import * as path from 'path'
-import * as fs from 'fs'
 import * as fse from 'fs-extra'
 import * as prettier from 'prettier'
 
 import Component from './component'
 import sketch from './sketch'
-import {
-  GeneratedCode,
-  States,
-  Metadata,
-  ErrorHandler,
-  PostCSSRoot,
-  StripedCSS
-} from './types'
-import { stripeCSS } from './css-striper'
+import { GeneratedCode, States, Metadata, ErrorHandler } from './types'
 
 import reactGenerator from './generators/react'
 import vueGenerator from './generators/vuejs'

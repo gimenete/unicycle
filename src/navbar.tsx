@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Overlay } from '@blueprintjs/core'
 import electron = require('electron')
 import workspace from './workspace'
 

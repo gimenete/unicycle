@@ -1,6 +1,5 @@
 import Editor from './'
 
-import * as parse5 from 'parse5'
 import { ErrorHandler } from '../types'
 
 class MarkupEditor extends Editor {

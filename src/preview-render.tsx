@@ -2,8 +2,6 @@
 
 import * as parse5 from 'parse5'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import * as sass from 'node-sass'
 
 import {
   ReactAttributes,

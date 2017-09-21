@@ -2,7 +2,7 @@ import * as url from 'url'
 import * as path from 'path'
 import * as electron from 'electron'
 
-const { app, BrowserWindow } = electron
+const { BrowserWindow } = electron
 
 import { isPackaged } from './utils'
 
