@@ -44,6 +44,8 @@ class Previews extends React.Component<any, PreviewsState> {
       this.setState({ isOutputOpen: true })
     })
 
+    workspace.on('activeComponent', () => this.forceUpdate())
+
     editors.editors.forEach(editor => {
       editor.on('update', () => this.forceUpdate())
     })

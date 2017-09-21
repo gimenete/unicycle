@@ -32,6 +32,7 @@ class Editor extends EventEmitter {
   private oldDecorations: {
     [index: string]: string[]
   }
+  private doNotTriggerEvents: boolean
 
   constructor(
     file: string,
@@ -48,6 +49,7 @@ class Editor extends EventEmitter {
     this.editor.getModel().updateOptions({ tabSize: 2 })
     this.editor.onDidChangeModelContent(
       (e: monaco.editor.IModelContentChangedEvent) => {
+        if (this.doNotTriggerEvents) return
         workspace
           .writeComponentFile(file, this.editor.getValue())
           .then(() => {
@@ -62,9 +64,11 @@ class Editor extends EventEmitter {
       workspace
         .readComponentFile(file)
         .then(data => {
+          // avoid race condition
           if (workspace.activeComponent === name) {
-            // avoid race condition
+            this.doNotTriggerEvents = true
             this.editor.setValue(data)
+            this.doNotTriggerEvents = false
           }
         })
         .catch(errorHandler)

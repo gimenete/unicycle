@@ -67,13 +67,16 @@ class Editors {
     ]
 
     this.editors.forEach(editor => {
-      editor.update()
       actions.forEach(action => editor.editor.addAction(action))
     })
 
     const tabs = (this.tabs = Array.from(
       document.querySelectorAll('#editors .pt-tabs li')
     ))
+
+    this.panels = Array.from(
+      document.querySelectorAll('#editors .pt-tab-panel')
+    )
 
     tabs.forEach((tab, i) => {
       Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
