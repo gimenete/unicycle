@@ -181,6 +181,7 @@ const calculateRows = (layer: SketchLayer) => {
         name: '',
         frame,
         css: {
+          // tslint:disable-next-line:object-literal-key-quotes
           display: 'flex',
           'justify-content': 'space-between'
         },
