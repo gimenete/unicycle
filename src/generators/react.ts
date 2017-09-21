@@ -1,15 +1,15 @@
 import * as parse5 from 'parse5'
 import * as prettier from 'prettier'
 
-import { GeneratedCode } from '../types'
 import Component from '../component'
+import css2obj from '../css2obj'
+import { GeneratedCode } from '../types'
 import {
-  uppercamelcase,
+  docComment,
   toReactAttributeName,
   toReactEventName,
-  docComment
+  uppercamelcase
 } from '../utils'
-import css2obj from '../css2obj'
 
 const generateReact = (
   information: Component,

@@ -1,4 +1,4 @@
-import { Position, Toaster, Intent } from '@blueprintjs/core'
+import { Intent, Position, Toaster } from '@blueprintjs/core'
 
 const errorHandler = (err: Error) => {
   console.error(err)

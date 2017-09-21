@@ -1,6 +1,6 @@
 import Editor from './'
 
-import { DiffImage, Media, State, States, ErrorHandler } from '../types'
+import { DiffImage, ErrorHandler, Media, State, States } from '../types'
 
 class JSONEditor extends Editor {
   latestJSON: States | null

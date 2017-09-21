@@ -1,11 +1,11 @@
 import * as EventEmitter from 'events'
-import * as path from 'path'
 import * as fse from 'fs-extra'
+import * as path from 'path'
 import * as prettier from 'prettier'
 
 import Component from './component'
 import sketch from './sketch'
-import { GeneratedCode, States, Metadata, ErrorHandler } from './types'
+import { ErrorHandler, GeneratedCode, Metadata, States } from './types'
 
 import reactGenerator from './generators/react'
 import vueGenerator from './generators/vuejs'

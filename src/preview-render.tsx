@@ -3,18 +3,18 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
 
-import {
-  ReactAttributes,
-  ObjectStringToString,
-  State,
-  INCLUDE_PREFIX,
-  componentDataAttribute
-} from './types'
-import { evaluateExpression } from './eval'
-import { toReactAttributeName } from './utils'
-import css2obj from './css2obj'
-import workspace from './workspace'
 import Component from './component'
+import css2obj from './css2obj'
+import { evaluateExpression } from './eval'
+import {
+  componentDataAttribute,
+  INCLUDE_PREFIX,
+  ObjectStringToString,
+  ReactAttributes,
+  State
+} from './types'
+import { toReactAttributeName } from './utils'
+import workspace from './workspace'
 
 const renderComponent = (
   info: Component,

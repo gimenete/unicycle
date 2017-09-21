@@ -1,26 +1,26 @@
 /// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
 /// <reference path='../node_modules/@types/mousetrap/index.d.ts' />
 
+import { Overlay, Position, Slider } from '@blueprintjs/core'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Position, Overlay, Slider } from '@blueprintjs/core'
 
-import { DiffImage, Media, State, States } from './types'
-import { increment, decrement } from './actions/increment'
-import Inspector from './inspector'
+import { decrement, increment } from './actions/increment'
+import ConfirmPopover from './components/ConfirmPopover'
+import DiffImagePopoverProps from './components/DiffImagePopover'
+import InputPopover from './components/InpuPopover'
+import MediaPopoverProps from './components/MediaPopover'
 import Editor from './editors/index'
+import JSONEditor from './editors/json'
 import MarkupEditor from './editors/markup'
 import StyleEditor from './editors/style'
-import JSONEditor from './editors/json'
-import InputPopover from './components/InpuPopover'
-import ConfirmPopover from './components/ConfirmPopover'
-import MediaPopoverProps from './components/MediaPopover'
-import DiffImagePopoverProps from './components/DiffImagePopover'
+import Inspector from './inspector'
+import { DiffImage, Media, State, States } from './types'
 
-import reactGenerator from './generators/react'
 import errorHandler from './error-handler'
-import workspace from './workspace'
+import reactGenerator from './generators/react'
 import renderComponent from './preview-render'
+import workspace from './workspace'
 
 const mediaQuery = require('css-mediaquery')
 

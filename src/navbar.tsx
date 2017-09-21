@@ -1,6 +1,6 @@
+import electron = require('electron')
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import electron = require('electron')
 import workspace from './workspace'
 
 const { BrowserWindow, dialog } = electron.remote

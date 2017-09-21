@@ -1,11 +1,10 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { Position } from '@blueprintjs/core'
 import { remote } from 'electron'
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 
-import InputPopover from './components/InpuPopover'
 import ConfirmPopover from './components/ConfirmPopover'
-
+import InputPopover from './components/InpuPopover'
 import workspace from './workspace'
 
 const { clipboard } = remote

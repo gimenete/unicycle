@@ -1,13 +1,13 @@
 import * as crypto from 'crypto'
 
 import {
-  CSSMediaQuery,
-  PostCSSRoot,
-  PostCSSNode,
-  PostCSSRule,
-  PostCSSAtRule,
-  CSS_PREFIX,
   componentDataAttribute,
+  CSS_PREFIX,
+  CSSMediaQuery,
+  PostCSSAtRule,
+  PostCSSNode,
+  PostCSSRoot,
+  PostCSSRule,
   StripedCSS
 } from './types'
 

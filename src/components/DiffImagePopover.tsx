@@ -1,9 +1,9 @@
-import * as React from 'react'
-import * as sharp from 'sharp'
 import { Popover, Position } from '@blueprintjs/core'
 import electron = require('electron')
-import workspace from '../workspace'
+import * as React from 'react'
+import * as sharp from 'sharp'
 import errorHandler from '../error-handler'
+import workspace from '../workspace'
 
 const { BrowserWindow, dialog } = electron.remote
 

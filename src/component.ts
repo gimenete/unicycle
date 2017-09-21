@@ -1,15 +1,15 @@
-import * as parse5 from 'parse5'
 import * as sass from 'node-sass'
+import * as parse5 from 'parse5'
 import { SourceMapConsumer } from 'source-map'
 
 import Typer from './typer'
 import {
-  PostCSSNode,
-  PostCSSRule,
-  PostCSSPosition,
   CSS_PREFIX,
-  States,
+  PostCSSNode,
+  PostCSSPosition,
   PostCSSRoot,
+  PostCSSRule,
+  States,
   StripedCSS
 } from './types'
 
