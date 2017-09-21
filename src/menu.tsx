@@ -10,15 +10,11 @@ import workspace from './workspace'
 
 const { clipboard } = remote
 
-interface MenuState {}
-
-interface MenuProps {}
-
-class Menu extends React.Component<MenuProps, MenuState> {
+class Menu extends React.Component<any, any> {
   createComponentInput?: HTMLElement | null
   createComponentStructure?: HTMLElement | null
 
-  constructor(props: MenuProps) {
+  constructor(props: any) {
     super(props)
 
     workspace.on('projectLoaded', () => {

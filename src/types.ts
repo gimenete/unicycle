@@ -88,7 +88,9 @@ export interface GeneratedCode {
   embeddedStyle: boolean
 }
 
-export type ObjectStringToString = { [index: string]: string }
+export interface ObjectStringToString {
+  [index: string]: string
+}
 
 export type ErrorHandler = (e: Error) => void
 

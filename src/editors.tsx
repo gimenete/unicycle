@@ -154,6 +154,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       {
         id: 'switch-markdup-editor',
         label: 'Switch to markup editor',
+        // tslint:disable-next-line:no-bitwise
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_1],
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
@@ -162,6 +163,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       {
         id: 'switch-style-editor',
         label: 'Switch to style editor',
+        // tslint:disable-next-line:no-bitwise
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_2],
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
@@ -170,6 +172,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       {
         id: 'switch-states-editor',
         label: 'Switch to states editor',
+        // tslint:disable-next-line:no-bitwise
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_3],
         contextMenuGroupId: 'navigation',
         contextMenuOrder: 1.5,
@@ -322,12 +325,12 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         if (state.hidden) {
           classNames.push('hidden')
         }
-        const componentsInformation = Array.from(components).map(name => {
+        const allComponents = Array.from(components).map(name => {
           return workspace.loadComponent(name)
         })
         const media: Media = state.media || {}
-        componentsInformation.forEach(component => {
-          const { mediaQueries } = component.style.getCSS().striped
+        allComponents.forEach(comp => {
+          const { mediaQueries } = comp.style.getCSS().striped
           Object.keys(mediaQueries).forEach(id => {
             const condition = mediaQueries[id]
             const matches = mediaQuery.match(condition, media)
@@ -355,8 +358,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                     ? 'pt-active'
                     : ''}`}
                   onDelete={() => this.dataEditor.deleteDiffImage(i)}
-                  onChange={diffImage =>
-                    this.dataEditor.setDiffImage(diffImage, i)}
+                  onChange={image => this.dataEditor.setDiffImage(image, i)}
                 />
                 <MediaPopoverProps
                   position={Position.LEFT_TOP}
@@ -366,7 +368,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
                     ? 'pt-active'
                     : ''}`}
                   media={media}
-                  onChange={media => this.dataEditor.setMedia(media, i)}
+                  onChange={newMedia => this.dataEditor.setMedia(newMedia, i)}
                 />
                 <InputPopover
                   position={Position.LEFT}
@@ -471,8 +473,8 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
             )}
           </div>
           <style>{'[data-unicycle-component-root] { all: initial }'}</style>
-          {componentsInformation.map(component =>
-            component.style
+          {componentsInformation.map(info =>
+            info.style
               .getCSS()
               .striped.chunks.map((chunk, i) => (
                 <style key={i}>{chunk.scopedCSS || chunk.css}</style>

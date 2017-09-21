@@ -16,10 +16,7 @@ class Navbar extends React.Component<any, NavbarState> {
     this.state = {
       isCreateProjectOpen: false
     }
-    this.onClick = this.onClick.bind(this)
   }
-
-  onClick(e: React.MouseEvent<HTMLInputElement>) {}
 
   render() {
     return (

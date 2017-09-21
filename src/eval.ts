@@ -1,6 +1,6 @@
 export const evaluate = (code: string, options: { [index: string]: any }) => {
   const keys: string[] = []
-  const values: Array<any> = []
+  const values: any[] = []
   Object.keys(options).forEach(key => {
     keys.push(key)
     values.push(options[key])

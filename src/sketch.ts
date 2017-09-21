@@ -61,9 +61,11 @@ const createNode = (
   const attrs: SketchCSS = {}
   const css = layer.css
   if (Object.keys(css).length > 0)
-    attrs.style = Object.keys(css).map(key => `${key}: ${css[key]}`).join('; ')
+    attrs.style = Object.keys(css)
+      .map(key => `${key}: ${css[key]}`)
+      .join('; ')
   if (layer.classNames && layer.classNames.length > 0) {
-    attrs['class'] = layer.classNames.join(' ')
+    attrs.class = layer.classNames.join(' ')
   }
   const attributes = Object.keys(attrs).map(key => ({
     name: key,
@@ -77,40 +79,40 @@ const createNode = (
   }
   const parseSvg = (
     text: string,
-    attributes: parse5.AST.Default.Attribute[]
+    additionalAttributes: parse5.AST.Default.Attribute[]
   ) => {
-    const svg = parse5.parseFragment(
+    const parsedSVG = parse5.parseFragment(
       text
     ) as parse5.AST.Default.DocumentFragment
-    const root = svg.childNodes.find(
+    const root = parsedSVG.childNodes.find(
       node => node.nodeName === 'svg'
     )! as parse5.AST.Default.Element
 
     // if it's a super simple SVG, ignore it
     const isSuperSimple = (node: parse5.AST.Default.Node): boolean => {
-      const element = node as parse5.AST.Default.Element
-      if (!element.childNodes) return true
+      const elemnt = node as parse5.AST.Default.Element
+      if (!elemnt.childNodes) return true
       const notSimpleElement = !['svg', 'path', 'g', 'defs', 'desc'].includes(
-        element.nodeName
+        elemnt.nodeName
       )
       if (notSimpleElement) {
         return false
       }
-      if (element.nodeName === 'path') {
-        const d = element.attrs.find(attr => attr.name === 'd')
+      if (elemnt.nodeName === 'path') {
+        const d = elemnt.attrs.find(attr => attr.name === 'd')
         if (d) {
           // simple paths are like M155,9 L155,33
           const coordinates = d.value.match(/\d+,\d+/g)
           if (coordinates && coordinates.length > 2) return false
         }
       }
-      return !element.childNodes.find(node => !isSuperSimple(node))
+      return !elemnt.childNodes.find(childNode => !isSuperSimple(childNode))
     }
     if (isSuperSimple(root)) {
       return null
     }
 
-    root.attrs = root.attrs.concat(attributes)
+    root.attrs = root.attrs.concat(additionalAttributes)
     return root
   }
   const svg =
@@ -157,15 +159,12 @@ const calculateRows = (layer: SketchLayer) => {
     }, [child1])
     if (childNodes.length > 1) {
       const frame = childNodes.reduce(
-        (frame, node) => {
-          frame.x = Math.min(frame.x, node.frame.x)
-          frame.y = Math.min(frame.y, node.frame.y)
-          frame.width = Math.max(frame.width, node.frame.x + node.frame.width)
-          frame.height = Math.max(
-            frame.height,
-            node.frame.y + node.frame.height
-          )
-          return frame
+        (frme, node) => {
+          frme.x = Math.min(frme.x, node.frame.x)
+          frme.y = Math.min(frme.y, node.frame.y)
+          frme.width = Math.max(frme.width, node.frame.x + node.frame.width)
+          frme.height = Math.max(frme.height, node.frame.y + node.frame.height)
+          return frme
         },
         {
           x: Number.MAX_SAFE_INTEGER,
@@ -200,8 +199,8 @@ const calculateRows = (layer: SketchLayer) => {
 
 const calculateContainers = (layer: SketchLayer) => {
   let children = layer.children.slice(0)
-  children.forEach(layer => {
-    layer.frame.area = layer.frame.width * layer.frame.height
+  children.forEach(sublayer => {
+    sublayer.frame.area = sublayer.frame.width * sublayer.frame.height
   })
   children = children.sort((a, b) => b.frame.area! - a.frame.area!)
   children.forEach((child1, i) => {
@@ -346,7 +345,7 @@ const simplifyCSSRules = (layer: SketchLayer) => {
       const count = allValues[value] + (allValues['*'] || 0)
       if (count === layer.children.length) {
         layer.css[key] = value
-        layer.children.forEach(layer => delete layer.css[key])
+        layer.children.forEach(sublayer => delete sublayer.css[key])
       }
     })
   })
@@ -379,8 +378,8 @@ const calculateClassesAndSelectors = (
   parentCSS.subSelectors[selector] = css
   layer.css = {}
   layer.classNames = [className].filter(Boolean)
-  layer.children.forEach((child, nthChild) => {
-    calculateClassesAndSelectors(child, layer, css || parentCSS, nthChild)
+  layer.children.forEach((child, childIndex) => {
+    calculateClassesAndSelectors(child, layer, css || parentCSS, childIndex)
   })
 }
 

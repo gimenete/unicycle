@@ -32,7 +32,7 @@ export interface PreCSSChunk {
   component: string
 }
 
-const addAttribute = (selector: string, value: string) => {
+const addAttribute = (selectorText: string, value: string) => {
   const transform = (selectors: any) => {
     selectors.each((selector: any) => {
       let node = null
@@ -42,7 +42,7 @@ const addAttribute = (selector: string, value: string) => {
       selector.insertAfter(node, selectorParser.attribute({ attribute: value }))
     })
   }
-  return selectorParser(transform).process(selector).result
+  return selectorParser(transform).process(selectorText).result
 }
 
 const mediaQueryClassName = (text: string) => {
@@ -63,7 +63,7 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
   const chunks: PreCSSChunk[] = []
   const scopedAttribute = componentDataAttribute(component)
 
-  const iterateNode = (component: string, node: PostCSSNode, ids: string[]) => {
+  const iterateNode = (node: PostCSSNode, ids: string[]) => {
     if (node.type === 'rule') {
       const rule = node as PostCSSRule
       rule.ids = ids
@@ -71,7 +71,7 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
         mediaQueries: ids,
         css: node.toString(),
         scopedCSS: `${addAttribute(rule.selector, scopedAttribute)} {
-          ${node.nodes!.map(node => node.toString()).join(';\n')}
+          ${node.nodes!.map(childNode => childNode.toString()).join(';\n')}
         }`,
         component
       })
@@ -82,7 +82,7 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
         mediaQueries[id] = atrule.params
         if (node.nodes) {
           const arr = ids.concat(id)
-          node.nodes.forEach(node => iterateNode(component, node, arr))
+          node.nodes.forEach(childNode => iterateNode(childNode, arr))
         }
       } else if (atrule.name === 'import') {
         const values = parseImport(
@@ -106,11 +106,11 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
         })
       }
     } else if (node.nodes) {
-      node.nodes.forEach(node => iterateNode(component, node, ids))
+      node.nodes.forEach(childNode => iterateNode(childNode, ids))
     }
   }
 
-  iterateNode(component, ast, [])
+  iterateNode(ast, [])
 
   const mediaQueriesCount = Object.keys(mediaQueries).length
   chunks.forEach(chunk => {

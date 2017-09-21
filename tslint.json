@@ -1,0 +1,19 @@
+{
+  "extends": "tslint:recommended",
+  "rules": {
+    "quotemark": [true, "single", "jsx-double"],
+    "semicolon": [false, "always"],
+    "ordered-imports": false,
+    "no-reference": false,
+    "trailing-comma": false,
+    "object-literal-sort-keys": false,
+    "interface-name": false,
+    "member-access": false,
+    "member-ordering": false,
+    "curly": false,
+    "arrow-parens": false,
+    "no-var-requires": false,
+    "max-classes-per-file": false,
+    "no-console": false
+  }
+}

@@ -54,9 +54,9 @@ const renderComponent = (
       }
       const element = node as parse5.AST.Default.Element
       if (!element.childNodes) return undefined
-      const _if = element.attrs.find(attr => attr.name === '@if')
-      if (_if) {
-        const result = evaluateExpression(_if.value, data)
+      const ifs = element.attrs.find(attr => attr.name === '@if')
+      if (ifs) {
+        const result = evaluateExpression(ifs.value, data)
         if (!result) return undefined
       }
       const loop = element.attrs.find(attr => attr.name === '@loop')
@@ -82,16 +82,16 @@ const renderComponent = (
         const componentName = node.nodeName.substring(INCLUDE_PREFIX.length)
         const componentInfo = workspace.loadComponent(componentName)
         const props = element.attrs.reduce(
-          (props, attr) => {
+          (elementProps, attr) => {
             if (attr.name.startsWith(':')) {
               const name = attr.name.substring(1)
               const expression = attr.value
-              props[name] = evaluateExpression(expression, data)
+              elementProps[name] = evaluateExpression(expression, data)
             } else {
               // TODO: convert to type
-              props[attr.name] = attr.value
+              elementProps[attr.name] = attr.value
             }
-            return props
+            return elementProps
           },
           {} as any
         )
@@ -124,7 +124,7 @@ const renderComponent = (
           {} as ObjectStringToString
         )
       if (key !== null) {
-        attrs['key'] = String(key)
+        attrs.key = String(key)
       }
       element.attrs.forEach(attr => {
         if (!attr.name.startsWith(':')) return
@@ -135,22 +135,22 @@ const renderComponent = (
           attrs[fname] = evaluateExpression(expression, data)
         }
       })
-      if (attrs['style']) {
-        attrs['style'] = css2obj(attrs['style'] as string)
+      if (attrs.style) {
+        attrs.style = css2obj(attrs.style as string)
       }
       const location = element.__location
       if (location) {
         attrs['data-location'] = locationJSON(location)
       }
-      attrs['style'] = Object.assign({}, attrs['style'] || {}, additionalStyles)
+      attrs.style = Object.assign({}, attrs.style || {}, additionalStyles)
       if (isRoot) {
         attrs['data-unicycle-component-root'] = ''
       }
       if (additionalDataAttribute) {
         attrs[additionalDataAttribute] = ''
       }
-      const childNodes = element.childNodes.map((node, i) =>
-        renderNode(data, node, i, null, additionalDataAttribute, false)
+      const childNodes = element.childNodes.map((childNode, i) =>
+        renderNode(data, childNode, i, null, additionalDataAttribute, false)
       )
       return React.createElement.apply(
         null,

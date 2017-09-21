@@ -18,7 +18,9 @@ class StyleEditor extends Editor {
     )
   }
 
-  update() {}
+  update() {
+    // nothing to do yet
+  }
 }
 
 export default StyleEditor

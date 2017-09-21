@@ -7,6 +7,7 @@ const css2obj = (css: string): { [index: string]: string | number } => {
     if (node.type === 'decl') {
       const prop = camelcase(node.prop)
       let value = node.value
+      // tslint:disable-next-line:triple-equals
       if (value == +value || value === `${parseFloat(value)}px`) {
         value = parseFloat(value)
       }

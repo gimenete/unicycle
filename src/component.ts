@@ -191,6 +191,7 @@ class ComponentMarkup {
 }
 
 export default class Component {
+  // tslint:disable-next-line:variable-name
   private _name: string
   readonly markup: ComponentMarkup
   readonly style: ComponentStyle

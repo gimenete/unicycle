@@ -30,24 +30,24 @@ const generateReact = (
     const firstState = states[0]
     if (!firstState || !firstState.props) return ''
     const { props } = firstState
-    let code = `class MyContainer extends Component {
+    let codeExample = `class MyContainer extends Component {
       render() {
       return <${componentName}`
     Object.keys(props).forEach(key => {
       const value = props[key]
       if (typeof value === 'string') {
-        code += ` ${key}=${JSON.stringify(value)}`
+        codeExample += ` ${key}=${JSON.stringify(value)}`
       } else if (typeof value === 'number' || typeof value === 'boolean') {
-        code += ` ${key}=${value}`
+        codeExample += ` ${key}=${value}`
       } else {
-        code += ` ${key}={${JSON.stringify(value)}}`
+        codeExample += ` ${key}={${JSON.stringify(value)}}`
       }
     })
     for (const key of eventHandlers.keys()) {
-      code += ` ${key}={() => {}}`
+      codeExample += ` ${key}={() => {}}`
     }
-    code += '/> } }'
-    return prettier.format(code, options)
+    codeExample += '/> } }'
+    return prettier.format(codeExample, options)
   }
 
   const exampleCode = example()
@@ -83,24 +83,24 @@ const generateReact = (
     const element = node as parse5.AST.Default.Element
     if (!element.childNodes) return ''
     const toString = () => {
-      let code = `<${node.nodeName}`
+      let elementCode = `<${node.nodeName}`
       element.attrs.forEach(attr => {
         if (attr.name.startsWith(':')) return
         if (attr.name.startsWith('@on')) {
           const required = attr.name.endsWith('!')
-          const name = toReactEventName(
+          const eventName = toReactEventName(
             attr.name.substring(1, attr.name.length - (required ? 1 : 0))
           )
-          if (name) {
-            code += ` ${name}={${attr.value}}`
+          if (eventName) {
+            elementCode += ` ${eventName}={${attr.value}}`
           }
         }
         if (attr.name.startsWith('@')) return
         const name = toReactAttributeName(attr.name)
         if (name === 'style') {
-          code += ` ${name}={${JSON.stringify(css2obj(attr.value))}}`
+          elementCode += ` ${name}={${JSON.stringify(css2obj(attr.value))}}`
         } else if (name) {
-          code += ` ${name}="${attr.value}"`
+          elementCode += ` ${name}="${attr.value}"`
         }
       })
       element.attrs.forEach(attr => {
@@ -108,24 +108,26 @@ const generateReact = (
         const name = toReactAttributeName(attr.name.substring(1))
         if (name) {
           const expression = attr.value
-          code += ` ${name}={${expression}}`
+          elementCode += ` ${name}={${expression}}`
         }
       })
-      code += '>'
-      element.childNodes.forEach(node => (code += renderNode(node)))
-      code += `</${node.nodeName}>`
-      return code
+      elementCode += '>'
+      element.childNodes.forEach(
+        childNode => (elementCode += renderNode(childNode))
+      )
+      elementCode += `</${node.nodeName}>`
+      return elementCode
     }
     let basicMarkup = toString()
 
-    const _if = element.attrs.find(attr => attr.name === '@if')
+    const ifs = element.attrs.find(attr => attr.name === '@if')
     const loop = element.attrs.find(attr => attr.name === '@loop')
     const as = element.attrs.find(attr => attr.name === '@as')
     if (loop && as) {
       basicMarkup = `{(${loop.value}).map((${as.value}, i) => ${basicMarkup})}`
     }
-    if (_if) {
-      basicMarkup = `{(${_if.value}) && (${basicMarkup})}`
+    if (ifs) {
+      basicMarkup = `{(${ifs.value}) && (${basicMarkup})}`
     }
     return basicMarkup
   }

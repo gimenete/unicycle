@@ -18,6 +18,7 @@ const frameworks: any = {
 }
 
 if (module.id === require.main!.id) {
+  // tslint:disable-next-line:whitespace
   ;(async () => {
     const framework = process.argv[2]
 

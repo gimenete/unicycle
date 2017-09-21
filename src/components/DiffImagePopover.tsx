@@ -93,7 +93,7 @@ export default class DiffImagePopover extends React.Component<
   handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault()
     // If dropped items aren't files, reject them
-    var dt = e.dataTransfer
+    const dt = e.dataTransfer
     if (dt.items) {
       // Use DataTransferItemList interface to access the file(s)
       for (const item of Array.from(dt.items)) {

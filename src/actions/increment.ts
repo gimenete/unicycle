@@ -50,6 +50,7 @@ export const increment = {
   id: 'increment-value',
   label: 'Increment value',
   keybindings: [
+    // tslint:disable-next-line:no-bitwise
     monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_K
   ],
   contextMenuGroupId: 'navigation',
@@ -61,6 +62,7 @@ export const decrement = {
   id: 'decrement-value',
   label: 'Decrement value',
   keybindings: [
+    // tslint:disable-next-line:no-bitwise
     monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_J
   ],
   contextMenuGroupId: 'navigation',

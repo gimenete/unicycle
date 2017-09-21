@@ -16,7 +16,9 @@ class MarkupEditor extends Editor {
     this.errorHandler = errorHandler
   }
 
-  update() {}
+  update() {
+    // nothing to do yet
+  }
 }
 
 export default MarkupEditor

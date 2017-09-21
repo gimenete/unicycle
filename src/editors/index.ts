@@ -109,7 +109,9 @@ class Editor extends EventEmitter {
     return returnValue
   }
 
-  update() {}
+  update() {
+    // overwrite in child classes
+  }
 
   scrollDown() {
     const lines = this.editor.getModel().getLineCount()

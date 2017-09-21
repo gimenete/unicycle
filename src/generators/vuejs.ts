@@ -26,24 +26,28 @@ const generateVue = (
     const firstState = states[0]
     if (!firstState || !firstState.props) return ''
     const { props } = firstState
-    let code = `<${componentName}`
+    let elementCode = `<${componentName}`
     Object.keys(props).forEach(key => {
       const value = props[key]
       const type = typeof value
       if (value === null || type === 'undefined') return
       if (type === 'string') {
-        code += `\n  ${key}=${JSON.stringify(value)}`
+        elementCode += `\n  ${key}=${JSON.stringify(value)}`
       } else if (type === 'number' || type === 'boolean') {
-        code += `\n  ${key}="${value}"`
+        elementCode += `\n  ${key}="${value}"`
       } else {
-        code += `\n  :${key}='${JSON.stringify(value).replace(/\'/g, "\\'")}'`
+        elementCode += `\n  :${key}='${JSON.stringify(value).replace(
+          /\'/g,
+          // tslint:disable-next-line:quotemark
+          "\\'"
+        )}'`
       }
     })
     for (const key of eventHandlers.keys()) {
-      code += `\n  :${key}="() => {}"`
+      elementCode += `\n  :${key}="() => {}"`
     }
-    code += '\n/>'
-    return code
+    elementCode += '\n/>'
+    return elementCode
   }
 
   const manipulateNode = (node: parse5.AST.Default.Node) => {
