@@ -17,7 +17,7 @@ class Navbar extends React.Component<any, NavbarState> {
     }
   }
 
-  render() {
+  public render() {
     return (
       <div>
         <nav className="pt-navbar">

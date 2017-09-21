@@ -14,7 +14,7 @@ class StyleEditor extends Editor {
     )
   }
 
-  update() {
+  public update() {
     // nothing to do yet
   }
 }

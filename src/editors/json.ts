@@ -3,7 +3,7 @@ import Editor from './'
 import { DiffImage, ErrorHandler, Media, State, States } from '../types'
 
 class JSONEditor extends Editor {
-  latestJSON: States | null
+  public latestJSON: States | null
 
   constructor(element: HTMLElement, errorHandler: ErrorHandler) {
     super(
@@ -17,7 +17,7 @@ class JSONEditor extends Editor {
     this.latestJSON = null
   }
 
-  update() {
+  public update() {
     this.calculateMessages('error', handler => {
       try {
         this.latestJSON = JSON.parse(this.editor.getValue())
@@ -29,7 +29,7 @@ class JSONEditor extends Editor {
     })
   }
 
-  addState(name: string, index?: number) {
+  public addState(name: string, index?: number) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
     index = index !== undefined ? index : data.length - 1
@@ -44,14 +44,14 @@ class JSONEditor extends Editor {
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 
-  deleteState(index: number) {
+  public deleteState(index: number) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
     data.splice(index, 1)
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 
-  setMedia(media: Media, index: number) {
+  public setMedia(media: Media, index: number) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
     if (Object.values(media).filter(value => value != null).length === 0) {
@@ -62,14 +62,14 @@ class JSONEditor extends Editor {
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 
-  setDiffImage(diffImage: DiffImage, index: number) {
+  public setDiffImage(diffImage: DiffImage, index: number) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
     data[index].diffImage = diffImage
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 
-  deleteDiffImage(index: number) {
+  public deleteDiffImage(index: number) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
     // TODO: delete file

@@ -15,42 +15,13 @@ class OpenPage extends React.Component<any, any> {
     super(props)
   }
 
-  openProject() {
-    const paths = dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
-      properties: ['openDirectory']
-    })
-    if (paths.length === 0) return
-    this.loadProject(paths[0])
-  }
-
-  loadProject(fullpath: string) {
-    document.body.classList.remove('opening')
-    document.body.classList.add('loading')
-    workspace
-      .loadProject(fullpath)
-      .then(() => {
-        const loader = document.querySelector('#loading')
-        if (loader) loader.parentNode!.removeChild(loader)
-        document.body.classList.remove('loading')
-
-        BrowserWindow.getFocusedWindow().maximize()
-      })
-      .catch(errorHandler)
-  }
-
-  createProject() {
-    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
-      properties: ['openDirectory']
-    })
-  }
-
-  componentDidMount() {
+  public componentDidMount() {
     if (!isPackaged() && document.location.search === '?first') {
       this.loadProject(path.join(__dirname, '..', '..', 'example'))
     }
   }
 
-  render() {
+  public render() {
     return (
       <div>
         <div className="pt-non-ideal-state" onClick={() => this.openProject()}>
@@ -76,6 +47,35 @@ class OpenPage extends React.Component<any, any> {
         </div>
       </div>
     )
+  }
+
+  private openProject() {
+    const paths = dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+      properties: ['openDirectory']
+    })
+    if (paths.length === 0) return
+    this.loadProject(paths[0])
+  }
+
+  private loadProject(fullpath: string) {
+    document.body.classList.remove('opening')
+    document.body.classList.add('loading')
+    workspace
+      .loadProject(fullpath)
+      .then(() => {
+        const loader = document.querySelector('#loading')
+        if (loader) loader.parentNode!.removeChild(loader)
+        document.body.classList.remove('loading')
+
+        BrowserWindow.getFocusedWindow().maximize()
+      })
+      .catch(errorHandler)
+  }
+
+  private createProject() {
+    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+      properties: ['openDirectory']
+    })
   }
 }
 

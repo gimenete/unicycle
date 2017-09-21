@@ -14,23 +14,23 @@ const metadataFile = 'unicycle.json'
 const sourceDir = 'components'
 
 class Workspace extends EventEmitter {
-  dir: string
-  activeComponent: string | null
-  metadata: Metadata
-  components: Map<string, Component>
+  public dir: string
+  public activeComponent: string | null
+  public metadata: Metadata
+  public components: Map<string, Component>
 
   constructor() {
     super()
     this.components = new Map<string, Component>()
   }
 
-  async loadProject(dir: string) {
+  public async loadProject(dir: string) {
     this.dir = dir
     this.metadata = JSON.parse(await this.readFile(metadataFile))
     this.emit('projectLoaded')
   }
 
-  async createProject(dir: string) {
+  public async createProject(dir: string) {
     this.dir = dir
     const initialMetadata: Metadata = {
       components: []
@@ -42,7 +42,7 @@ class Workspace extends EventEmitter {
     await fse.mkdirp(path.join(this.dir, sourceDir))
   }
 
-  async addComponent(name: string, structure?: string) {
+  public async addComponent(name: string, structure?: string) {
     const initial = structure
       ? await sketch(structure)
       : {
@@ -61,29 +61,25 @@ class Workspace extends EventEmitter {
       this.writeFile(path.join(sourceDir, name, 'data.json'), initialState)
     ])
     this.metadata.components.push({ name })
-    await this._saveMetadata()
+    await this.saveMetadata()
     this.setActiveComponent(name)
   }
 
-  _saveMetadata() {
-    return this.writeFile(metadataFile, JSON.stringify(this.metadata, null, 2))
-  }
-
-  setActiveComponent(name: string | null) {
+  public setActiveComponent(name: string | null) {
     this.activeComponent = name
     this.emit('activeComponent', name)
   }
 
-  async deleteComponent(name: string) {
+  public async deleteComponent(name: string) {
     await fse.remove(path.join(this.dir, sourceDir, name))
     this.metadata.components = this.metadata.components.filter(
       component => component.name !== name
     )
-    await this._saveMetadata()
+    await this.saveMetadata()
     this.components.delete(name)
   }
 
-  readComponentFile(file: string, component?: string): Promise<string> {
+  public readComponentFile(file: string, component?: string): Promise<string> {
     const comp = component || this.activeComponent
     if (!comp) {
       console.warn(
@@ -94,7 +90,7 @@ class Workspace extends EventEmitter {
     return this.readFile(path.join(sourceDir, comp, file))
   }
 
-  readComponentFileSync(file: string, component?: string): string {
+  public readComponentFileSync(file: string, component?: string): string {
     const comp = component || this.activeComponent
     if (!comp) {
       console.warn(
@@ -105,19 +101,19 @@ class Workspace extends EventEmitter {
     return this.readFileSync(path.join(sourceDir, comp, file))
   }
 
-  readFile(relativePath: string): Promise<string> {
+  public readFile(relativePath: string): Promise<string> {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
     return fse.readFile(fullPath, 'utf8')
   }
 
-  readFileSync(relativePath: string): string {
+  public readFileSync(relativePath: string): string {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
     return fse.readFileSync(fullPath, 'utf8')
   }
 
-  async writeComponentFile(file: string, data: string) {
+  public async writeComponentFile(file: string, data: string) {
     const name = this.activeComponent
     if (!name) {
       console.warn(
@@ -137,13 +133,13 @@ class Workspace extends EventEmitter {
     }
   }
 
-  writeFile(relativePath: string, data: string): Promise<void> {
+  public writeFile(relativePath: string, data: string): Promise<void> {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
     return fse.writeFile(fullPath, data)
   }
 
-  async copyComponentFile(fullPath: string): Promise<string> {
+  public async copyComponentFile(fullPath: string): Promise<string> {
     const basename = path.basename(fullPath)
     if (!this.activeComponent) {
       return Promise.reject(
@@ -159,7 +155,7 @@ class Workspace extends EventEmitter {
     return basename
   }
 
-  pathForComponentFile(basename: string) {
+  public pathForComponentFile(basename: string) {
     if (!this.activeComponent) {
       console.warn(
         `Trying to calculate path for ${basename} but not active component at this moment`
@@ -169,11 +165,11 @@ class Workspace extends EventEmitter {
     return path.join(this.dir, sourceDir, this.activeComponent, basename)
   }
 
-  getActiveComponent(): Component | null {
+  public getActiveComponent(): Component | null {
     return this.activeComponent ? this.getComponent(this.activeComponent) : null
   }
 
-  getComponent(name: string): Component {
+  public getComponent(name: string): Component {
     let info = this.components.get(name)
     if (info) return info
 
@@ -182,7 +178,7 @@ class Workspace extends EventEmitter {
     return info
   }
 
-  loadComponent(name: string): Component {
+  public loadComponent(name: string): Component {
     const markup = this.readComponentFileSync('index.html', name)
     const data = this.readComponentFileSync('data.json', name)
     const style = this.readComponentFileSync('styles.scss', name)
@@ -190,7 +186,7 @@ class Workspace extends EventEmitter {
     return new Component(name, markup, style, data)
   }
 
-  async generate(errorHandler: ErrorHandler) {
+  public async generate(errorHandler: ErrorHandler) {
     const generators: {
       [index: string]: (
         information: Component,
@@ -229,6 +225,10 @@ class Workspace extends EventEmitter {
         )
       }
     }
+  }
+
+  private saveMetadata() {
+    return this.writeFile(metadataFile, JSON.stringify(this.metadata, null, 2))
   }
 }
 

@@ -77,15 +77,14 @@ interface ComponentEditorState {
 }
 
 class ComponentEditor extends React.Component<any, ComponentEditorState> {
-  markupEditor: MarkupEditor
-  styleEditor: StyleEditor
-  dataEditor: JSONEditor
-  editors: Editor[]
-  output: string
-  inspector: Inspector
-  tabs: Element[]
-  panels: Element[]
-  scrollDown: boolean
+  private markupEditor: MarkupEditor
+  private styleEditor: StyleEditor
+  private dataEditor: JSONEditor
+  private editors: Editor[]
+  private inspector: Inspector
+  private tabs: Element[]
+  private panels: Element[]
+  private scrollDown: boolean
 
   constructor(props: any) {
     super(props)
@@ -204,48 +203,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     }
   }
 
-  toggleDiffMode() {
-    const diffMode = this.state.diffMode === 'slider' ? 'opacity' : 'slider'
-    this.setState({ diffMode })
-  }
-
-  selectEditor(index: number) {
-    this.tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'))
-    this.panels.forEach(panel => panel.setAttribute('aria-hidden', 'true'))
-
-    this.tabs[index].setAttribute('aria-selected', 'true')
-    this.panels[index].setAttribute('aria-hidden', 'false')
-    this.editors[index].editor.focus()
-  }
-
-  selectedTabIndex(): number {
-    return this.panels.findIndex(
-      panel => panel.getAttribute('aria-hidden') === 'false'
-    )
-  }
-
-  focusVisibleEditor() {
-    const tabIndex = this.selectedTabIndex()
-    this.editors[tabIndex].editor.focus()
-  }
-
-  toggleInspecting() {
-    this.state.inspecting
-      ? this.inspector.stopInspecting()
-      : this.inspector.startInspecting()
-    this.setState({
-      inspecting: !this.state.inspecting
-    })
-  }
-
-  toggleHiddenState(state: State) {
-    state.hidden = !state.hidden
-    this.dataEditor.editor.setValue(
-      JSON.stringify(this.dataEditor.latestJSON, null, 2)
-    )
-  }
-
-  render(): JSX.Element | null {
+  public render(): JSX.Element | null {
     const code = this.generateOutput()
 
     const component = workspace.getActiveComponent()
@@ -530,7 +488,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     })
   }
 
-  componentDidUpdate() {
+  public componentDidUpdate() {
     try {
       const component = workspace.getActiveComponent()!
       this.styleEditor.calculateMessages('warning', handler => {
@@ -555,8 +513,48 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       previews.scrollTop = previews.scrollHeight
     }
   }
+  private toggleDiffMode() {
+    const diffMode = this.state.diffMode === 'slider' ? 'opacity' : 'slider'
+    this.setState({ diffMode })
+  }
 
-  generateOutput(): string {
+  private selectEditor(index: number) {
+    this.tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'))
+    this.panels.forEach(panel => panel.setAttribute('aria-hidden', 'true'))
+
+    this.tabs[index].setAttribute('aria-selected', 'true')
+    this.panels[index].setAttribute('aria-hidden', 'false')
+    this.editors[index].editor.focus()
+  }
+
+  private selectedTabIndex(): number {
+    return this.panels.findIndex(
+      panel => panel.getAttribute('aria-hidden') === 'false'
+    )
+  }
+
+  private focusVisibleEditor() {
+    const tabIndex = this.selectedTabIndex()
+    this.editors[tabIndex].editor.focus()
+  }
+
+  private toggleInspecting() {
+    this.state.inspecting
+      ? this.inspector.stopInspecting()
+      : this.inspector.startInspecting()
+    this.setState({
+      inspecting: !this.state.inspecting
+    })
+  }
+
+  private toggleHiddenState(state: State) {
+    state.hidden = !state.hidden
+    this.dataEditor.editor.setValue(
+      JSON.stringify(this.dataEditor.latestJSON, null, 2)
+    )
+  }
+
+  private generateOutput(): string {
     const component = workspace.getActiveComponent()
     if (!component) return ''
     const prettierOptions = workspace.metadata.export!.prettier

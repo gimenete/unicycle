@@ -57,7 +57,7 @@ export default class DiffImagePopover extends React.Component<
       : defaultState
   }
 
-  sendChanges() {
+  public sendChanges() {
     this.props.onChange({
       file: this.state.path!,
       resolution: this.state.resolution!,
@@ -68,7 +68,7 @@ export default class DiffImagePopover extends React.Component<
     })
   }
 
-  handleFile(fullPath: string) {
+  public handleFile(fullPath: string) {
     const image = sharp(fullPath)
     image
       .metadata()
@@ -87,7 +87,7 @@ export default class DiffImagePopover extends React.Component<
       .catch(errorHandler)
   }
 
-  handleDrop(e: React.DragEvent<HTMLDivElement>) {
+  public handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault()
     // If dropped items aren't files, reject them
     const dt = e.dataTransfer
@@ -107,7 +107,7 @@ export default class DiffImagePopover extends React.Component<
     }
   }
 
-  render() {
+  public render() {
     const renderResolutionButton = (value: string) => {
       return (
         <button

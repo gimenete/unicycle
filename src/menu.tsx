@@ -10,9 +10,6 @@ import workspace from './workspace'
 const { clipboard } = remote
 
 class Menu extends React.Component<any, any> {
-  createComponentInput?: HTMLElement | null
-  createComponentStructure?: HTMLElement | null
-
   constructor(props: any) {
     super(props)
 
@@ -24,7 +21,7 @@ class Menu extends React.Component<any, any> {
     })
   }
 
-  render() {
+  public render() {
     const { metadata } = workspace
     if (!metadata) return <div />
     const { components } = metadata

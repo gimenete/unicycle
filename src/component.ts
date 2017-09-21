@@ -48,11 +48,11 @@ class ComponentData {
     this.setData(source)
   }
 
-  setData(source: string) {
+  public setData(source: string) {
     this.states = JSON.parse(source)
   }
 
-  getStates() {
+  public getStates() {
     return this.states
   }
 }
@@ -67,17 +67,17 @@ class ComponentStyle {
     this.setStyle(style)
   }
 
-  setComponentName(componentName: string) {
+  public setComponentName(componentName: string) {
     this.componentName = componentName
     this.css = null
   }
 
-  setStyle(style: string) {
+  public setStyle(style: string) {
     this.style = style
     this.css = null
   }
 
-  getCSS(): ComponentCSS {
+  public getCSS(): ComponentCSS {
     if (this.css) return this.css
     const result = sass.renderSync({
       data: this.style,
@@ -95,7 +95,7 @@ class ComponentStyle {
     return this.css
   }
 
-  iterateSelectors(iterator: SelectorIterator) {
+  public iterateSelectors(iterator: SelectorIterator) {
     const css = this.getCSS()
     const smc = new SourceMapConsumer(css.map)
     const allMappings: SourceMapMapping[] = []
@@ -147,12 +147,12 @@ class ComponentMarkup {
     this.setMarkup(source)
   }
 
-  setMarkup(source: string) {
+  public setMarkup(source: string) {
     this.source = source
     this.markup = null
   }
 
-  getDOM(): parse5.AST.Default.DocumentFragment {
+  public getDOM(): parse5.AST.Default.DocumentFragment {
     if (this.markup) return this.markup
     this.markup = parse5.parseFragment(this.source, {
       locationInfo: true
@@ -160,7 +160,7 @@ class ComponentMarkup {
     return this.markup
   }
 
-  calculateEventHanlders() {
+  public calculateEventHanlders() {
     const eventHandlers = new Map<string, boolean>()
     const calculate = (node: parse5.AST.Default.Node) => {
       const element = node as parse5.AST.Default.Element
@@ -184,11 +184,11 @@ class ComponentMarkup {
 }
 
 export default class Component {
+  public readonly markup: ComponentMarkup
+  public readonly style: ComponentStyle
+  public readonly data: ComponentData
   // tslint:disable-next-line:variable-name
   private _name: string
-  readonly markup: ComponentMarkup
-  readonly style: ComponentStyle
-  readonly data: ComponentData
 
   constructor(name: string, markup: string, style: string, data: string) {
     this._name = name
@@ -201,12 +201,12 @@ export default class Component {
     return this._name
   }
 
-  setName(name: string) {
+  public setName(name: string) {
     this._name = name
     this.style.setComponentName(name)
   }
 
-  calculateTyper(includeEventHandlers: boolean) {
+  public calculateTyper(includeEventHandlers: boolean) {
     const typer = new Typer()
     this.data.getStates().forEach(state => typer.addDocument(state.props))
 

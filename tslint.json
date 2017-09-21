@@ -7,8 +7,6 @@
     "trailing-comma": false,
     "object-literal-sort-keys": false,
     "interface-name": false,
-    "member-access": false,
-    "member-ordering": false,
     "curly": false,
     "arrow-parens": false,
     "no-var-requires": false,

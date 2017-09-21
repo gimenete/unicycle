@@ -26,12 +26,12 @@ const defaultOptions: monaco.editor.IEditorConstructionOptions = {
 }
 
 class Editor extends EventEmitter {
-  editor: monaco.editor.IStandaloneCodeEditor
-  oldDecorations: {
+  public emitUpdate: () => void
+  public readonly editor: monaco.editor.IStandaloneCodeEditor
+  protected errorHandler: ErrorHandler
+  private oldDecorations: {
     [index: string]: string[]
   }
-  errorHandler: ErrorHandler
-  emitUpdate: () => void
 
   constructor(
     file: string,
@@ -74,12 +74,12 @@ class Editor extends EventEmitter {
     this.errorHandler = errorHandler
   }
 
-  cleanUpMessages(type: string) {
+  public cleanUpMessages(type: string) {
     this.editor.deltaDecorations(this.oldDecorations[type], [])
     this.oldDecorations[type] = []
   }
 
-  calculateMessages<T>(type: string, runner: MessageRunner<T>): T {
+  public calculateMessages<T>(type: string, runner: MessageRunner<T>): T {
     const messages = new Array<Message>()
     const returnValue = runner({
       addMessage(position: monaco.Position, text: string) {
@@ -109,11 +109,11 @@ class Editor extends EventEmitter {
     return returnValue
   }
 
-  update() {
+  public update() {
     // overwrite in child classes
   }
 
-  scrollDown() {
+  public scrollDown() {
     const lines = this.editor.getModel().getLineCount()
     this.editor.revealLine(lines)
   }
