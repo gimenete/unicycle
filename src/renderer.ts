@@ -1,6 +1,5 @@
-import path = require('path')
-import workspace from './workspace'
 import { isPackaged } from './utils'
+import workspace from './workspace'
 
 import { FocusStyleManager } from '@blueprintjs/core'
 
@@ -23,6 +22,6 @@ workspace.on('activeComponent', name => {
 })
 
 require('./open')
-require('./editors')
+require('./previews')
 require('./menu')
 require('./navbar')
