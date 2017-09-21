@@ -4,12 +4,7 @@ import * as prettier from 'prettier'
 import Typer from '../typer'
 import Component from '../component'
 import { GeneratedCode } from '../types'
-import {
-  uppercamelcase,
-  docComment,
-  calculateEventHanlders,
-  calculateTyper
-} from '../utils'
+import { uppercamelcase, docComment, calculateTyper } from '../utils'
 
 const dashify = require('dashify')
 
@@ -18,16 +13,17 @@ const generateVue = (
   options?: prettier.Options
 ): GeneratedCode => {
   const { markup, name, data } = information
+  const states = data.getStates()
   const componentName = dashify(information.name)
-  const eventHandlers = calculateEventHanlders(markup)
-  const typer = calculateTyper(data, eventHandlers)
+  const eventHandlers = markup.calculateEventHanlders()
+  const typer = calculateTyper(states, eventHandlers)
 
   const cloned = parse5.parseFragment(parse5.serialize(markup), {
     locationInfo: true
   }) as parse5.AST.Default.DocumentFragment
 
   const example = () => {
-    const firstState = data[0]
+    const firstState = states[0]
     if (!firstState || !firstState.props) return ''
     const { props } = firstState
     let code = `<${componentName}`

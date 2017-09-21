@@ -40,35 +40,53 @@ type SelectorIterator = (
   }
 ) => any
 
-export default class Component {
-  name: string
-  markup: parse5.AST.Default.DocumentFragment
-  data: States
-  style: string
-  css: {
-    source: string
-    map: sourceMap.RawSourceMap
-    ast: PostCSSRoot
-    striped: StripedCSS
+interface ComponentCSS {
+  readonly source: string
+  readonly map: sourceMap.RawSourceMap
+  readonly ast: PostCSSRoot
+  readonly striped: StripedCSS
+}
+
+class ComponentData {
+  private states: States
+
+  constructor(source: string) {
+    this.setData(source)
   }
 
-  constructor(name: string, markup: string, style: string, data: string) {
-    this.name = name
-    this.setMarkup(markup)
+  setData(source: string) {
+    this.states = JSON.parse(source)
+  }
+
+  getStates() {
+    return this.states
+  }
+}
+
+class ComponentStyle {
+  private componentName: string
+  private style: string
+  private css: ComponentCSS | null
+
+  constructor(componentName: string, style: string) {
+    this.setComponentName(componentName)
     this.setStyle(style)
-    this.setData(data)
   }
 
-  setMarkup(markup: string) {
-    this.markup = parse5.parseFragment(markup, {
-      locationInfo: true
-    }) as parse5.AST.Default.DocumentFragment
+  setComponentName(componentName: string) {
+    this.componentName = componentName
+    this.css = null
   }
 
   setStyle(style: string) {
     this.style = style
+    this.css = null
+  }
+
+  getCSS(): ComponentCSS {
+    if (this.css) return this.css
     const result = sass.renderSync({
-      data: style,
+      data: this.style,
       outFile: 'source.map',
       sourceMap: true
     })
@@ -77,17 +95,15 @@ export default class Component {
     this.css = {
       source,
       ast,
-      striped: stripeCSS(this.name, ast),
+      striped: stripeCSS(this.componentName, ast),
       map: JSON.parse(result.map.toString())
     }
-  }
-
-  setData(data: string) {
-    this.data = JSON.parse(data)
+    return this.css
   }
 
   iterateSelectors(iterator: SelectorIterator) {
-    const smc = new SourceMapConsumer(this.css.map)
+    const css = this.getCSS()
+    const smc = new SourceMapConsumer(css.map)
     const allMappings: SourceMapMapping[] = []
     smc.eachMapping((m: SourceMapMapping) => {
       allMappings.push(m)
@@ -125,6 +141,73 @@ export default class Component {
         node.nodes.forEach(iterateNode)
       }
     }
-    iterateNode(this.css.ast)
+    iterateNode(css.ast)
+  }
+}
+
+class ComponentMarkup {
+  private source: string
+  private markup: parse5.AST.Default.DocumentFragment | null
+
+  constructor(source: string) {
+    this.setMarkup(source)
+  }
+
+  setMarkup(source: string) {
+    this.source = source
+    this.markup = null
+  }
+
+  getDOM(): parse5.AST.Default.DocumentFragment {
+    if (this.markup) return this.markup
+    this.markup = parse5.parseFragment(this.source, {
+      locationInfo: true
+    }) as parse5.AST.Default.DocumentFragment
+    return this.markup
+  }
+
+  calculateEventHanlders() {
+    const eventHandlers = new Map<string, boolean>()
+    const calculate = (node: parse5.AST.Default.Node) => {
+      const element = node as parse5.AST.Default.Element
+      if (!element.childNodes) return
+      element.attrs.forEach(attr => {
+        if (attr.name.startsWith('@on')) {
+          const required = !attr.name.endsWith('?')
+          const value = attr.value
+          if (eventHandlers.has(value)) {
+            eventHandlers.set(value, eventHandlers.get(value)! || required)
+          } else {
+            eventHandlers.set(value, required)
+          }
+        }
+      })
+      element.childNodes.forEach(child => calculate(child))
+    }
+    calculate(this.getDOM().childNodes[0])
+    return eventHandlers
+  }
+}
+
+export default class Component {
+  private _name: string
+  readonly markup: ComponentMarkup
+  readonly style: ComponentStyle
+  readonly data: ComponentData
+
+  constructor(name: string, markup: string, style: string, data: string) {
+    this._name = name
+    this.markup = new ComponentMarkup(markup)
+    this.style = new ComponentStyle(name, style)
+    this.data = new ComponentData(data)
+  }
+
+  get name() {
+    return this._name
+  }
+
+  setName(name: string) {
+    this._name = name
+    this.style.setComponentName(name)
   }
 }

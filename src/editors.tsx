@@ -136,7 +136,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
       const component = workspace.getActiveComponent()!
 
       this.styleEditor.calculateMessages('inspector', handler => {
-        component.iterateSelectors(info => {
+        component.style.iterateSelectors(info => {
           if (element.matches(info.selector)) {
             handler.addMessage(
               new monaco.Position(
@@ -259,7 +259,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     const component = workspace.getActiveComponent()
     if (!component) return <div />
 
-    const dom = component.markup
+    const dom = component.markup.getDOM()
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
 
@@ -327,7 +327,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
         })
         const media: Media = state.media || {}
         componentsInformation.forEach(component => {
-          const { mediaQueries } = component.css.striped
+          const { mediaQueries } = component.style.getCSS().striped
           Object.keys(mediaQueries).forEach(id => {
             const condition = mediaQueries[id]
             const matches = mediaQuery.match(condition, media)
@@ -472,9 +472,11 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
           </div>
           <style>{'[data-unicycle-component-root] { all: initial }'}</style>
           {componentsInformation.map(component =>
-            component.css.striped.chunks.map((chunk, i) => (
-              <style key={i}>{chunk.scopedCSS || chunk.css}</style>
-            ))
+            component.style
+              .getCSS()
+              .striped.chunks.map((chunk, i) => (
+                <style key={i}>{chunk.scopedCSS || chunk.css}</style>
+              ))
           )}
           {someHaveDiffImage && (
             <div className="preview-diff">
@@ -541,7 +543,7 @@ class ComponentEditor extends React.Component<any, ComponentEditorState> {
     try {
       const component = workspace.getActiveComponent()!
       this.styleEditor.calculateMessages('warning', handler => {
-        component.iterateSelectors(info => {
+        component.style.iterateSelectors(info => {
           if (!document.querySelector(info.selector)) {
             handler.addMessage(
               new monaco.Position(

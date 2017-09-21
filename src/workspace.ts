@@ -138,11 +138,11 @@ class Workspace extends EventEmitter {
     await this.writeFile(fullPath, data)
     const component = this.getComponent(name)
     if (file === 'index.html') {
-      component.setMarkup(data)
+      component.markup.setMarkup(data)
     } else if (file === 'data.json') {
-      component.setData(data)
+      component.data.setData(data)
     } else if (file === 'styles.css') {
-      component.setStyle(data)
+      component.style.setStyle(data)
     }
   }
 
@@ -226,7 +226,7 @@ class Workspace extends EventEmitter {
       await fse.mkdirp(path.join(outDir, name))
       console.log('-', path.join(outDir, code.path))
       await fse.writeFile(path.join(outDir, code.path), code.code)
-      const css = info.css.source
+      const css = info.style.getCSS().source
       if (!code.embeddedStyle) {
         console.log('-', path.join(outDir, code.path))
         await fse.writeFile(

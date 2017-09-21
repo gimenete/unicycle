@@ -184,7 +184,7 @@ const renderComponent = (
       )
     }
   }
-  const rootNode = info.markup.childNodes[0]
+  const rootNode = info.markup.getDOM().childNodes[0]
   return renderNode(
     state.props,
     rootNode,

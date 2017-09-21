@@ -8,7 +8,6 @@ import {
   toReactAttributeName,
   toReactEventName,
   docComment,
-  calculateEventHanlders,
   calculateTyper
 } from '../utils'
 import css2obj from '../css2obj'
@@ -18,17 +17,18 @@ const generateReact = (
   options?: prettier.Options
 ): GeneratedCode => {
   const { data, markup } = information
+  const states = data.getStates()
   const componentName = uppercamelcase(information.name)
-  const eventHandlers = calculateEventHanlders(markup)
-  const typer = calculateTyper(data, eventHandlers)
+  const eventHandlers = markup.calculateEventHanlders()
+  const typer = calculateTyper(states, eventHandlers)
 
-  const keys = data.reduce((set: Set<string>, value) => {
+  const keys = states.reduce((set: Set<string>, value) => {
     Object.keys(value.props).forEach(key => set.add(key))
     return set
   }, new Set<string>())
 
   const example = () => {
-    const firstState = data[0]
+    const firstState = states[0]
     if (!firstState || !firstState.props) return ''
     const { props } = firstState
     let code = `class MyContainer extends Component {
@@ -130,7 +130,7 @@ const generateReact = (
     }
     return basicMarkup
   }
-  code += 'return ' + renderNode(markup.childNodes[0])
+  code += 'return ' + renderNode(markup.getDOM().childNodes[0])
   code += '}\n\n'
   code += typer.createPropTypes(`${componentName}.propTypes`)
   code += '\n\n'
