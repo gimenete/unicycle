@@ -1,4 +1,7 @@
-import { decrement, increment } from './actions/increment'
+import { Tab2, Tabs2 } from '@blueprintjs/core'
+import * as os from 'os'
+import * as React from 'react'
+
 import Editor from './editors/index'
 import JSONEditor from './editors/json'
 import MarkupEditor from './editors/markup'
@@ -10,107 +13,32 @@ import workspace from './workspace'
 
 autocomplete()
 
-class Editors {
-  public scrollDown: boolean
-  public readonly markupEditor: MarkupEditor
-  public readonly styleEditor: StyleEditor
-  public readonly dataEditor: JSONEditor
-  public readonly editors: Editor[]
-  private tabs: Element[]
-  private panels: Element[]
+class Editors extends React.Component<any, any> {
+  public static markupEditor: MarkupEditor
+  public static styleEditor: StyleEditor
+  public static dataEditor: JSONEditor
+  public static editors: Editor[] = []
+  public static scrollDown: boolean
+  public static onUpdate: () => void
 
-  constructor() {
-    this.markupEditor = new MarkupEditor(
-      document.getElementById('markup')!,
-      errorHandler
-    )
-    this.styleEditor = new StyleEditor(
-      document.getElementById('style')!,
-      errorHandler
-    )
-    this.dataEditor = new JSONEditor(
-      document.getElementById('state')!,
-      errorHandler
-    )
-    this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
-
-    const actions = [
-      {
-        id: 'switch-markdup-editor',
-        label: 'Switch to markup editor',
-        // tslint:disable-next-line:no-bitwise
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_1],
-        contextMenuGroupId: 'navigation',
-        contextMenuOrder: 1.5,
-        run: () => this.selectEditor(0)
-      },
-      {
-        id: 'switch-style-editor',
-        label: 'Switch to style editor',
-        // tslint:disable-next-line:no-bitwise
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_2],
-        contextMenuGroupId: 'navigation',
-        contextMenuOrder: 1.5,
-        run: () => this.selectEditor(1)
-      },
-      {
-        id: 'switch-states-editor',
-        label: 'Switch to states editor',
-        // tslint:disable-next-line:no-bitwise
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_3],
-        contextMenuGroupId: 'navigation',
-        contextMenuOrder: 1.5,
-        run: () => this.selectEditor(2)
-      },
-      increment,
-      decrement
-    ]
-
-    this.editors.forEach(editor => {
-      actions.forEach(action => editor.editor.addAction(action))
-    })
-
-    const tabs = (this.tabs = Array.from(
-      document.querySelectorAll('#editors .pt-tabs li')
-    ))
-
-    this.panels = Array.from(
-      document.querySelectorAll('#editors .pt-tab-panel')
-    )
-
-    tabs.forEach((tab, i) => {
-      Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
-        this.selectEditor(i)
-      })
-      tab.addEventListener('click', () => this.selectEditor(i))
-    })
+  public static selectEditor(index: number) {
+    // TODO
   }
 
-  public selectEditor(index: number) {
-    this.tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'))
-    this.panels.forEach(panel => panel.setAttribute('aria-hidden', 'true'))
-
-    this.tabs[index].setAttribute('aria-selected', 'true')
-    this.panels[index].setAttribute('aria-hidden', 'false')
-    this.editors[index].editor.focus()
+  public static selectedTabIndex(): number {
+    // TODO
+    return 0
   }
 
-  public selectedTabIndex(): number {
-    return this.panels.findIndex(
-      panel => panel.getAttribute('aria-hidden') === 'false'
-    )
+  public static focusVisibleEditor() {
+    // TODO
   }
 
-  public focusVisibleEditor() {
-    const tabIndex = this.selectedTabIndex()
-    this.editors[tabIndex].editor.focus()
-  }
-
-  public stopInspecting() {
+  public static stopInspecting() {
     this.styleEditor.cleanUpMessages('inspector')
   }
 
-  public inspect(element: HTMLElement) {
+  public static inspect(element: HTMLElement) {
     const location = element.getAttribute('data-location')
     if (!location) return
     const locationData = JSON.parse(location)
@@ -143,7 +71,7 @@ class Editors {
     })
   }
 
-  public addState(name: string) {
+  public static addState(name: string) {
     const lines = this.dataEditor.editor.getModel().getLineCount()
     this.dataEditor.addState(name)
     this.selectEditor(2)
@@ -154,6 +82,78 @@ class Editors {
     })
     this.scrollDown = true
   }
+
+  private static emitOnUpdate() {
+    if (Editors.onUpdate) {
+      Editors.onUpdate()
+    }
+  }
+
+  public render() {
+    const key = os.platform() === 'darwin' ? '⌘' : 'Ctrl '
+    return (
+      <div id="editors">
+        <Tabs2
+          id="EditorsTabs"
+          onChange={this.handleTabChange}
+          defaultSelectedTabId="markup"
+        >
+          <Tab2
+            id="markup"
+            title={`Markup ${key}1`}
+            panel={
+              <div
+                className="editor"
+                ref={element => element && this.initMarkupEditor(element)}
+              />
+            }
+          />
+          <Tab2
+            id="style"
+            title={`Style ${key}2`}
+            panel={
+              <div
+                className="editor"
+                ref={element => element && this.initStyleEditor(element)}
+              />
+            }
+          />
+          <Tab2
+            id="states"
+            title={`States ${key}3`}
+            panel={
+              <div
+                className="editor"
+                ref={element => element && this.initDataEditor(element)}
+              />
+            }
+          />
+        </Tabs2>
+      </div>
+    )
+  }
+
+  private handleTabChange() {
+    // foo
+  }
+
+  private initMarkupEditor(element: HTMLDivElement) {
+    if (Editors.markupEditor) return
+    Editors.markupEditor = new MarkupEditor(element, errorHandler)
+    Editors.markupEditor.on('update', Editors.emitOnUpdate)
+  }
+
+  private initStyleEditor(element: HTMLDivElement) {
+    if (Editors.styleEditor) return
+    Editors.styleEditor = new StyleEditor(element, errorHandler)
+    Editors.styleEditor.on('update', Editors.emitOnUpdate)
+  }
+
+  private initDataEditor(element: HTMLDivElement) {
+    if (Editors.dataEditor) return
+    Editors.dataEditor = new JSONEditor(element, errorHandler)
+    Editors.dataEditor.on('update', Editors.emitOnUpdate)
+  }
 }
 
-export default new Editors()
+export default Editors

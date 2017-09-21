@@ -1,6 +1,5 @@
 import electron = require('electron')
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import workspace from './workspace'
 
 const { BrowserWindow, dialog } = electron.remote
@@ -19,7 +18,7 @@ class Navbar extends React.Component<any, NavbarState> {
 
   public render() {
     return (
-      <div>
+      <div id="navbar">
         <nav className="pt-navbar">
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">Unicycle</div>
@@ -57,7 +56,4 @@ class Navbar extends React.Component<any, NavbarState> {
   }
 }
 
-ReactDOM.render(
-  React.createElement(Navbar, {}),
-  document.getElementById('navbar')
-)
+export default Navbar

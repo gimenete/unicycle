@@ -1,7 +1,6 @@
 import { Position } from '@blueprintjs/core'
 import { remote } from 'electron'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 
 import ConfirmPopover from './components/ConfirmPopover'
 import InputPopover from './components/InpuPopover'
@@ -26,7 +25,7 @@ class Menu extends React.Component<any, any> {
     if (!metadata) return <div />
     const { components } = metadata
     return (
-      <div>
+      <aside id="menu">
         <ul className="pt-tree-node-list pt-tree-root">
           <li className="pt-tree-node pt-tree-node-expanded">
             <div className="pt-tree-node-content">
@@ -97,9 +96,9 @@ class Menu extends React.Component<any, any> {
             Import from Sketch
           </InputPopover>
         </p>
-      </div>
+      </aside>
     )
   }
 }
 
-ReactDOM.render(React.createElement(Menu, {}), document.getElementById('menu'))
+export default Menu

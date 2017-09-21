@@ -11,89 +11,42 @@
 </head>
 
 <body class="opening">
-  <div id="open"></div>
-  <div id="loading">
-    <div class="pt-spinner pt-large">
-      <div class="pt-spinner-svg-container">
-        <svg viewBox="0 0 100 100">
-          <path class="pt-spinner-track" d="M 50,50 m 0,-44.5 a 44.5,44.5 0 1 1 0,89 a 44.5,44.5 0 1 1 0,-89"></path>
-          <path class="pt-spinner-head" d="M 94.5 50 A 44.5 44.5 0 0 0 50 5.5"></path>
-        </svg>
-      </div>
-    </div>
-  </div>
-  <div id="app">
-    <div id="navbar"></div>
-    <div id="content" class="blank-slate">
-      <aside id="menu">
-      </aside>
-      <div id="editors">
-        <div class="pt-tabs">
-          <ul class="pt-tab-list" role="tablist">
-            <li class="pt-tab" role="tab" aria-selected="true">Markup ⌘1</li>
-            <li class="pt-tab" role="tab">Style ⌘2</li>
-            <li class="pt-tab" role="tab">States ⌘3</li>
-          </ul>
-          <div class="pt-tab-panel" role="tabpanel">
-            <div class="editor" id="markup"></div>
-          </div>
-          <div class="pt-tab-panel" role="tabpanel" aria-hidden="true">
-            <div class="editor" id="style"></div>
-          </div>
-          <div class="pt-tab-panel" role="tabpanel" aria-hidden="true">
-            <div class="editor" id="state"></div>
-          </div>
-        </div>
-      </div>
-      <div id="previews">
-      </div>
-      <div id="blank-slate">
-        <div class="pt-non-ideal-state">
-          <div class="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-            <span class="pt-icon pt-icon-home"></span>
-          </div>
-          <h4 class="pt-non-ideal-state-title">No component selected</h4>
-          <div class="pt-non-ideal-state-description">
-            Select a component or create a new one
-          </div>
-        </div>
-      </div>
-    </div>
-    <script>
-      // Monaco uses a custom amd loader that over-rides node's require.
-      // Keep a reference to node's require so we can restore it after executing the amd loader file.
-      var nodeRequire = global.require;
-    </script>
-    <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
-    <script>
-      // Save Monaco's amd require and restore Node's require
-      var amdRequire = global.require;
-      global.require = nodeRequire;
-    </script>
+  <div id="app"></div>
+  <script>
+    // Monaco uses a custom amd loader that over-rides node's require.
+    // Keep a reference to node's require so we can restore it after executing the amd loader file.
+    var nodeRequire = global.require;
+  </script>
+  <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
+  <script>
+    // Save Monaco's amd require and restore Node's require
+    var amdRequire = global.require;
+    global.require = nodeRequire;
+  </script>
 
-    <script>
-      // require node modules before loader.js comes in
-      var path = require('path')
-      function uriFromPath(_path) {
-        var pathName = path.resolve(_path).replace(/\\/g, '/')
-        if (pathName.length > 0 && pathName.charAt(0) !== '/') {
-          pathName = '/' + pathName
-        }
-        return encodeURI('file://' + pathName)
+  <script>
+    // require node modules before loader.js comes in
+    var path = require('path')
+    function uriFromPath(_path) {
+      var pathName = path.resolve(_path).replace(/\\/g, '/')
+      if (pathName.length > 0 && pathName.charAt(0) !== '/') {
+        pathName = '/' + pathName
       }
-      amdRequire.config({
-        baseUrl: uriFromPath(path.join(__dirname, './node_modules/monaco-editor/min'))
-      })
-      // workaround monaco-css not understanding the environment
-      self.module = undefined
-      // workaround monaco-typescript not understanding the environment
-      self.process.browser = true
-      amdRequire(['vs/editor/editor.main'], function () {
-        nodeRequire('./lib/renderer.js')
-      })
-    </script>
+      return encodeURI('file://' + pathName)
+    }
+    amdRequire.config({
+      baseUrl: uriFromPath(path.join(__dirname, './node_modules/monaco-editor/min'))
+    })
+    // workaround monaco-css not understanding the environment
+    self.module = undefined
+    // workaround monaco-typescript not understanding the environment
+    self.process.browser = true
+    amdRequire(['vs/editor/editor.main'], function () {
+      nodeRequire('./lib/renderer.js')
+    })
+  </script>
 
-    <script>
+  <script>
       const disableDragAndDrop = (e) => {
         if (e.target.classList.contains('drop-zone')) return
         e.preventDefault()
@@ -102,7 +55,7 @@
       }
       window.addEventListener('dragover', disableDragAndDrop, false)
       window.addEventListener('drop', disableDragAndDrop, false)
-    </script>
+  </script>
 </body>
 
 </html>

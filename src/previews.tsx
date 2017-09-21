@@ -1,6 +1,5 @@
 import { Overlay, Position, Slider } from '@blueprintjs/core'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 
 import ConfirmPopover from './components/ConfirmPopover'
 import DiffImagePopoverProps from './components/DiffImagePopover'
@@ -46,9 +45,7 @@ class Previews extends React.Component<any, PreviewsState> {
 
     workspace.on('activeComponent', () => this.forceUpdate())
 
-    editors.editors.forEach(editor => {
-      editor.on('update', () => this.forceUpdate())
-    })
+    editors.onUpdate = () => this.forceUpdate()
 
     this.state = {
       inspecting: false,
@@ -392,7 +389,4 @@ class Previews extends React.Component<any, PreviewsState> {
   }
 }
 
-ReactDOM.render(
-  React.createElement(Previews, {}),
-  document.getElementById('previews')
-)
+export default Previews
