@@ -1,6 +1,5 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { Popover, Position } from '@blueprintjs/core'
+import * as React from 'react'
 import { Media } from '../types'
 
 interface MediaPopoverProps {
@@ -34,16 +33,7 @@ export default class MediaPopover extends React.Component<
     this.sendChanges = this.sendChanges.bind(this)
   }
 
-  sendChanges() {
-    this.props.onChange({
-      type: this.state.mediaType || undefined,
-      orientation: this.state.mediaOrientation || undefined,
-      width: this.state.mediaWidth || undefined,
-      height: this.state.mediaHeight || undefined
-    })
-  }
-
-  render() {
+  public render() {
     return (
       <Popover
         position={this.props.position}
@@ -138,5 +128,14 @@ export default class MediaPopover extends React.Component<
         </div>
       </Popover>
     )
+  }
+
+  private sendChanges() {
+    this.props.onChange({
+      type: this.state.mediaType || undefined,
+      orientation: this.state.mediaOrientation || undefined,
+      width: this.state.mediaWidth || undefined,
+      height: this.state.mediaHeight || undefined
+    })
   }
 }

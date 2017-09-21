@@ -1,5 +1,3 @@
-/// <reference path='../../node_modules/monaco-editor/monaco.d.ts' />
-
 const register = () => {
   monaco.languages.registerCompletionItemProvider('html', {
     provideCompletionItems: (model, position) => {

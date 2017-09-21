@@ -1,6 +1,5 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { Popover, Position } from '@blueprintjs/core'
+import * as React from 'react'
 
 interface ConfirmPopoverProps {
   position?: Position
@@ -31,7 +30,8 @@ export default class ConfirmPopover extends React.Component<
       isOpen: false
     }
   }
-  render() {
+
+  public render() {
     return (
       <Popover
         position={this.props.position}
@@ -46,9 +46,7 @@ export default class ConfirmPopover extends React.Component<
           onClick={() => this.setState({ isOpen: !this.state.isOpen })}
         />
         <div style={{ padding: 20 }}>
-          <p style={{ textAlign: 'center' }}>
-            {this.props.message}
-          </p>
+          <p style={{ textAlign: 'center' }}>{this.props.message}</p>
           <p style={{ textAlign: 'right', margin: 0 }}>
             <button
               className={this.props.confirmClassName}

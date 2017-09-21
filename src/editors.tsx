@@ -1,6 +1,3 @@
-/// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
-/// <reference path='../node_modules/@types/mousetrap/index.d.ts' />
-
 import { decrement, increment } from './actions/increment'
 import Editor from './editors/index'
 import JSONEditor from './editors/json'

@@ -3,7 +3,6 @@
   "rules": {
     "quotemark": [true, "single", "jsx-double"],
     "semicolon": [false, "always"],
-    "no-reference": false,
     "trailing-comma": false,
     "object-literal-sort-keys": false,
     "interface-name": false,

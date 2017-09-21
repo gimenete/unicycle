@@ -1,5 +1,3 @@
-/// <reference path='../../node_modules/monaco-editor/monaco.d.ts' />
-
 const createRun = (delta: number) => {
   return (editor: monaco.editor.ICommonCodeEditor) => {
     const model = editor.getModel()

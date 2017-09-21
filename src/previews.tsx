@@ -1,6 +1,3 @@
-/// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
-/// <reference path='../node_modules/@types/mousetrap/index.d.ts' />
-
 import { Overlay, Position, Slider } from '@blueprintjs/core'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'

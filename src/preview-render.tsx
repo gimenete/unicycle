@@ -1,5 +1,3 @@
-/// <reference path='../node_modules/monaco-editor/monaco.d.ts' />
-
 import * as parse5 from 'parse5'
 import * as React from 'react'
 

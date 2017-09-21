@@ -1,6 +1,5 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { Popover, Position } from '@blueprintjs/core'
+import * as React from 'react'
 
 interface InputPopoverProps {
   position?: Position
@@ -26,7 +25,8 @@ export default class InputPopover extends React.Component<
       isOpen: false
     }
   }
-  render() {
+
+  public render() {
     return (
       <Popover
         position={this.props.position}

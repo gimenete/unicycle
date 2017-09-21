@@ -8,5 +8,9 @@
     "jsx": "react",
     "noUnusedLocals": true
   },
+  "files": [
+    "./node_modules/monaco-editor/monaco.d.ts",
+    "./node_modules/@types/mousetrap/index.d.ts"
+  ],
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
