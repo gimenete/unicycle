@@ -2,6 +2,7 @@ import * as parse5 from 'parse5'
 import * as sass from 'node-sass'
 import { SourceMapConsumer } from 'source-map'
 
+import Typer from './typer'
 import {
   CSSChunk,
   CSSMediaQuery,
@@ -209,5 +210,18 @@ export default class Component {
   setName(name: string) {
     this._name = name
     this.style.setComponentName(name)
+  }
+
+  calculateTyper(includeEventHandlers: boolean) {
+    const typer = new Typer()
+    this.data.getStates().forEach(state => typer.addDocument(state.props))
+
+    if (includeEventHandlers) {
+      for (const entry of this.markup.calculateEventHanlders().entries()) {
+        const [key, value] = entry
+        typer.addRootField(key, 'function', value)
+      }
+    }
+    return typer
   }
 }

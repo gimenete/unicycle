@@ -7,8 +7,7 @@ import {
   uppercamelcase,
   toReactAttributeName,
   toReactEventName,
-  docComment,
-  calculateTyper
+  docComment
 } from '../utils'
 import css2obj from '../css2obj'
 
@@ -20,7 +19,7 @@ const generateReact = (
   const states = data.getStates()
   const componentName = uppercamelcase(information.name)
   const eventHandlers = markup.calculateEventHanlders()
-  const typer = calculateTyper(states, eventHandlers)
+  const typer = information.calculateTyper(true)
 
   const keys = states.reduce((set: Set<string>, value) => {
     Object.keys(value.props).forEach(key => set.add(key))

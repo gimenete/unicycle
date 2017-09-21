@@ -1,24 +1,7 @@
 import * as parse5 from 'parse5'
-import Typer from './typer'
 import { ObjectStringToString, States } from './types'
 
 const camelcase = require('camelcase')
-
-export const calculateTyper = (
-  data: States,
-  eventHandlers?: Map<string, boolean>
-) => {
-  const typer = new Typer()
-  data.forEach(state => typer.addDocument(state.props))
-
-  if (eventHandlers) {
-    for (const entry of eventHandlers.entries()) {
-      const [key, value] = entry
-      typer.addRootField(key, 'function', value)
-    }
-  }
-  return typer
-}
 
 export const docComment = (text: string) => {
   const lines = text.trim().split('\n')

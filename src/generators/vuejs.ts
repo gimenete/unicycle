@@ -4,7 +4,7 @@ import * as prettier from 'prettier'
 import Typer from '../typer'
 import Component from '../component'
 import { GeneratedCode } from '../types'
-import { uppercamelcase, docComment, calculateTyper } from '../utils'
+import { uppercamelcase, docComment } from '../utils'
 
 const dashify = require('dashify')
 
@@ -16,7 +16,7 @@ const generateVue = (
   const states = data.getStates()
   const componentName = dashify(information.name)
   const eventHandlers = markup.calculateEventHanlders()
-  const typer = calculateTyper(states, eventHandlers)
+  const typer = information.calculateTyper(true)
 
   const cloned = parse5.parseFragment(parse5.serialize(markup), {
     locationInfo: true
