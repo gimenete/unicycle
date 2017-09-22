@@ -1,6 +1,5 @@
 import * as path from 'path'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 
 import electron = require('electron')
 
@@ -23,7 +22,7 @@ class OpenPage extends React.Component<any, any> {
 
   public render() {
     return (
-      <div>
+      <div id="open">
         <div className="pt-non-ideal-state" onClick={() => this.openProject()}>
           <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
             <span className="pt-icon pt-icon-folder-open" />
@@ -58,14 +57,11 @@ class OpenPage extends React.Component<any, any> {
   }
 
   private loadProject(fullpath: string) {
-    document.body.classList.remove('opening')
-    document.body.classList.add('loading')
     workspace
       .loadProject(fullpath)
       .then(() => {
         const loader = document.querySelector('#loading')
         if (loader) loader.parentNode!.removeChild(loader)
-        document.body.classList.remove('loading')
 
         BrowserWindow.getFocusedWindow().maximize()
       })
@@ -79,7 +75,4 @@ class OpenPage extends React.Component<any, any> {
   }
 }
 
-ReactDOM.render(
-  React.createElement(OpenPage, {}),
-  document.getElementById('open')
-)
+export default OpenPage

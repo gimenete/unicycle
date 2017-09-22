@@ -1,134 +1,168 @@
-import { decrement, increment } from './actions/increment'
+import { Tab2, Tabs2 } from '@blueprintjs/core'
+import * as EventEmitter from 'events'
+import * as os from 'os'
+import * as React from 'react'
+
 import Editor from './editors/index'
 import JSONEditor from './editors/json'
 import MarkupEditor from './editors/markup'
 import StyleEditor from './editors/style'
 
 import autocomplete from './autocomplete'
+import actions from './editor-actions'
 import errorHandler from './error-handler'
+import inspector from './inspector'
 import workspace from './workspace'
 
 autocomplete()
 
-class Editors {
-  public scrollDown: boolean
-  public readonly markupEditor: MarkupEditor
-  public readonly styleEditor: StyleEditor
-  public readonly dataEditor: JSONEditor
-  public readonly editors: Editor[]
-  private tabs: Element[]
-  private panels: Element[]
+const editorIds = ['markup', 'style', 'data']
 
-  constructor() {
-    this.markupEditor = new MarkupEditor(
-      document.getElementById('markup')!,
-      errorHandler
-    )
-    this.styleEditor = new StyleEditor(
-      document.getElementById('style')!,
-      errorHandler
-    )
-    this.dataEditor = new JSONEditor(
-      document.getElementById('state')!,
-      errorHandler
-    )
-    this.editors = [this.markupEditor, this.styleEditor, this.dataEditor]
+editorIds.forEach((id, i) => {
+  Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
+    Editors.selectEditor(id)
+  })
+})
 
-    const actions = [
-      {
-        id: 'switch-markdup-editor',
-        label: 'Switch to markup editor',
-        // tslint:disable-next-line:no-bitwise
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_1],
-        contextMenuGroupId: 'navigation',
-        contextMenuOrder: 1.5,
-        run: () => this.selectEditor(0)
-      },
-      {
-        id: 'switch-style-editor',
-        label: 'Switch to style editor',
-        // tslint:disable-next-line:no-bitwise
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_2],
-        contextMenuGroupId: 'navigation',
-        contextMenuOrder: 1.5,
-        run: () => this.selectEditor(1)
-      },
-      {
-        id: 'switch-states-editor',
-        label: 'Switch to states editor',
-        // tslint:disable-next-line:no-bitwise
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_3],
-        contextMenuGroupId: 'navigation',
-        contextMenuOrder: 1.5,
-        run: () => this.selectEditor(2)
-      },
-      increment,
-      decrement
-    ]
+class EditorsEventBus extends EventEmitter {}
 
-    this.editors.forEach(editor => {
-      actions.forEach(action => editor.editor.addAction(action))
-    })
+interface EditorsProps {
+  activeComponent: string
+}
 
-    const tabs = (this.tabs = Array.from(
-      document.querySelectorAll('#editors .pt-tabs li')
-    ))
+interface EditorsState {
+  selectedTabId: string
+}
 
-    this.panels = Array.from(
-      document.querySelectorAll('#editors .pt-tab-panel')
-    )
+class Editors extends React.Component<EditorsProps, EditorsState> {
+  public static eventBus = new EditorsEventBus()
+  public static markupEditor: MarkupEditor | null
+  public static styleEditor: StyleEditor | null
+  public static dataEditor: JSONEditor | null
 
-    tabs.forEach((tab, i) => {
-      Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
-        this.selectEditor(i)
-      })
-      tab.addEventListener('click', () => this.selectEditor(i))
+  public static selectEditor(selectedTabId: string) {
+    Editors.eventBus.emit('selectEditor', selectedTabId)
+  }
+
+  public static addState(name: string) {
+    if (!this.dataEditor) return
+    const lines = this.dataEditor.editor.getModel().getLineCount()
+    this.dataEditor.addState(name)
+    this.selectEditor('style')
+    this.dataEditor.scrollDown()
+    this.dataEditor.editor.setPosition({
+      lineNumber: lines,
+      column: 3
     })
   }
 
-  public selectEditor(index: number) {
-    this.tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'))
-    this.panels.forEach(panel => panel.setAttribute('aria-hidden', 'true'))
+  private static editors: Map<string, Editor> = new Map()
 
-    this.tabs[index].setAttribute('aria-selected', 'true')
-    this.panels[index].setAttribute('aria-hidden', 'false')
-    this.editors[index].editor.focus()
+  constructor(props: any) {
+    super(props)
+    this.state = {
+      selectedTabId: 'markup'
+    }
+    inspector.on('stopInspecting', () => {
+      this.stopInspecting()
+    })
+    inspector.on('inspect', (data: any) => {
+      const element = data.target as HTMLElement
+      this.inspect(element)
+    })
+
+    Editors.eventBus.on('selectEditor', (selectedTabId: string) => {
+      this.setState({ selectedTabId })
+    })
   }
 
-  public selectedTabIndex(): number {
-    return this.panels.findIndex(
-      panel => panel.getAttribute('aria-hidden') === 'false'
+  public render() {
+    const key = os.platform() === 'darwin' ? '⌘' : 'Ctrl '
+    return (
+      <Tabs2
+        id="EditorsTabs"
+        onChange={(selectedTabId: string) =>
+          this.handleTabChange(selectedTabId)}
+        selectedTabId={this.state.selectedTabId}
+      >
+        <Tab2
+          id="markup"
+          title={`Markup ${key}1`}
+          panel={
+            <div
+              className="editor"
+              ref={element => element && this.initMarkupEditor(element)}
+            />
+          }
+        />
+        <Tab2
+          id="style"
+          title={`Style ${key}2`}
+          panel={
+            <div
+              className="editor"
+              ref={element => element && this.initStyleEditor(element)}
+            />
+          }
+        />
+        <Tab2
+          id="data"
+          title={`States ${key}3`}
+          panel={
+            <div
+              className="editor"
+              ref={element => element && this.initDataEditor(element)}
+            />
+          }
+        />
+      </Tabs2>
     )
   }
 
-  public focusVisibleEditor() {
-    const tabIndex = this.selectedTabIndex()
-    this.editors[tabIndex].editor.focus()
+  public componentDidMount() {
+    this.updateEditors()
   }
 
-  public stopInspecting() {
-    this.styleEditor.cleanUpMessages('inspector')
+  public componentDidUpdate() {
+    this.updateEditors()
   }
 
-  public inspect(element: HTMLElement) {
+  public componentWillUnmount() {
+    for (const editor of Editors.editors.values()) {
+      editor.editor.dispose()
+    }
+    Editors.editors.clear()
+    Editors.markupEditor = null
+    Editors.styleEditor = null
+    Editors.dataEditor = null
+  }
+
+  private updateEditors() {
+    Editors.editors.forEach(editor => {
+      editor.setComponent(this.props.activeComponent)
+    })
+  }
+
+  private inspect(element: HTMLElement) {
     const location = element.getAttribute('data-location')
     if (!location) return
     const locationData = JSON.parse(location)
     const lineNumber = locationData.ln as number
     const column = locationData.c as number
     const endLineNumber = locationData.eln as number
-    this.markupEditor.editor.revealLinesInCenterIfOutsideViewport(
+    Editors.markupEditor!.editor.revealLinesInCenterIfOutsideViewport(
       lineNumber,
       endLineNumber
     )
-    this.markupEditor.editor.setPosition({
+    Editors.markupEditor!.editor.setPosition({
       lineNumber,
       column
     })
     this.focusVisibleEditor()
 
-    const component = workspace.getActiveComponent()!
-    this.styleEditor.calculateMessages('inspector', handler => {
+    const { activeComponent } = this.props
+    const component = workspace.getComponent(activeComponent)
+    Editors.styleEditor!.calculateMessages('inspector', handler => {
       component.style.iterateSelectors(info => {
         if (element.matches(info.selector)) {
           handler.addMessage(
@@ -143,17 +177,44 @@ class Editors {
     })
   }
 
-  public addState(name: string) {
-    const lines = this.dataEditor.editor.getModel().getLineCount()
-    this.dataEditor.addState(name)
-    this.selectEditor(2)
-    this.dataEditor.scrollDown()
-    this.dataEditor.editor.setPosition({
-      lineNumber: lines,
-      column: 3
-    })
-    this.scrollDown = true
+  private focusVisibleEditor() {
+    const editor = Editors.editors.get(this.state.selectedTabId)
+    if (editor) {
+      editor.editor.focus()
+    }
+  }
+
+  private stopInspecting() {
+    Editors.styleEditor!.cleanUpMessages('inspector')
+  }
+
+  private handleTabChange(selectedTabId: string) {
+    this.setState({ selectedTabId })
+  }
+
+  private initMarkupEditor(element: HTMLDivElement) {
+    if (Editors.markupEditor) return
+    const editor = new MarkupEditor(element, errorHandler)
+    Editors.markupEditor = editor
+    Editors.editors.set('markup', editor)
+    actions.forEach(action => editor.editor.addAction(action))
+  }
+
+  private initStyleEditor(element: HTMLDivElement) {
+    if (Editors.styleEditor) return
+    const editor = new StyleEditor(element, errorHandler)
+    Editors.styleEditor = editor
+    Editors.editors.set('style', editor)
+    actions.forEach(action => editor.editor.addAction(action))
+  }
+
+  private initDataEditor(element: HTMLDivElement) {
+    if (Editors.dataEditor) return
+    const editor = new JSONEditor(element, errorHandler)
+    Editors.dataEditor = editor
+    Editors.editors.set('data', editor)
+    actions.forEach(action => editor.editor.addAction(action))
   }
 }
 
-export default new Editors()
+export default Editors

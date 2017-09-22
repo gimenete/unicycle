@@ -1,21 +1,24 @@
 import { Overlay, Position, Slider } from '@blueprintjs/core'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 
 import ConfirmPopover from './components/ConfirmPopover'
 import DiffImagePopoverProps from './components/DiffImagePopover'
 import InputPopover from './components/InpuPopover'
 import MediaPopoverProps from './components/MediaPopover'
-import Inspector from './inspector'
 import { DiffImage, Media, State, States } from './types'
 
 import editors from './editors'
 import errorHandler from './error-handler'
 import reactGenerator from './generators/react'
+import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
 
 const mediaQuery = require('css-mediaquery')
+
+interface PreviewsProps {
+  activeComponent: string
+}
 
 interface PreviewsState {
   inspecting: boolean
@@ -25,30 +28,17 @@ interface PreviewsState {
   diffValue: number
 }
 
-class Previews extends React.Component<any, PreviewsState> {
-  private inspector: Inspector
+class Previews extends React.Component<PreviewsProps, PreviewsState> {
+  private scrollDown = false
 
-  constructor(props: any) {
+  constructor(props: PreviewsProps) {
     super(props)
-
-    this.inspector = new Inspector()
-    this.inspector.on('stopInspecting', () => {
-      editors.stopInspecting()
-    })
-    this.inspector.on('inspect', (data: any) => {
-      const element = data.target as HTMLElement
-      editors.inspect(element)
-    })
 
     workspace.on('export', () => {
       this.setState({ isOutputOpen: true })
     })
 
-    workspace.on('activeComponent', () => this.forceUpdate())
-
-    editors.editors.forEach(editor => {
-      editor.on('update', () => this.forceUpdate())
-    })
+    workspace.on('componentUpdated', () => this.forceUpdate())
 
     this.state = {
       inspecting: false,
@@ -62,14 +52,25 @@ class Previews extends React.Component<any, PreviewsState> {
   public render(): JSX.Element | null {
     const code = this.generateOutput()
 
-    const component = workspace.getActiveComponent()
+    const component = workspace.getComponent(this.props.activeComponent)
     if (!component) return <div />
 
     const dom = component.markup.getDOM()
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
 
-    return editors.markupEditor.calculateMessages('error', handler => {
+    const calculateMessages = (
+      foo: string,
+      callback: (handler: any) => JSX.Element
+    ): JSX.Element => {
+      return callback({
+        addMessage: () => {
+          console.log('...')
+        }
+      })
+    }
+
+    return calculateMessages('error', handler => {
       const diffImageProperties = (
         diffImage: DiffImage
       ): React.CSSProperties => {
@@ -77,6 +78,7 @@ class Previews extends React.Component<any, PreviewsState> {
         const { width, height } = diffImage
         return {
           backgroundImage: `url(${workspace.pathForComponentFile(
+            component.name,
             diffImage.file
           )})`,
           backgroundSize: `${width / multiplier}px ${height / multiplier}px`,
@@ -154,14 +156,15 @@ class Previews extends React.Component<any, PreviewsState> {
                 />
                 <DiffImagePopoverProps
                   position={Position.LEFT_TOP}
+                  componentName={this.props.activeComponent}
                   diffImage={diffImage}
                   buttonClassName={`pt-button pt-minimal pt-small pt-icon-media ${hasDiffImage(
                     state
                   )
                     ? 'pt-active'
                     : ''}`}
-                  onDelete={() => editors.dataEditor.deleteDiffImage(i)}
-                  onChange={image => editors.dataEditor.setDiffImage(image, i)}
+                  onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
+                  onChange={image => editors.dataEditor!.setDiffImage(image, i)}
                 />
                 <MediaPopoverProps
                   position={Position.LEFT_TOP}
@@ -172,14 +175,14 @@ class Previews extends React.Component<any, PreviewsState> {
                     : ''}`}
                   media={media}
                   onChange={newMedia =>
-                    editors.dataEditor.setMedia(newMedia, i)}
+                    editors.dataEditor!.setMedia(newMedia, i)}
                 />
                 <InputPopover
                   position={Position.LEFT}
                   placeholder="New state"
                   buttonClassName="pt-button pt-minimal pt-small pt-icon-duplicate"
                   onEnter={name => {
-                    editors.dataEditor.addState(name, i)
+                    editors.dataEditor!.addState(name, i)
                   }}
                 />
                 <ConfirmPopover
@@ -191,7 +194,7 @@ class Previews extends React.Component<any, PreviewsState> {
                   confirmClassName="pt-button pt-intent-danger"
                   cancelClassName="pt-button"
                   onConfirm={() => {
-                    editors.dataEditor.deleteState(i)
+                    editors.dataEditor!.deleteState(i)
                   }}
                 />
               </span>
@@ -254,6 +257,7 @@ class Previews extends React.Component<any, PreviewsState> {
               placeholder="New state"
               buttonClassName="pt-button pt-icon-new-object"
               onEnter={name => {
+                this.scrollDown = true
                 editors.addState(name)
               }}
             />
@@ -339,8 +343,8 @@ class Previews extends React.Component<any, PreviewsState> {
 
   public componentDidUpdate() {
     try {
-      const component = workspace.getActiveComponent()!
-      editors.styleEditor.calculateMessages('warning', handler => {
+      const component = workspace.getComponent(this.props.activeComponent)
+      editors.styleEditor!.calculateMessages('warning', handler => {
         component.style.iterateSelectors(info => {
           if (!document.querySelector(info.selector)) {
             handler.addMessage(
@@ -356,8 +360,8 @@ class Previews extends React.Component<any, PreviewsState> {
     } catch (e) {
       errorHandler(e)
     }
-    if (editors.scrollDown) {
-      editors.scrollDown = false
+    if (this.scrollDown) {
+      this.scrollDown = false
       const previews = document.querySelector('#previews-markup')!
       previews.scrollTop = previews.scrollHeight
     }
@@ -369,8 +373,8 @@ class Previews extends React.Component<any, PreviewsState> {
 
   private toggleInspecting() {
     this.state.inspecting
-      ? this.inspector.stopInspecting()
-      : this.inspector.startInspecting()
+      ? inspector.stopInspecting()
+      : inspector.startInspecting()
     this.setState({
       inspecting: !this.state.inspecting
     })
@@ -378,13 +382,13 @@ class Previews extends React.Component<any, PreviewsState> {
 
   private toggleHiddenState(state: State) {
     state.hidden = !state.hidden
-    editors.dataEditor.editor.setValue(
-      JSON.stringify(editors.dataEditor.latestJSON, null, 2)
+    editors.dataEditor!.editor.setValue(
+      JSON.stringify(editors.dataEditor!.latestJSON, null, 2)
     )
   }
 
   private generateOutput(): string {
-    const component = workspace.getActiveComponent()
+    const component = workspace.getComponent(this.props.activeComponent)
     if (!component) return ''
     const prettierOptions = workspace.metadata.export!.prettier
     const code = reactGenerator(component, prettierOptions)
@@ -392,7 +396,4 @@ class Previews extends React.Component<any, PreviewsState> {
   }
 }
 
-ReactDOM.render(
-  React.createElement(Previews, {}),
-  document.getElementById('previews')
-)
+export default Previews
