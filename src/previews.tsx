@@ -34,11 +34,10 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
   constructor(props: PreviewsProps) {
     super(props)
 
-    workspace.on('export', () => {
-      this.setState({ isOutputOpen: true })
-    })
-
-    workspace.on('componentUpdated', () => this.forceUpdate())
+    this.onExport = this.onExport.bind(this)
+    this.onComponentUpdated = this.onComponentUpdated.bind(this)
+    workspace.on('export', this.onExport)
+    workspace.on('componentUpdated', this.onComponentUpdated)
 
     this.state = {
       inspecting: false,
@@ -366,6 +365,12 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       previews.scrollTop = previews.scrollHeight
     }
   }
+
+  public componentWillUnmount() {
+    workspace.removeListener('export', this.onExport)
+    workspace.removeListener('componentUpdated', this.onComponentUpdated)
+  }
+
   private toggleDiffMode() {
     const diffMode = this.state.diffMode === 'slider' ? 'opacity' : 'slider'
     this.setState({ diffMode })
@@ -393,6 +398,14 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     const prettierOptions = workspace.metadata.export!.prettier
     const code = reactGenerator(component, prettierOptions)
     return code.code
+  }
+
+  private onExport() {
+    this.setState({ isOutputOpen: true })
+  }
+
+  private onComponentUpdated() {
+    this.forceUpdate()
   }
 }
 
