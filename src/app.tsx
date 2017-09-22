@@ -37,9 +37,22 @@ class App extends React.Component<any, AppState> {
         <Navbar />
         <div id="content" className={className}>
           <Menu
+            metadata={workspace.metadata}
             activeComponent={activeComponent}
             onSelectComponent={component =>
               this.setState({ activeComponent: component })}
+            onAddComponent={(component, structure) => {
+              workspace.addComponent(component, structure).then(() => {
+                this.setState({ activeComponent: component })
+              })
+            }}
+            onDeleteComponent={(component: string) => {
+              workspace.deleteComponent(component).then(() => {
+                if (this.state.activeComponent === component) {
+                  this.setState({ activeComponent: null })
+                }
+              })
+            }}
           />
           {activeComponent && (
             <div id="editors">

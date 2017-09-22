@@ -80,7 +80,7 @@ class ComponentStyle {
   public getCSS(): ComponentCSS {
     if (this.css) return this.css
     const result = sass.renderSync({
-      data: this.style,
+      data: this.style || '/**/',
       outFile: 'source.map',
       sourceMap: true
     })

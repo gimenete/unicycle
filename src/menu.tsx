@@ -4,26 +4,21 @@ import * as React from 'react'
 
 import ConfirmPopover from './components/ConfirmPopover'
 import InputPopover from './components/InpuPopover'
-import workspace from './workspace'
+import { Metadata } from './types'
 
 const { clipboard } = remote
 
 interface MenuProps {
   activeComponent: string | null
+  metadata: Metadata
   onSelectComponent: (component: string) => void
+  onAddComponent: (component: string, structure?: string) => void
+  onDeleteComponent: (component: string) => void
 }
 
 class Menu extends React.Component<MenuProps, any> {
-  constructor(props: MenuProps) {
-    super(props)
-
-    workspace.on('projectLoaded', () => {
-      this.forceUpdate()
-    })
-  }
-
   public render() {
-    const { metadata } = workspace
+    const { metadata } = this.props
     if (!metadata) return <div />
     const { components } = metadata
     const { activeComponent } = this.props
@@ -61,7 +56,7 @@ class Menu extends React.Component<MenuProps, any> {
                         confirmClassName="pt-button pt-intent-danger"
                         cancelClassName="pt-button"
                         onConfirm={() => {
-                          workspace.deleteComponent(component.name)
+                          this.props.onDeleteComponent(component.name)
                         }}
                       />
                     </span>
@@ -76,7 +71,7 @@ class Menu extends React.Component<MenuProps, any> {
             buttonClassName="pt-button pt-icon-plus pt-fill"
             placeholder="ComponentName"
             onEnter={value => {
-              workspace.addComponent(value)
+              this.props.onAddComponent(value)
             }}
           >
             New component
@@ -87,7 +82,7 @@ class Menu extends React.Component<MenuProps, any> {
             buttonClassName="pt-button pt-fill"
             placeholder="New component from Sketch"
             onEnter={value => {
-              workspace.addComponent(value, clipboard.readText())
+              this.props.onAddComponent(value, clipboard.readText())
             }}
           >
             <img

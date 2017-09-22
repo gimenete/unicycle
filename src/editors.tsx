@@ -36,15 +36,16 @@ interface EditorsState {
 
 class Editors extends React.Component<EditorsProps, EditorsState> {
   public static eventBus = new EditorsEventBus()
-  public static markupEditor: MarkupEditor
-  public static styleEditor: StyleEditor
-  public static dataEditor: JSONEditor
+  public static markupEditor: MarkupEditor | null
+  public static styleEditor: StyleEditor | null
+  public static dataEditor: JSONEditor | null
 
   public static selectEditor(selectedTabId: string) {
     Editors.eventBus.emit('selectEditor', selectedTabId)
   }
 
   public static addState(name: string) {
+    if (!this.dataEditor) return
     const lines = this.dataEditor.editor.getModel().getLineCount()
     this.dataEditor.addState(name)
     this.selectEditor('style')
@@ -126,6 +127,16 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
     this.updateEditors()
   }
 
+  public componentWillUnmount() {
+    for (const editor of Editors.editors.values()) {
+      editor.editor.dispose()
+    }
+    Editors.editors.clear()
+    Editors.markupEditor = null
+    Editors.styleEditor = null
+    Editors.dataEditor = null
+  }
+
   private updateEditors() {
     Editors.editors.forEach(editor => {
       editor.setComponent(this.props.activeComponent)
@@ -139,11 +150,11 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
     const lineNumber = locationData.ln as number
     const column = locationData.c as number
     const endLineNumber = locationData.eln as number
-    Editors.markupEditor.editor.revealLinesInCenterIfOutsideViewport(
+    Editors.markupEditor!.editor.revealLinesInCenterIfOutsideViewport(
       lineNumber,
       endLineNumber
     )
-    Editors.markupEditor.editor.setPosition({
+    Editors.markupEditor!.editor.setPosition({
       lineNumber,
       column
     })
@@ -151,7 +162,7 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
 
     const { activeComponent } = this.props
     const component = workspace.getComponent(activeComponent)
-    Editors.styleEditor.calculateMessages('inspector', handler => {
+    Editors.styleEditor!.calculateMessages('inspector', handler => {
       component.style.iterateSelectors(info => {
         if (element.matches(info.selector)) {
           handler.addMessage(
@@ -174,7 +185,7 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
   }
 
   private stopInspecting() {
-    Editors.styleEditor.cleanUpMessages('inspector')
+    Editors.styleEditor!.cleanUpMessages('inspector')
   }
 
   private handleTabChange(selectedTabId: string) {

@@ -163,8 +163,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                   )
                     ? 'pt-active'
                     : ''}`}
-                  onDelete={() => editors.dataEditor.deleteDiffImage(i)}
-                  onChange={image => editors.dataEditor.setDiffImage(image, i)}
+                  onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
+                  onChange={image => editors.dataEditor!.setDiffImage(image, i)}
                 />
                 <MediaPopoverProps
                   position={Position.LEFT_TOP}
@@ -175,14 +175,14 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                     : ''}`}
                   media={media}
                   onChange={newMedia =>
-                    editors.dataEditor.setMedia(newMedia, i)}
+                    editors.dataEditor!.setMedia(newMedia, i)}
                 />
                 <InputPopover
                   position={Position.LEFT}
                   placeholder="New state"
                   buttonClassName="pt-button pt-minimal pt-small pt-icon-duplicate"
                   onEnter={name => {
-                    editors.dataEditor.addState(name, i)
+                    editors.dataEditor!.addState(name, i)
                   }}
                 />
                 <ConfirmPopover
@@ -194,7 +194,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                   confirmClassName="pt-button pt-intent-danger"
                   cancelClassName="pt-button"
                   onConfirm={() => {
-                    editors.dataEditor.deleteState(i)
+                    editors.dataEditor!.deleteState(i)
                   }}
                 />
               </span>
@@ -344,7 +344,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
   public componentDidUpdate() {
     try {
       const component = workspace.getComponent(this.props.activeComponent)
-      editors.styleEditor.calculateMessages('warning', handler => {
+      editors.styleEditor!.calculateMessages('warning', handler => {
         component.style.iterateSelectors(info => {
           if (!document.querySelector(info.selector)) {
             handler.addMessage(
@@ -382,8 +382,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
 
   private toggleHiddenState(state: State) {
     state.hidden = !state.hidden
-    editors.dataEditor.editor.setValue(
-      JSON.stringify(editors.dataEditor.latestJSON, null, 2)
+    editors.dataEditor!.editor.setValue(
+      JSON.stringify(editors.dataEditor!.latestJSON, null, 2)
     )
   }
 
