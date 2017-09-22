@@ -16,10 +16,18 @@ import workspace from './workspace'
 
 autocomplete()
 
+const editorIds = ['markup', 'style', 'data']
+
+editorIds.forEach((id, i) => {
+  Mousetrap.bind([`command+${i + 1}`, `ctrl+${i + 1}`], (e: any) => {
+    Editors.selectEditor(id)
+  })
+})
+
 class EditorsEventBus extends EventEmitter {}
 
 interface EditorsState {
-  selectedTabId: string // 'markup' | 'style' | 'data'
+  selectedTabId: string
 }
 
 class Editors extends React.Component<any, EditorsState> {
