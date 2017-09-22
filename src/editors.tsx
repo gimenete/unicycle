@@ -19,7 +19,6 @@ class Editors extends React.Component<any, any> {
   public static dataEditor: JSONEditor
   public static editors: Editor[] = []
   public static scrollDown: boolean
-  public static onUpdate: () => void
 
   public static selectEditor(index: number) {
     // TODO
@@ -83,12 +82,6 @@ class Editors extends React.Component<any, any> {
     this.scrollDown = true
   }
 
-  private static emitOnUpdate() {
-    if (Editors.onUpdate) {
-      Editors.onUpdate()
-    }
-  }
-
   public render() {
     const key = os.platform() === 'darwin' ? '⌘' : 'Ctrl '
     return (
@@ -140,19 +133,16 @@ class Editors extends React.Component<any, any> {
   private initMarkupEditor(element: HTMLDivElement) {
     if (Editors.markupEditor) return
     Editors.markupEditor = new MarkupEditor(element, errorHandler)
-    Editors.markupEditor.on('update', Editors.emitOnUpdate)
   }
 
   private initStyleEditor(element: HTMLDivElement) {
     if (Editors.styleEditor) return
     Editors.styleEditor = new StyleEditor(element, errorHandler)
-    Editors.styleEditor.on('update', Editors.emitOnUpdate)
   }
 
   private initDataEditor(element: HTMLDivElement) {
     if (Editors.dataEditor) return
     Editors.dataEditor = new JSONEditor(element, errorHandler)
-    Editors.dataEditor.on('update', Editors.emitOnUpdate)
   }
 }
 

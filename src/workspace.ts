@@ -131,6 +131,7 @@ class Workspace extends EventEmitter {
     } else if (file === 'styles.css') {
       component.style.setStyle(data)
     }
+    this.emit('componentUpdated')
   }
 
   public writeFile(relativePath: string, data: string): Promise<void> {

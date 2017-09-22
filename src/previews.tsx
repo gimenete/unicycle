@@ -44,8 +44,7 @@ class Previews extends React.Component<any, PreviewsState> {
     })
 
     workspace.on('activeComponent', () => this.forceUpdate())
-
-    editors.onUpdate = () => this.forceUpdate()
+    workspace.on('componentUpdated', () => this.forceUpdate())
 
     this.state = {
       inspecting: false,
