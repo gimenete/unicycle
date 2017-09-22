@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
+import BlankSlate from './blank-slate'
 import Editors from './editors'
 import Menu from './menu'
 import Navbar from './navbar'
@@ -44,17 +45,7 @@ class App extends React.Component<any, AppState> {
             <Previews />
           </div>
           <div id="blank-slate">
-            <div className="pt-non-ideal-state">
-              <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-                <span className="pt-icon pt-icon-home" />
-              </div>
-              <h4 className="pt-non-ideal-state-title">
-                No component selected
-              </h4>
-              <div className="pt-non-ideal-state-description">
-                Select a component or create a new one
-              </div>
-            </div>
+            <BlankSlate />
           </div>
         </div>
       </div>
