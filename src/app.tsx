@@ -31,15 +31,15 @@ class App extends React.Component<any, AppState> {
 
   public render() {
     if (this.state.mode === 'opening') return <OpenPage />
+    const className = workspace.activeComponent ? '' : 'blank-slate'
     return (
       <div>
         <Navbar />
-        <div
-          id="content"
-          className={workspace.activeComponent ? '' : 'blank-slate'}
-        >
+        <div id="content" className={className}>
           <Menu />
-          <Editors />
+          <div id="editors">
+            <Editors />
+          </div>
           <div id="previews">
             <Previews />
           </div>

@@ -74,45 +74,43 @@ class Editors extends React.Component<any, EditorsState> {
   public render() {
     const key = os.platform() === 'darwin' ? '⌘' : 'Ctrl '
     return (
-      <div id="editors">
-        <Tabs2
-          id="EditorsTabs"
-          onChange={(selectedTabId: string) =>
-            this.handleTabChange(selectedTabId)}
-          selectedTabId={this.state.selectedTabId}
-        >
-          <Tab2
-            id="markup"
-            title={`Markup ${key}1`}
-            panel={
-              <div
-                className="editor"
-                ref={element => element && this.initMarkupEditor(element)}
-              />
-            }
-          />
-          <Tab2
-            id="style"
-            title={`Style ${key}2`}
-            panel={
-              <div
-                className="editor"
-                ref={element => element && this.initStyleEditor(element)}
-              />
-            }
-          />
-          <Tab2
-            id="data"
-            title={`States ${key}3`}
-            panel={
-              <div
-                className="editor"
-                ref={element => element && this.initDataEditor(element)}
-              />
-            }
-          />
-        </Tabs2>
-      </div>
+      <Tabs2
+        id="EditorsTabs"
+        onChange={(selectedTabId: string) =>
+          this.handleTabChange(selectedTabId)}
+        selectedTabId={this.state.selectedTabId}
+      >
+        <Tab2
+          id="markup"
+          title={`Markup ${key}1`}
+          panel={
+            <div
+              className="editor"
+              ref={element => element && this.initMarkupEditor(element)}
+            />
+          }
+        />
+        <Tab2
+          id="style"
+          title={`Style ${key}2`}
+          panel={
+            <div
+              className="editor"
+              ref={element => element && this.initStyleEditor(element)}
+            />
+          }
+        />
+        <Tab2
+          id="data"
+          title={`States ${key}3`}
+          panel={
+            <div
+              className="editor"
+              ref={element => element && this.initDataEditor(element)}
+            />
+          }
+        />
+      </Tabs2>
     )
   }
 
