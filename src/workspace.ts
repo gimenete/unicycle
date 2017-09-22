@@ -92,7 +92,7 @@ class Workspace extends EventEmitter {
     file: string,
     data: string
   ) {
-    const fullPath = path.join(sourceDir, name, file)
+    const fullPath = path.join(sourceDir, name, componentName, file)
     await this.writeFile(fullPath, data)
     const component = this.getComponent(componentName)
     if (file === 'index.html') {

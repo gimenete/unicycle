@@ -1,6 +1,3 @@
-import EventEmitter = require('events')
-import { throttle } from 'lodash'
-
 import { ErrorHandler } from '../types'
 import workspace from '../workspace'
 
@@ -25,8 +22,7 @@ const defaultOptions: monaco.editor.IEditorConstructionOptions = {
   fontLigatures: false // true
 }
 
-class Editor extends EventEmitter {
-  public emitUpdate: () => void
+class Editor {
   public readonly editor: monaco.editor.IStandaloneCodeEditor
   protected errorHandler: ErrorHandler
   private componentName: string
@@ -42,7 +38,6 @@ class Editor extends EventEmitter {
     options: monaco.editor.IEditorConstructionOptions,
     errorHandler: ErrorHandler
   ) {
-    super()
     this.file = file
     this.oldDecorations = {}
     this.editor = monaco.editor.create(
@@ -56,14 +51,12 @@ class Editor extends EventEmitter {
         workspace
           .writeComponentFile(this.componentName, file, this.editor.getValue())
           .then(() => {
-            this.emitUpdate()
             this.update()
           })
           .catch(errorHandler)
       }
     )
 
-    this.emitUpdate = throttle(() => this.emit('update'), 500)
     this.errorHandler = errorHandler
   }
 
