@@ -296,10 +296,10 @@ body.loading #app {
   height: 100%;
 }
 
-#open [data-reactroot] {
+#open[data-reactroot] {
   height: 100%;
   display: flex;
-  align-items: center;
+  flex-direction: row;
 }
 
 body #open .pt-non-ideal-state {

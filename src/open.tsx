@@ -22,7 +22,7 @@ class OpenPage extends React.Component<any, any> {
 
   public render() {
     return (
-      <div>
+      <div id="open">
         <div className="pt-non-ideal-state" onClick={() => this.openProject()}>
           <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
             <span className="pt-icon pt-icon-folder-open" />

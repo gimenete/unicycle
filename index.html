@@ -10,7 +10,7 @@
   <script src="./node_modules/mousetrap/mousetrap.min.js"></script>
 </head>
 
-<body class="opening">
+<body>
   <div id="app"></div>
   <script>
     // Monaco uses a custom amd loader that over-rides node's require.
@@ -47,14 +47,14 @@
   </script>
 
   <script>
-      const disableDragAndDrop = (e) => {
-        if (e.target.classList.contains('drop-zone')) return
-        e.preventDefault()
-        e.dataTransfer.effectAllowed = 'none'
-        e.dataTransfer.dropEffect = 'none'
-      }
-      window.addEventListener('dragover', disableDragAndDrop, false)
-      window.addEventListener('drop', disableDragAndDrop, false)
+    const disableDragAndDrop = (e) => {
+      if (e.target.classList.contains('drop-zone')) return
+      e.preventDefault()
+      e.dataTransfer.effectAllowed = 'none'
+      e.dataTransfer.dropEffect = 'none'
+    }
+    window.addEventListener('dragover', disableDragAndDrop, false)
+    window.addEventListener('drop', disableDragAndDrop, false)
   </script>
 </body>
 
