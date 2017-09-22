@@ -29,6 +29,8 @@ class Editor extends EventEmitter {
   public emitUpdate: () => void
   public readonly editor: monaco.editor.IStandaloneCodeEditor
   protected errorHandler: ErrorHandler
+  private componentName: string
+  private file: string
   private oldDecorations: {
     [index: string]: string[]
   }
@@ -41,6 +43,7 @@ class Editor extends EventEmitter {
     errorHandler: ErrorHandler
   ) {
     super()
+    this.file = file
     this.oldDecorations = {}
     this.editor = monaco.editor.create(
       element,
@@ -51,7 +54,7 @@ class Editor extends EventEmitter {
       (e: monaco.editor.IModelContentChangedEvent) => {
         if (this.doNotTriggerEvents) return
         workspace
-          .writeComponentFile(file, this.editor.getValue())
+          .writeComponentFile(this.componentName, file, this.editor.getValue())
           .then(() => {
             this.emitUpdate()
             this.update()
@@ -60,22 +63,24 @@ class Editor extends EventEmitter {
       }
     )
 
-    workspace.on('activeComponent', (name: string) => {
-      workspace
-        .readComponentFile(file)
-        .then(data => {
-          // avoid race condition
-          if (workspace.activeComponent === name) {
-            this.doNotTriggerEvents = true
-            this.editor.setValue(data)
-            this.doNotTriggerEvents = false
-          }
-        })
-        .catch(errorHandler)
-    })
-
     this.emitUpdate = throttle(() => this.emit('update'), 500)
     this.errorHandler = errorHandler
+  }
+
+  public setComponent(componentName: string) {
+    this.componentName = componentName
+
+    workspace
+      .readComponentFile(this.file, componentName)
+      .then(data => {
+        // avoid race condition
+        if (componentName === this.componentName) {
+          this.doNotTriggerEvents = true
+          this.editor.setValue(data)
+          this.doNotTriggerEvents = false
+        }
+      })
+      .catch(this.errorHandler)
   }
 
   public cleanUpMessages(type: string) {

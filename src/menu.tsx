@@ -8,14 +8,16 @@ import workspace from './workspace'
 
 const { clipboard } = remote
 
-class Menu extends React.Component<any, any> {
-  constructor(props: any) {
+interface MenuProps {
+  activeComponent: string | null
+  onSelectComponent: (component: string) => void
+}
+
+class Menu extends React.Component<MenuProps, any> {
+  constructor(props: MenuProps) {
     super(props)
 
     workspace.on('projectLoaded', () => {
-      this.forceUpdate()
-    })
-    workspace.on('activeComponent', () => {
       this.forceUpdate()
     })
   }
@@ -24,6 +26,7 @@ class Menu extends React.Component<any, any> {
     const { metadata } = workspace
     if (!metadata) return <div />
     const { components } = metadata
+    const { activeComponent } = this.props
     return (
       <aside id="menu">
         <ul className="pt-tree-node-list pt-tree-root">
@@ -37,12 +40,11 @@ class Menu extends React.Component<any, any> {
               {components.map(component => (
                 <li
                   key={component.name}
-                  className={`pt-tree-node ${workspace.activeComponent ===
-                  component.name
+                  className={`pt-tree-node ${activeComponent === component.name
                     ? 'pt-tree-node-selected'
                     : ''}`}
                   onClick={() => {
-                    workspace.setActiveComponent(component.name)
+                    this.props.onSelectComponent(component.name)
                   }}
                 >
                   <div className="pt-tree-node-content hidden-action-group">

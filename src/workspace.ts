@@ -15,14 +15,8 @@ const sourceDir = 'components'
 
 class Workspace extends EventEmitter {
   public dir: string
-  public activeComponent: string | null
   public metadata: Metadata
-  public components: Map<string, Component>
-
-  constructor() {
-    super()
-    this.components = new Map<string, Component>()
-  }
+  public components = new Map<string, Component>()
 
   public async loadProject(dir: string) {
     this.dir = dir
@@ -62,12 +56,6 @@ class Workspace extends EventEmitter {
     ])
     this.metadata.components.push({ name })
     await this.saveMetadata()
-    this.setActiveComponent(name)
-  }
-
-  public setActiveComponent(name: string | null) {
-    this.activeComponent = name
-    this.emit('activeComponent', name)
   }
 
   public async deleteComponent(name: string) {
@@ -79,26 +67,12 @@ class Workspace extends EventEmitter {
     this.components.delete(name)
   }
 
-  public readComponentFile(file: string, component?: string): Promise<string> {
-    const comp = component || this.activeComponent
-    if (!comp) {
-      console.warn(
-        `Trying to read ${file} but not active component at this moment`
-      )
-      return Promise.resolve('')
-    }
-    return this.readFile(path.join(sourceDir, comp, file))
+  public readComponentFile(file: string, component: string): Promise<string> {
+    return this.readFile(path.join(sourceDir, component, file))
   }
 
-  public readComponentFileSync(file: string, component?: string): string {
-    const comp = component || this.activeComponent
-    if (!comp) {
-      console.warn(
-        `Trying to read ${file} but not active component at this moment`
-      )
-      return ''
-    }
-    return this.readFileSync(path.join(sourceDir, comp, file))
+  public readComponentFileSync(file: string, component: string): string {
+    return this.readFileSync(path.join(sourceDir, component, file))
   }
 
   public readFile(relativePath: string): Promise<string> {
@@ -113,17 +87,14 @@ class Workspace extends EventEmitter {
     return fse.readFileSync(fullPath, 'utf8')
   }
 
-  public async writeComponentFile(file: string, data: string) {
-    const name = this.activeComponent
-    if (!name) {
-      console.warn(
-        `Trying to write ${file} but not active component at this moment`
-      )
-      return Promise.resolve()
-    }
+  public async writeComponentFile(
+    componentName: string,
+    file: string,
+    data: string
+  ) {
     const fullPath = path.join(sourceDir, name, file)
     await this.writeFile(fullPath, data)
-    const component = this.getComponent(name)
+    const component = this.getComponent(componentName)
     if (file === 'index.html') {
       component.markup.setMarkup(data)
     } else if (file === 'data.json') {
@@ -140,34 +111,20 @@ class Workspace extends EventEmitter {
     return fse.writeFile(fullPath, data)
   }
 
-  public async copyComponentFile(fullPath: string): Promise<string> {
+  public async copyComponentFile(
+    componentName: string,
+    fullPath: string
+  ): Promise<string> {
     const basename = path.basename(fullPath)
-    if (!this.activeComponent) {
-      return Promise.reject(
-        new Error(
-          `Trying to write ${basename} but not active component at this moment`
-        )
-      )
-    }
     await fse.copy(
       fullPath,
-      path.join(this.dir, sourceDir, this.activeComponent, basename)
+      path.join(this.dir, sourceDir, componentName, basename)
     )
     return basename
   }
 
-  public pathForComponentFile(basename: string) {
-    if (!this.activeComponent) {
-      console.warn(
-        `Trying to calculate path for ${basename} but not active component at this moment`
-      )
-      return ''
-    }
-    return path.join(this.dir, sourceDir, this.activeComponent, basename)
-  }
-
-  public getActiveComponent(): Component | null {
-    return this.activeComponent ? this.getComponent(this.activeComponent) : null
+  public pathForComponentFile(componentName: string, basename: string) {
+    return path.join(this.dir, sourceDir, componentName, basename)
   }
 
   public getComponent(name: string): Component {

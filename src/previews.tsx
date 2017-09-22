@@ -16,6 +16,10 @@ import workspace from './workspace'
 
 const mediaQuery = require('css-mediaquery')
 
+interface PreviewsProps {
+  activeComponent: string
+}
+
 interface PreviewsState {
   inspecting: boolean
   showGrid: boolean
@@ -24,17 +28,16 @@ interface PreviewsState {
   diffValue: number
 }
 
-class Previews extends React.Component<any, PreviewsState> {
+class Previews extends React.Component<PreviewsProps, PreviewsState> {
   private scrollDown = false
 
-  constructor(props: any) {
+  constructor(props: PreviewsProps) {
     super(props)
 
     workspace.on('export', () => {
       this.setState({ isOutputOpen: true })
     })
 
-    workspace.on('activeComponent', () => this.forceUpdate())
     workspace.on('componentUpdated', () => this.forceUpdate())
 
     this.state = {
@@ -49,14 +52,25 @@ class Previews extends React.Component<any, PreviewsState> {
   public render(): JSX.Element | null {
     const code = this.generateOutput()
 
-    const component = workspace.getActiveComponent()
+    const component = workspace.getComponent(this.props.activeComponent)
     if (!component) return <div />
 
     const dom = component.markup.getDOM()
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
 
-    return editors.markupEditor.calculateMessages('error', handler => {
+    const calculateMessages = (
+      foo: string,
+      callback: (handler: any) => JSX.Element
+    ): JSX.Element => {
+      return callback({
+        addMessage: () => {
+          console.log('...')
+        }
+      })
+    }
+
+    return calculateMessages('error', handler => {
       const diffImageProperties = (
         diffImage: DiffImage
       ): React.CSSProperties => {
@@ -64,6 +78,7 @@ class Previews extends React.Component<any, PreviewsState> {
         const { width, height } = diffImage
         return {
           backgroundImage: `url(${workspace.pathForComponentFile(
+            component.name,
             diffImage.file
           )})`,
           backgroundSize: `${width / multiplier}px ${height / multiplier}px`,
@@ -141,6 +156,7 @@ class Previews extends React.Component<any, PreviewsState> {
                 />
                 <DiffImagePopoverProps
                   position={Position.LEFT_TOP}
+                  componentName={this.props.activeComponent}
                   diffImage={diffImage}
                   buttonClassName={`pt-button pt-minimal pt-small pt-icon-media ${hasDiffImage(
                     state
@@ -327,7 +343,7 @@ class Previews extends React.Component<any, PreviewsState> {
 
   public componentDidUpdate() {
     try {
-      const component = workspace.getActiveComponent()!
+      const component = workspace.getComponent(this.props.activeComponent)
       editors.styleEditor.calculateMessages('warning', handler => {
         component.style.iterateSelectors(info => {
           if (!document.querySelector(info.selector)) {
@@ -372,7 +388,7 @@ class Previews extends React.Component<any, PreviewsState> {
   }
 
   private generateOutput(): string {
-    const component = workspace.getActiveComponent()
+    const component = workspace.getComponent(this.props.activeComponent)
     if (!component) return ''
     const prettierOptions = workspace.metadata.export!.prettier
     const code = reactGenerator(component, prettierOptions)

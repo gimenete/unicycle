@@ -26,11 +26,15 @@ editorIds.forEach((id, i) => {
 
 class EditorsEventBus extends EventEmitter {}
 
+interface EditorsProps {
+  activeComponent: string
+}
+
 interface EditorsState {
   selectedTabId: string
 }
 
-class Editors extends React.Component<any, EditorsState> {
+class Editors extends React.Component<EditorsProps, EditorsState> {
   public static eventBus = new EditorsEventBus()
   public static markupEditor: MarkupEditor
   public static styleEditor: StyleEditor
@@ -114,6 +118,20 @@ class Editors extends React.Component<any, EditorsState> {
     )
   }
 
+  public componentDidMount() {
+    this.updateEditors()
+  }
+
+  public componentDidUpdate() {
+    this.updateEditors()
+  }
+
+  private updateEditors() {
+    Editors.editors.forEach(editor => {
+      editor.setComponent(this.props.activeComponent)
+    })
+  }
+
   private inspect(element: HTMLElement) {
     const location = element.getAttribute('data-location')
     if (!location) return
@@ -131,7 +149,8 @@ class Editors extends React.Component<any, EditorsState> {
     })
     this.focusVisibleEditor()
 
-    const component = workspace.getActiveComponent()!
+    const { activeComponent } = this.props
+    const component = workspace.getComponent(activeComponent)
     Editors.styleEditor.calculateMessages('inspector', handler => {
       component.style.iterateSelectors(info => {
         if (element.matches(info.selector)) {

@@ -10,6 +10,7 @@ const { BrowserWindow, dialog } = electron.remote
 import { DiffImage } from '../types'
 
 interface DiffImagePopoverProps {
+  componentName: string
   position?: Position
   buttonClassName: string
   diffImage?: DiffImage
@@ -73,16 +74,18 @@ export default class DiffImagePopover extends React.Component<
     image
       .metadata()
       .then(data => {
-        return workspace.copyComponentFile(fullPath).then(basename => {
-          this.setState(
-            {
-              path: basename,
-              width: data.width,
-              height: data.height
-            },
-            () => this.sendChanges()
-          )
-        })
+        return workspace
+          .copyComponentFile(this.props.componentName, fullPath)
+          .then(basename => {
+            this.setState(
+              {
+                path: basename,
+                width: data.width,
+                height: data.height
+              },
+              () => this.sendChanges()
+            )
+          })
       })
       .catch(errorHandler)
   }
