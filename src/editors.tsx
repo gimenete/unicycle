@@ -35,7 +35,6 @@ class Editors extends React.Component<any, EditorsState> {
   public static markupEditor: MarkupEditor
   public static styleEditor: StyleEditor
   public static dataEditor: JSONEditor
-  public static scrollDown: boolean
 
   public static selectEditor(selectedTabId: string) {
     Editors.eventBus.emit('selectEditor', selectedTabId)
@@ -50,7 +49,6 @@ class Editors extends React.Component<any, EditorsState> {
       lineNumber: lines,
       column: 3
     })
-    this.scrollDown = true
   }
 
   private static editors: Map<string, Editor> = new Map()

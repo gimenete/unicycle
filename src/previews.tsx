@@ -25,6 +25,8 @@ interface PreviewsState {
 }
 
 class Previews extends React.Component<any, PreviewsState> {
+  private scrollDown = false
+
   constructor(props: any) {
     super(props)
 
@@ -239,6 +241,7 @@ class Previews extends React.Component<any, PreviewsState> {
               placeholder="New state"
               buttonClassName="pt-button pt-icon-new-object"
               onEnter={name => {
+                this.scrollDown = true
                 editors.addState(name)
               }}
             />
@@ -341,8 +344,8 @@ class Previews extends React.Component<any, PreviewsState> {
     } catch (e) {
       errorHandler(e)
     }
-    if (editors.scrollDown) {
-      editors.scrollDown = false
+    if (this.scrollDown) {
+      this.scrollDown = false
       const previews = document.querySelector('#previews-markup')!
       previews.scrollTop = previews.scrollHeight
     }
