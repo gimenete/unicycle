@@ -3,10 +3,10 @@ import EventEmitter = require('events')
 const parsePixels = (value: string | null) => parseFloat(value || '0')
 
 class Inspector extends EventEmitter {
-  target: HTMLElement | null
-  marginOverlay: HTMLElement
-  paddingOverlay: HTMLElement
-  inspecting: boolean
+  private target: HTMLElement | null
+  private marginOverlay: HTMLElement
+  private paddingOverlay: HTMLElement
+  private inspecting: boolean
 
   constructor() {
     super()
@@ -46,7 +46,7 @@ class Inspector extends EventEmitter {
     })
   }
 
-  recalculate() {
+  public recalculate() {
     if (!this.target) return
 
     const { marginOverlay, paddingOverlay } = this
@@ -79,13 +79,13 @@ class Inspector extends EventEmitter {
       rect.height - paddingTop - paddingBottom + 'px'
   }
 
-  startInspecting() {
+  public startInspecting() {
     this.inspecting = true
     this.marginOverlay.style.display = 'block'
     this.emit('startInspecting')
   }
 
-  stopInspecting() {
+  public stopInspecting() {
     this.inspecting = false
     this.target = null
     this.marginOverlay.style.display = 'none'
@@ -97,4 +97,4 @@ class Inspector extends EventEmitter {
   }
 }
 
-export default Inspector
+export default new Inspector()

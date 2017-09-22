@@ -5,12 +5,12 @@ import ConfirmPopover from './components/ConfirmPopover'
 import DiffImagePopoverProps from './components/DiffImagePopover'
 import InputPopover from './components/InpuPopover'
 import MediaPopoverProps from './components/MediaPopover'
-import Inspector from './inspector'
 import { DiffImage, Media, State, States } from './types'
 
 import editors from './editors'
 import errorHandler from './error-handler'
 import reactGenerator from './generators/react'
+import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
 
@@ -25,19 +25,8 @@ interface PreviewsState {
 }
 
 class Previews extends React.Component<any, PreviewsState> {
-  private inspector: Inspector
-
   constructor(props: any) {
     super(props)
-
-    this.inspector = new Inspector()
-    this.inspector.on('stopInspecting', () => {
-      editors.stopInspecting()
-    })
-    this.inspector.on('inspect', (data: any) => {
-      const element = data.target as HTMLElement
-      editors.inspect(element)
-    })
 
     workspace.on('export', () => {
       this.setState({ isOutputOpen: true })
@@ -365,8 +354,8 @@ class Previews extends React.Component<any, PreviewsState> {
 
   private toggleInspecting() {
     this.state.inspecting
-      ? this.inspector.stopInspecting()
-      : this.inspector.startInspecting()
+      ? inspector.stopInspecting()
+      : inspector.startInspecting()
     this.setState({
       inspecting: !this.state.inspecting
     })
