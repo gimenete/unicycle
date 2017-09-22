@@ -131,10 +131,11 @@ const css = `:root {
   ${colors.map(color => `  --color-${color.name}: ${color.hex};`).join('\n')}
 
   ${shadows
-    .map(shadow => `  --shadow-${shadow.name}: ${shadow.value};`)
-    .join('\n')}
-  ${shadows
-    .map(shadow => `  --shadow-${shadow.name}-hover: ${shadow.hover};`)
+    .map(
+      shadow => `
+      --shadow-${shadow.name}: ${shadow.value};
+      --shadow-${shadow.name}-hover: ${shadow.hover};`
+    )
     .join('\n')}
   }
 
@@ -148,6 +149,13 @@ class StylePalette extends React.Component<any, any> {
     return (
       <div style={{ display: 'flex' }}>
         <style>
+          {`.style-palette-name {
+            opacity: 0.7;
+          }
+
+          .style-palette-value {
+            opacity: 0.7;
+          }`}
           {shadows
             .map(
               shadow => `
@@ -197,7 +205,7 @@ class StylePalette extends React.Component<any, any> {
               <div>
                 {fonts.map(font => (
                   <div key={font.value} style={{ marginBottom: 20 }}>
-                    <div>{font.name}</div>
+                    <div className="style-palette-name">{font.name}</div>
                     <div style={{ font: font.value }}>Hello world</div>
                   </div>
                 ))}
@@ -211,7 +219,7 @@ class StylePalette extends React.Component<any, any> {
               <div>
                 {colors.map(color => (
                   <div key={color.name} style={{ marginBottom: 20 }}>
-                    <div>{color.name}</div>
+                    <div className="style-palette-name">{color.name}</div>
                     <div
                       style={{
                         backgroundColor: color.hex,
@@ -219,7 +227,7 @@ class StylePalette extends React.Component<any, any> {
                         height: 66
                       }}
                     />
-                    <p>{color.hex}</p>
+                    <p className="style-palette-value">{color.hex}</p>
                   </div>
                 ))}
               </div>
@@ -232,7 +240,7 @@ class StylePalette extends React.Component<any, any> {
               <div>
                 {shadows.map(shadow => (
                   <div key={shadow.name} style={{ marginBottom: 20 }}>
-                    <div>{shadow.name}</div>
+                    <div className="style-palette-name">{shadow.name}</div>
                     <div
                       className={`style-palette-shadow-${shadow.name}`}
                       style={{
@@ -252,7 +260,7 @@ class StylePalette extends React.Component<any, any> {
               <div>
                 {animations.map(animation => (
                   <div key={animation.name} style={{ marginBottom: 20 }}>
-                    <div>{animation.name}</div>
+                    <div className="style-palette-name">{animation.name}</div>
                     <div
                       style={{
                         animation: `${animation.name} 1s infinite`,
