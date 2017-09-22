@@ -1,13 +1,14 @@
 import { Tab2, Tabs2 } from '@blueprintjs/core'
+import * as prettier from 'prettier'
 import * as React from 'react'
 
 const fonts = [
-  { value: `6em 'Open Sans', serif` },
-  { value: `3em 'Open Sans', serif` },
-  { value: `2.4em 'Open Sans', serif` },
-  { value: `1.6em 'Open Sans', serif` },
-  { value: `1em 'Open Sans', serif` },
-  { value: `0.8em 'Open Sans', serif` }
+  { name: 'hero', value: `6em 'Open Sans', serif` },
+  { name: 'extra-large', value: `3em 'Open Sans', serif` },
+  { name: 'large', value: `2.4em 'Open Sans', serif` },
+  { name: 'medium', value: `1.6em 'Open Sans', serif` },
+  { name: 'small', value: `1em 'Open Sans', serif` },
+  { name: 'extra-small', value: `0.8em 'Open Sans', serif` }
 ]
 
 const colors = [
@@ -124,10 +125,28 @@ const animations = [
   }
 ]
 
+const css = `:root {
+  ${fonts.map(font => `  --font-${font.name}: ${font.value};`).join('\n')}
+
+  ${colors.map(color => `  --color-${color.name}: ${color.hex};`).join('\n')}
+
+  ${shadows
+    .map(shadow => `  --shadow-${shadow.name}: ${shadow.value};`)
+    .join('\n')}
+  ${shadows
+    .map(shadow => `  --shadow-${shadow.name}-hover: ${shadow.hover};`)
+    .join('\n')}
+  }
+
+  ${animations.map(animation => animation.value).join('\n\n')}
+`
+
+const scss = prettier.format(css, { parser: 'postcss' })
+
 class StylePalette extends React.Component<any, any> {
   public render() {
     return (
-      <div>
+      <div style={{ display: 'flex' }}>
         <style>
           {shadows
             .map(
@@ -146,6 +165,27 @@ class StylePalette extends React.Component<any, any> {
             .join('\n')}
           {animations.map(animation => animation.value).join('\n')}
         </style>
+        <div
+          className="editor"
+          ref={element => {
+            if (!element) return
+            monaco.editor.create(element, {
+              language: 'scss',
+              value: scss,
+              lineNumbers: 'on',
+              scrollBeyondLastLine: false,
+              minimap: { enabled: false },
+              autoIndent: true,
+              theme: 'vs',
+              automaticLayout: true
+            })
+          }}
+          style={{
+            height: 'calc(100vh - 60px)',
+            width: 700,
+            marginRight: 20
+          }}
+        />
         <Tabs2
           id="StylePaletteTabs"
           onChange={(selectedTabId: string) => console.log(selectedTabId)}
@@ -157,7 +197,7 @@ class StylePalette extends React.Component<any, any> {
               <div>
                 {fonts.map(font => (
                   <div key={font.value} style={{ marginBottom: 20 }}>
-                    <div>{font.value}</div>
+                    <div>{font.name}</div>
                     <div style={{ font: font.value }}>Hello world</div>
                   </div>
                 ))}
