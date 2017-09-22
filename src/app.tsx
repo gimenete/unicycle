@@ -7,10 +7,12 @@ import Menu from './menu'
 import Navbar from './navbar'
 import OpenPage from './open'
 import Previews from './previews'
+import StylePalette from './style-palette'
 import workspace from './workspace'
 
 interface AppState {
   mode: 'opening' | 'loading' | 'loaded'
+  activeSelection: string | null
   activeComponent: string | null
 }
 
@@ -20,7 +22,8 @@ class App extends React.Component<any, AppState> {
 
     this.state = {
       mode: 'opening',
-      activeComponent: null
+      activeComponent: null,
+      activeSelection: null
     }
 
     workspace.on('projectLoaded', () => {
@@ -30,7 +33,7 @@ class App extends React.Component<any, AppState> {
 
   public render() {
     if (this.state.mode === 'opening') return <OpenPage />
-    const { activeComponent } = this.state
+    const { activeComponent, activeSelection } = this.state
     const className = this.state.activeComponent ? '' : 'blank-slate'
     return (
       <div>
@@ -38,12 +41,19 @@ class App extends React.Component<any, AppState> {
         <div id="content" className={className}>
           <Menu
             metadata={workspace.metadata}
+            activeSelection={activeSelection}
             activeComponent={activeComponent}
             onSelectComponent={component =>
-              this.setState({ activeComponent: component })}
+              this.setState({
+                activeComponent: component,
+                activeSelection: 'component'
+              })}
             onAddComponent={(component, structure) => {
               workspace.addComponent(component, structure).then(() => {
-                this.setState({ activeComponent: component })
+                this.setState({
+                  activeComponent: component,
+                  activeSelection: 'component'
+                })
               })
             }}
             onDeleteComponent={(component: string) => {
@@ -53,22 +63,31 @@ class App extends React.Component<any, AppState> {
                 }
               })
             }}
+            onChangeSelection={selection => {
+              this.setState({
+                activeSelection: selection,
+                activeComponent: null
+              })
+            }}
           />
-          {activeComponent && (
+          {activeSelection === 'component' &&
+          activeComponent && (
             <div id="editors">
               <Editors activeComponent={activeComponent} />
             </div>
           )}
-          {activeComponent && (
+          {activeSelection === 'component' &&
+          activeComponent && (
             <div id="previews">
               <Previews activeComponent={activeComponent} />
             </div>
           )}
-          {!activeComponent && (
+          {!activeSelection && (
             <div id="blank-slate">
               <BlankSlate />
             </div>
           )}
+          {activeSelection === 'style-palette' && <StylePalette />}
         </div>
       </div>
     )

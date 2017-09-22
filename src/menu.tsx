@@ -9,11 +9,13 @@ import { Metadata } from './types'
 const { clipboard } = remote
 
 interface MenuProps {
+  activeSelection: string | null
   activeComponent: string | null
   metadata: Metadata
   onSelectComponent: (component: string) => void
   onAddComponent: (component: string, structure?: string) => void
   onDeleteComponent: (component: string) => void
+  onChangeSelection: (selection: string) => void
 }
 
 class Menu extends React.Component<MenuProps, any> {
@@ -21,10 +23,28 @@ class Menu extends React.Component<MenuProps, any> {
     const { metadata } = this.props
     if (!metadata) return <div />
     const { components } = metadata
-    const { activeComponent } = this.props
+    const { activeComponent, activeSelection } = this.props
     return (
       <aside id="menu">
         <ul className="pt-tree-node-list pt-tree-root">
+          <li
+            className={`pt-tree-node ${activeSelection === 'style-palette'
+              ? 'pt-tree-node-selected'
+              : ''}`}
+          >
+            <div className="pt-tree-node-content">
+              <span className="pt-tree-node-caret-none pt-icon-standard" />
+              <span className="pt-tree-node-icon pt-icon-standard pt-icon-folder-close" />
+              <span
+                className="pt-tree-node-label"
+                onClick={() => {
+                  this.props.onChangeSelection('style-palette')
+                }}
+              >
+                Style Palette
+              </span>
+            </div>
+          </li>
           <li className="pt-tree-node pt-tree-node-expanded">
             <div className="pt-tree-node-content">
               <span className="pt-tree-node-caret pt-tree-node-caret-open pt-icon-standard" />
