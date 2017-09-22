@@ -42,7 +42,7 @@ body {
   margin-top: 0;
   margin-left: 0;
 }
-#menu > div > p {
+#menu > p {
   margin: 10px;
 }
 #menu .pt-popover-target {
