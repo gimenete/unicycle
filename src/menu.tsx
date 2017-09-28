@@ -45,6 +45,24 @@ class Menu extends React.Component<MenuProps, any> {
               </span>
             </div>
           </li>
+          <li
+            className={`pt-tree-node ${activeSelection === 'assets'
+              ? 'pt-tree-node-selected'
+              : ''}`}
+          >
+            <div className="pt-tree-node-content">
+              <span className="pt-tree-node-caret-none pt-icon-standard" />
+              <span className="pt-tree-node-icon pt-icon-standard pt-icon-folder-close" />
+              <span
+                className="pt-tree-node-label"
+                onClick={() => {
+                  this.props.onChangeSelection('assets')
+                }}
+              >
+                Assets
+              </span>
+            </div>
+          </li>
           <li className="pt-tree-node pt-tree-node-expanded">
             <div className="pt-tree-node-content">
               <span className="pt-tree-node-caret pt-tree-node-caret-open pt-icon-standard" />

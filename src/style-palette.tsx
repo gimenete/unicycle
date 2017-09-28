@@ -125,7 +125,11 @@ const animations = [
   }
 ]
 
-const css = `:root {
+const css = `
+/// @font-preview-text: Hello world
+/// @animation-preview-transition-duration: 0.1s
+
+:root {
   ${fonts.map(font => `  --font-${font.name}: ${font.value};`).join('\n')}
 
   ${colors.map(color => `  --color-${color.name}: ${color.hex};`).join('\n')}
@@ -163,7 +167,7 @@ class StylePalette extends React.Component<any, any> {
                 box-shadow: ${shadow.value};
                 width: 130px;
                 height: 66px;
-                transition: all 0.1s ease-in-out;
+                transition: all 0.1s;
               }
               .style-palette-shadow-${shadow.name}:hover {
                 box-shadow: ${shadow.hover};

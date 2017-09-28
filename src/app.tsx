@@ -88,6 +88,7 @@ class App extends React.Component<any, AppState> {
             </div>
           )}
           {activeSelection === 'style-palette' && <StylePalette />}
+          {activeSelection === 'assets' && <div>Assets</div>}
         </div>
       </div>
     )
