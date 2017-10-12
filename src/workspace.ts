@@ -37,6 +37,7 @@ class Workspace extends EventEmitter {
       path.join(this.dir, metadataFile),
       JSON.stringify(initialMetadata)
     )
+    await fse.writeFile(path.join(this.dir, paletteFile), '')
     await fse.mkdirp(path.join(this.dir, sourceDir))
   }
 
