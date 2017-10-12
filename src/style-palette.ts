@@ -1,3 +1,5 @@
+import * as sass from 'node-sass'
+
 import {
   PostCSSAtRule,
   PostCSSComment,
@@ -6,7 +8,7 @@ import {
   PostCSSRoot
 } from './types'
 
-const scss = require('postcss-scss')
+const postcss = require('postcss')
 
 export interface StylePaletteEntity {
   name: string
@@ -25,7 +27,11 @@ class StylePalette {
   public setSource(source: string) {
     this.source = source
 
-    const ast = scss.parse(source) as PostCSSRoot
+    const result = sass.renderSync({
+      data: source,
+      sourceMap: false
+    })
+    const ast = postcss.parse(result.css.toString()) as PostCSSRoot
 
     this.fonts.splice(0)
     this.colors.splice(0)

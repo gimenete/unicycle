@@ -47,7 +47,6 @@
     "parse-import": "^2.0.0",
     "parse5": "^3.0.2",
     "postcss": "^6.0.8",
-    "postcss-scss": "^1.0.2",
     "postcss-selector-parser": "^2.2.3",
     "react": "^15.6.1",
     "react-addons-css-transition-group": "^15.6.0",
