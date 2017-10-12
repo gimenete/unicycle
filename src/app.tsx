@@ -7,7 +7,7 @@ import Menu from './menu'
 import Navbar from './navbar'
 import OpenPage from './open'
 import Previews from './previews'
-import StylePalette from './style-palette'
+import StylePaletteView from './style-palette-view'
 import workspace from './workspace'
 
 interface AppState {
@@ -87,7 +87,7 @@ class App extends React.Component<any, AppState> {
               <BlankSlate />
             </div>
           )}
-          {activeSelection === 'style-palette' && <StylePalette />}
+          {activeSelection === 'style-palette' && <StylePaletteView />}
           {activeSelection === 'assets' && <div>Assets</div>}
         </div>
       </div>

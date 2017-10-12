@@ -5,22 +5,26 @@ import * as prettier from 'prettier'
 
 import Component from './component'
 import sketch from './sketch'
+import StylePalette from './style-palette'
 import { ErrorHandler, GeneratedCode, Metadata, States } from './types'
 
 import reactGenerator from './generators/react'
 import vueGenerator from './generators/vuejs'
 
 const metadataFile = 'unicycle.json'
+const paletteFile = 'palette.scss'
 const sourceDir = 'components'
 
 class Workspace extends EventEmitter {
   public dir: string
   public metadata: Metadata
   public components = new Map<string, Component>()
+  public palette = new StylePalette()
 
   public async loadProject(dir: string) {
     this.dir = dir
     this.metadata = JSON.parse(await this.readFile(metadataFile))
+    this.palette.setSource(await this.readFile(paletteFile))
     this.emit('projectLoaded')
   }
 
@@ -109,6 +113,11 @@ class Workspace extends EventEmitter {
     // TODO: prevent '..' in relativePath
     const fullPath = path.join(this.dir, relativePath)
     return fse.writeFile(fullPath, data)
+  }
+
+  public writeStylePalette(source: string) {
+    this.palette.setSource(source)
+    return this.writeFile(paletteFile, source)
   }
 
   public async copyComponentFile(

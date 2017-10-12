@@ -14,7 +14,7 @@ export interface PostCSSPosition {
 }
 
 export interface PostCSSNode {
-  type: 'root' | 'atrule' | 'rule' | 'decl'
+  type: 'root' | 'atrule' | 'rule' | 'decl' | 'comment'
   source: {
     input: {
       css: string
@@ -46,6 +46,11 @@ export interface PostCSSDeclaration extends PostCSSNode {
   type: 'decl'
   prop: string
   value: string
+}
+
+export interface PostCSSComment extends PostCSSNode {
+  type: 'comment'
+  text: string
 }
 
 export interface SassResult {
@@ -121,6 +126,19 @@ export interface StripedCSS {
     [index: string]: CSSMediaQuery
   }
   chunks: CSSChunk[]
+}
+
+export interface StylePaletteEntity {
+  name: string
+  value: string
+  hover?: string
+}
+
+export interface StylePalette {
+  fonts: StylePaletteEntity[]
+  colors: StylePaletteEntity[]
+  shadows: StylePaletteEntity[]
+  animations: StylePaletteEntity[]
 }
 
 export const CSS_PREFIX = '#previews-markup .preview-content'
