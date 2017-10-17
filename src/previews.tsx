@@ -340,7 +340,12 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     })
   }
 
+  public componentDidMount() {
+    workspace.emit('previewUpdated')
+  }
+
   public componentDidUpdate() {
+    workspace.emit('previewUpdated')
     try {
       const component = workspace.getComponent(this.props.activeComponent)
       editors.styleEditor!.calculateMessages('warning', handler => {

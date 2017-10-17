@@ -10,6 +10,8 @@ import Previews from './previews'
 import StylePaletteView from './style-palette-view'
 import workspace from './workspace'
 
+import './server'
+
 interface AppState {
   mode: 'opening' | 'loading' | 'loaded'
   activeSelection: string | null
@@ -71,17 +73,17 @@ class App extends React.Component<any, AppState> {
             }}
           />
           {activeSelection === 'component' &&
-          activeComponent && (
-            <div id="editors">
-              <Editors activeComponent={activeComponent} />
-            </div>
-          )}
+            activeComponent && (
+              <div id="editors">
+                <Editors activeComponent={activeComponent} />
+              </div>
+            )}
           {activeSelection === 'component' &&
-          activeComponent && (
-            <div id="previews">
-              <Previews activeComponent={activeComponent} />
-            </div>
-          )}
+            activeComponent && (
+              <div id="previews">
+                <Previews activeComponent={activeComponent} />
+              </div>
+            )}
           {!activeSelection && (
             <div id="blank-slate">
               <BlankSlate />
