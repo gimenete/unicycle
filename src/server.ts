@@ -1,14 +1,16 @@
 import * as electron from 'electron'
 import * as http from 'http'
+import * as QRCode from 'qrcode'
 import * as WebSocket from 'ws'
 import workspace from './workspace'
 
 const localtunnel = require('localtunnel')
+let qr = ''
 
 const getContent = () => {
   const markup = document.getElementById('previews')
   if (!markup) {
-    return 'No markup found'
+    return `No markup found <img src="${qr}">`
   }
   return markup.outerHTML
 }
@@ -18,6 +20,7 @@ const server = http.createServer((req, res) => {
   res.end(`
   <html>
     <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>Unicycle</title>
       <style>
       .preview > p {
@@ -59,7 +62,11 @@ const initTunnel = () => {
     (err: any, tunnel: any) => {
       if (err) return console.error(err) // TODO
 
-      electron.shell.openExternal(tunnel.url)
+      QRCode.toDataURL(thetunnel.url, (error, value) => {
+        if (error) return console.error(err)
+        qr = value
+        electron.shell.openExternal(tunnel.url)
+      })
     }
   )
 
