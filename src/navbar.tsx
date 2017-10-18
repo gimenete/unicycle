@@ -1,5 +1,6 @@
 import electron = require('electron')
 import * as React from 'react'
+import BroadcastPopover from './components/BroadcastPopover'
 import workspace from './workspace'
 
 const { BrowserWindow, dialog } = electron.remote
@@ -49,6 +50,7 @@ class Navbar extends React.Component<any, NavbarState> {
             >
               Export
             </button>
+            <BroadcastPopover />
           </div>
         </nav>
       </div>

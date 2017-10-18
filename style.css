@@ -312,3 +312,13 @@ body #open .pt-non-ideal-state {
 body #open .pt-non-ideal-state:hover {
   background: #eee;
 }
+
+.spinner-centered.spinner-centered {
+  display: block;
+  margin: 0 auto;
+}
+
+.pt-button.broadcasting,
+.pt-button.broadcasting::before {
+  color: green;
+}

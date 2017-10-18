@@ -52,9 +52,10 @@ export default class ConfirmPopover extends React.Component<
               className={this.props.confirmClassName}
               style={buttonStyle}
               type="button"
-              onClick={() =>
-                this.setState({ isOpen: !this.state.isOpen }) ||
-                this.props.onConfirm()}
+              onClick={() => {
+                this.setState({ isOpen: !this.state.isOpen })
+                this.props.onConfirm()
+              }}
             >
               {this.props.confirmText}
             </button>
