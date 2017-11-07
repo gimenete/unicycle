@@ -103,7 +103,12 @@ class Editor {
           ),
           options: {
             isWholeLine: true,
-            className: type
+            className: type,
+            overviewRuler: {
+              color: 'red',
+              darkColor: 'red',
+              position: monaco.editor.OverviewRulerLane.Full
+            }
           }
         }
       })
