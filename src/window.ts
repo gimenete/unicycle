@@ -13,7 +13,7 @@ export const createWindow = () => {
   const window = new BrowserWindow({
     width: packaged ? 800 : 800 + 400,
     height: 600,
-    titleBarStyle: packaged ? 'hidden' : undefined
+    titleBarStyle: 'hidden'
   })
 
   window.loadURL(

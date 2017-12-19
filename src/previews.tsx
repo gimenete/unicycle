@@ -264,48 +264,51 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       )
       return (
         <div>
-          <div style={{ float: 'right' }}>
-            <Button.Group>
-              <Tooltip title="Toggle grid">
+          <div style={{ padding: 5, paddingLeft: 0 }}>
+            <div style={{ float: 'right' }}>
+              <Button.Group>
                 <Button
-                  size="small"
                   icon="layout"
                   type={this.state.showGrid ? 'primary' : undefined}
                   onClick={() =>
                     this.setState({ showGrid: !this.state.showGrid })
                   }
-                />
-              </Tooltip>
-              <Tooltip title="Toggle inspecting tool">
+                >
+                  Grid
+                </Button>
+
                 <Button
-                  size="small"
                   icon="select"
                   type={this.state.inspecting ? 'primary' : undefined}
                   onClick={() => this.toggleInspecting()}
+                >
+                  Inspect
+                </Button>
+              </Button.Group>
+            </div>
+            <Button.Group>
+              {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
+              <InputPopover
+                placement="bottom"
+                placeholder="New state"
+                buttonIcon="plus-square-o"
+                buttonSize="default"
+                onEnter={name => {
+                  this.scrollDown = true
+                  editors.addState(name)
+                }}
+              >
+                Add a new state
+              </InputPopover>
+              {someHaveDiffImage && (
+                <Button
+                  size="small"
+                  icon={this.state.diffMode === 'slider' ? 'swap' : 'copy'}
+                  onClick={() => this.toggleDiffMode()}
                 />
-              </Tooltip>
+              )}
             </Button.Group>
           </div>
-          <Button.Group>
-            {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
-            <InputPopover
-              placement="bottom"
-              placeholder="New state"
-              buttonIcon="plus-square-o"
-              tooltipTitle="Add a new state"
-              onEnter={name => {
-                this.scrollDown = true
-                editors.addState(name)
-              }}
-            />
-            {someHaveDiffImage && (
-              <Button
-                size="small"
-                icon={this.state.diffMode === 'slider' ? 'swap' : 'copy'}
-                onClick={() => this.toggleDiffMode()}
-              />
-            )}
-          </Button.Group>
           <style>{'[data-unicycle-component-root] { all: initial }'}</style>
           {componentsInformation.map(info =>
             info.style

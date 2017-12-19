@@ -334,3 +334,7 @@ body #open .pt-non-ideal-state:hover {
 .ant-layout-header {
   padding-left: 21px;
 }
+
+#navbar {
+  padding-top: 10px;
+}

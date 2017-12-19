@@ -1,6 +1,3 @@
-import errorHandler from './error-handler'
-import workspace from './workspace'
-
 import { Timeline } from 'antd'
 import * as React from 'react'
 

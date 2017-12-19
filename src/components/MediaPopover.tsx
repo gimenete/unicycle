@@ -1,4 +1,4 @@
-import { Select, Input, Button, Icon, Form } from 'antd'
+import { Select, Input, Icon, Form } from 'antd'
 import * as React from 'react'
 import { Media } from '../types'
 

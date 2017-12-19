@@ -1,4 +1,4 @@
-import { Button, Switch, Form } from 'antd'
+import { Button, Switch } from 'antd'
 import electron = require('electron')
 import * as React from 'react'
 import * as sharp from 'sharp'
@@ -6,8 +6,6 @@ import errorHandler from '../error-handler'
 import workspace from '../workspace'
 
 import { DiffImage } from '../types'
-
-const FormItem = Form.Item
 
 const { BrowserWindow, dialog } = electron.remote
 

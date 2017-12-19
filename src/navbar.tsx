@@ -1,18 +1,25 @@
-import electron = require('electron')
+import { remote } from 'electron'
 import * as React from 'react'
 import BroadcastPopover from './components/BroadcastPopover'
 import workspace from './workspace'
 
 import { Layout, Button } from 'antd'
-const { Header } = Layout
+import InputPopover from './components/InpuPopover'
 
-const { BrowserWindow, dialog } = electron.remote
+const { clipboard } = remote
+const { BrowserWindow, dialog } = remote
+
+const { Header } = Layout
 
 interface NavbarState {
   isCreateProjectOpen: boolean
 }
 
-class Navbar extends React.Component<any, NavbarState> {
+interface NavbarProps {
+  onAddComponent: (component: string, structure?: string) => void
+}
+
+class Navbar extends React.Component<NavbarProps, NavbarState> {
   constructor(props: any) {
     super(props)
     this.state = {
@@ -23,7 +30,6 @@ class Navbar extends React.Component<any, NavbarState> {
   public render() {
     return (
       <Header>
-        <div className="logo">Unicycle</div>
         <div style={{ lineHeight: '64px', float: 'right' }}>
           <Button.Group>
             <Button
@@ -48,6 +54,30 @@ class Navbar extends React.Component<any, NavbarState> {
             </Button>
             <BroadcastPopover />
           </Button.Group>
+        </div>
+        <div className="logo" />
+        <div style={{ marginLeft: 180 }}>
+          <InputPopover
+            placement="bottom"
+            placeholder="ComponentName"
+            buttonSize="default"
+            onEnter={value => {
+              this.props.onAddComponent(value)
+            }}
+          >
+            New component
+          </InputPopover>
+          <span> </span>
+          <InputPopover
+            placement="bottom"
+            placeholder="New component from Sketch"
+            buttonSize="default"
+            onEnter={value => {
+              this.props.onAddComponent(value, clipboard.readText())
+            }}
+          >
+            Import from Sketch
+          </InputPopover>
         </div>
       </Header>
     )

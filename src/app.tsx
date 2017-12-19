@@ -43,7 +43,16 @@ class App extends React.Component<any, AppState> {
     const className = this.state.activeComponent ? '' : 'blank-slate'
     return (
       <Layout className="layout">
-        <Navbar />
+        <Navbar
+          onAddComponent={(component, structure) => {
+            workspace.addComponent(component, structure).then(() => {
+              this.setState({
+                activeComponent: component,
+                activeSelection: 'component'
+              })
+            })
+          }}
+        />
         <Content id="content" className={className}>
           <Sidebar
             metadata={workspace.metadata}
@@ -55,14 +64,6 @@ class App extends React.Component<any, AppState> {
                 activeSelection: 'component'
               })
             }
-            onAddComponent={(component, structure) => {
-              workspace.addComponent(component, structure).then(() => {
-                this.setState({
-                  activeComponent: component,
-                  activeSelection: 'component'
-                })
-              })
-            }}
             onDeleteComponent={(component: string) => {
               workspace.deleteComponent(component).then(() => {
                 if (this.state.activeComponent === component) {

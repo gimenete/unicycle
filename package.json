@@ -24,7 +24,6 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "@blueprintjs/core": "^1.25.1",
     "@types/codemirror": "0.0.45",
     "@types/fs-extra": "^4.0.2",
     "@types/lodash": "^4.14.74",

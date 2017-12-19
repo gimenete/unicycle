@@ -16,7 +16,6 @@ interface InputPopoverProps {
 
 interface InputPopoverState {
   inputValue: string
-  isVisible: boolean
 }
 
 export default class InputPopover extends React.Component<
@@ -26,8 +25,7 @@ export default class InputPopover extends React.Component<
   constructor(props: InputPopoverProps) {
     super(props)
     this.state = {
-      inputValue: '',
-      isVisible: false
+      inputValue: ''
     }
   }
 
@@ -41,12 +39,9 @@ export default class InputPopover extends React.Component<
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             this.setState({ inputValue: e.target.value })
           }
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === 'Escape') this.setState({ isVisible: false })
-          }}
           onPressEnter={e => {
             this.props.onEnter(this.state.inputValue)
-            this.setState({ inputValue: '', isVisible: false })
+            this.setState({ inputValue: '' })
           }}
         />
       </div>
@@ -56,7 +51,6 @@ export default class InputPopover extends React.Component<
         size={this.props.buttonSize || 'small'}
         type={this.props.buttonType}
         icon={this.props.buttonIcon}
-        onClick={() => this.setState({ isVisible: !this.state.isVisible })}
       >
         {this.props.children}
       </Button>
@@ -68,7 +62,6 @@ export default class InputPopover extends React.Component<
     )
     return (
       <Popover
-        visible={this.state.isVisible}
         placement={this.props.placement}
         content={content}
         trigger="click"
