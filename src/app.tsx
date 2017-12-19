@@ -8,6 +8,7 @@ import Navbar from './navbar'
 import OpenPage from './open'
 import Previews from './previews'
 import StylePaletteView from './style-palette-view'
+import GitLog from './git-log'
 import workspace from './workspace'
 
 import { Layout } from 'antd'
@@ -52,7 +53,8 @@ class App extends React.Component<any, AppState> {
               this.setState({
                 activeComponent: component,
                 activeSelection: 'component'
-              })}
+              })
+            }
             onAddComponent={(component, structure) => {
               workspace.addComponent(component, structure).then(() => {
                 this.setState({
@@ -94,6 +96,7 @@ class App extends React.Component<any, AppState> {
           )}
           {activeSelection === 'style-palette' && <StylePaletteView />}
           {activeSelection === 'assets' && <div>Assets</div>}
+          {activeSelection === 'git-log' && <GitLog />}
         </Content>
       </Layout>
     )

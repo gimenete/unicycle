@@ -23,7 +23,7 @@ class Navbar extends React.Component<any, NavbarState> {
   public render() {
     return (
       <Header>
-        <div className="logo" />
+        <div className="logo">Unicycle</div>
         <div style={{ lineHeight: '64px', float: 'right' }}>
           <Button.Group>
             <Button

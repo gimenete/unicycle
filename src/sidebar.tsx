@@ -52,7 +52,7 @@ class Sidebar extends React.Component<SidebarProps, any> {
           }}
         >
           <Menu.Item key="style-palette">
-            <Icon type="shop" />
+            <Icon type="form" />
             <span>Style Palette</span>
           </Menu.Item>
           <Menu.Item key="assets">
@@ -74,12 +74,15 @@ class Sidebar extends React.Component<SidebarProps, any> {
               </Menu.Item>
             ))}
           </SubMenu>
+          <Menu.Item key="git-log">
+            <Icon type="fork" />
+            <span>Git log</span>
+          </Menu.Item>
         </Menu>
-        <p>
+        <p style={{ textAlign: 'center' }}>
           <InputPopover
             placement="right"
             placeholder="ComponentName"
-            buttonType="primary"
             buttonSize="large"
             onEnter={value => {
               this.props.onAddComponent(value)
@@ -88,19 +91,19 @@ class Sidebar extends React.Component<SidebarProps, any> {
             New component
           </InputPopover>
         </p>
-        <p>
+        <p style={{ textAlign: 'center' }}>
           <InputPopover
             placement="right"
             placeholder="New component from Sketch"
+            buttonSize="large"
             onEnter={value => {
               this.props.onAddComponent(value, clipboard.readText())
             }}
           >
-            <img
+            {/* <img
               src="./assets/sketch-mac-icon@2x.png"
               style={{ width: 50, marginTop: 5 }}
-            />
-            <br />
+            /> */}
             Import from Sketch
           </InputPopover>
         </p>

@@ -289,7 +289,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
           <Button.Group>
             {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
             <InputPopover
-              placement="bottomRight"
+              placement="bottom"
               placeholder="New state"
               buttonIcon="plus-square-o"
               tooltipTitle="Add a new state"

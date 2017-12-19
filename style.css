@@ -36,7 +36,6 @@ body {
   overflow: auto;
   width: 200px;
   min-width: 200px;
-  background: whitesmoke;
   padding: 0;
   margin: 10px;
   margin-top: 0;
@@ -324,4 +323,14 @@ body #open .pt-non-ideal-state:hover {
 .pt-button.broadcasting,
 .pt-button.broadcasting::before {
   color: green;
+}
+
+.logo {
+  float: left;
+  color: white;
+  font-size: 30px;
+}
+
+.ant-layout-header {
+  padding-left: 21px;
 }
