@@ -48,15 +48,15 @@ body {
 #menu .pt-popover-target {
   width: 100%;
 }
-#editors .pt-tabs {
+#editors .ant-tabs-content {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
-#editors .pt-tabs .pt-tab-panel {
+#editors .ant-tabs-content .ant-tabs-tabpane {
   flex-grow: 1;
 }
-#editors .pt-tabs .pt-tab-panel .editor {
+#editors .ant-tabs-content .ant-tabs-tabpane .editor {
   height: calc(100vh - 120px);
   width: calc(50vw - 100px);
 }
@@ -66,6 +66,10 @@ body {
 
 #previews > div {
   height: calc(100vh - 90px); /* FIX */
+}
+
+span.error {
+  color: #f5222d;
 }
 
 .monaco-editor .error {
@@ -92,11 +96,10 @@ body {
   width: calc(50vw - 100px);
 }
 
-#previews-markup .preview > p {
+#previews-markup .preview > div {
   font-size: 12px;
   margin: 0;
   border-top: 1px solid var(--gray);
-  border-bottom: 1px solid var(--gray);
   background-color: whitesmoke;
   border-radius: 3px 3px 0 0;
   color: #363636;

@@ -11,10 +11,6 @@ class Server extends EventEmitter {
   private tunnel: any = null
   private qr: string | null = null
 
-  public isTunnelLoading() {
-    return this.tunnelLoading
-  }
-
   public getQR() {
     return this.qr
   }

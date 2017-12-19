@@ -145,4 +145,25 @@ export const CSS_PREFIX = '#previews-markup .preview-content'
 export const INCLUDE_PREFIX = 'include:'
 
 export const componentDataAttribute = (name: string) =>
-  `data-unicycle-component-${name}`
+  `data-unicycle-component-${name.toLocaleLowerCase()}`
+
+export type AntPlacement =
+  | 'top'
+  | 'left'
+  | 'right'
+  | 'bottom'
+  | 'topLeft'
+  | 'topRight'
+  | 'bottomLeft'
+  | 'bottomRight'
+  | 'rightBottom'
+  | 'rightTop'
+  | 'leftTop'
+  | 'leftBottom'
+
+export type AntButtonType =
+  | 'ghost'
+  | 'primary'
+  | 'dashed'
+  | 'danger'
+  | undefined

@@ -1,17 +1,22 @@
-import { Popover, Position } from '@blueprintjs/core'
+import { Button, Popover, Input, Tooltip } from 'antd'
 import * as React from 'react'
+import { AntPlacement, AntButtonType } from '../types'
 
 interface InputPopoverProps {
-  position?: Position
+  placement?: AntPlacement
   placeholder: string
-  buttonClassName: string
+  buttonType?: AntButtonType
+  buttonIcon?: string
+  buttonSize?: 'large' | 'default' | 'small'
+  tooltipTitle?: string
+  tooltipPlacement?: AntPlacement
   popoverClassName?: string
   onEnter: ((value: string) => void)
 }
 
 interface InputPopoverState {
   inputValue: string
-  isOpen: boolean
+  isVisible: boolean
 }
 
 export default class InputPopover extends React.Component<
@@ -22,46 +27,53 @@ export default class InputPopover extends React.Component<
     super(props)
     this.state = {
       inputValue: '',
-      isOpen: false
+      isVisible: false
     }
   }
 
   public render() {
+    const content = (
+      <div style={{ padding: 10 }}>
+        <Input
+          placeholder={this.props.placeholder}
+          autoFocus
+          value={this.state.inputValue}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            this.setState({ inputValue: e.target.value })
+          }
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Escape') this.setState({ isVisible: false })
+          }}
+          onPressEnter={e => {
+            this.props.onEnter(this.state.inputValue)
+            this.setState({ inputValue: '', isVisible: false })
+          }}
+        />
+      </div>
+    )
+    const button = (
+      <Button
+        size={this.props.buttonSize || 'small'}
+        type={this.props.buttonType}
+        icon={this.props.buttonIcon}
+        onClick={() => this.setState({ isVisible: !this.state.isVisible })}
+      >
+        {this.props.children}
+      </Button>
+    )
+    const target = this.props.tooltipTitle ? (
+      <Tooltip title={this.props.tooltipTitle}>{button}</Tooltip>
+    ) : (
+      button
+    )
     return (
       <Popover
-        position={this.props.position}
-        isOpen={this.state.isOpen}
-        isModal
-        popoverClassName={this.props.popoverClassName || 'input-popover'}
-        onInteraction={interaction =>
-          !interaction && this.setState({ isOpen: false })}
+        visible={this.state.isVisible}
+        placement={this.props.placement}
+        content={content}
+        trigger="click"
       >
-        <button
-          className={this.props.buttonClassName}
-          type="button"
-          onClick={() => this.setState({ isOpen: !this.state.isOpen })}
-        >
-          {this.props.children}
-        </button>
-        <div style={{ padding: 10 }}>
-          <input
-            type="text"
-            className="pt-input"
-            placeholder={this.props.placeholder}
-            autoFocus
-            value={this.state.inputValue}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              this.setState({ inputValue: e.target.value })}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'Escape') this.setState({ isOpen: false })
-            }}
-            onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key !== 'Enter') return
-              this.props.onEnter(this.state.inputValue)
-              this.setState({ inputValue: '', isOpen: false })
-            }}
-          />
-        </div>
+        {target}
       </Popover>
     )
   }

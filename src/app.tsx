@@ -3,12 +3,15 @@ import * as ReactDOM from 'react-dom'
 
 import BlankSlate from './blank-slate'
 import Editors from './editors'
-import Menu from './menu'
+import Sidebar from './sidebar'
 import Navbar from './navbar'
 import OpenPage from './open'
 import Previews from './previews'
 import StylePaletteView from './style-palette-view'
 import workspace from './workspace'
+
+import { Layout } from 'antd'
+const { Content } = Layout
 
 import './server'
 
@@ -38,10 +41,10 @@ class App extends React.Component<any, AppState> {
     const { activeComponent, activeSelection } = this.state
     const className = this.state.activeComponent ? '' : 'blank-slate'
     return (
-      <div>
+      <Layout className="layout">
         <Navbar />
-        <div id="content" className={className}>
-          <Menu
+        <Content id="content" className={className}>
+          <Sidebar
             metadata={workspace.metadata}
             activeSelection={activeSelection}
             activeComponent={activeComponent}
@@ -91,8 +94,8 @@ class App extends React.Component<any, AppState> {
           )}
           {activeSelection === 'style-palette' && <StylePaletteView />}
           {activeSelection === 'assets' && <div>Assets</div>}
-        </div>
-      </div>
+        </Content>
+      </Layout>
     )
   }
 }

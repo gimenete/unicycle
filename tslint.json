@@ -10,6 +10,7 @@
     "arrow-parens": false,
     "no-var-requires": false,
     "max-classes-per-file": false,
-    "no-console": false
+    "no-console": false,
+    "ordered-imports": false
   }
 }

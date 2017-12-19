@@ -63,7 +63,8 @@ class OpenPage extends React.Component<any, any> {
         const loader = document.querySelector('#loading')
         if (loader) loader.parentNode!.removeChild(loader)
 
-        BrowserWindow.getFocusedWindow().maximize()
+        const window = BrowserWindow.getFocusedWindow()
+        if (window) window.maximize()
       })
       .catch(errorHandler)
   }

@@ -1,8 +1,8 @@
-import { Overlay, Position, Slider } from '@blueprintjs/core'
+import { Popover, Button, Slider, Tooltip, Popconfirm, Icon } from 'antd'
+import { throttle } from 'lodash'
 import * as React from 'react'
 
-import ConfirmPopover from './components/ConfirmPopover'
-import DiffImagePopoverProps from './components/DiffImagePopover'
+import DiffImagePopover from './components/DiffImagePopover'
 import InputPopover from './components/InpuPopover'
 import MediaPopoverProps from './components/MediaPopover'
 import { DiffImage, Media, State, States } from './types'
@@ -49,7 +49,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
   }
 
   public render(): JSX.Element | null {
-    const code = this.generateOutput()
+    // const code = this.generateOutput()
 
     const component = workspace.getComponent(this.props.activeComponent)
     if (!component) return <div />
@@ -106,12 +106,12 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       }
 
       const data: States = component.data.getStates()
-      const someHaveDiffImage = data.some(hasDiffImage)
+      const someHaveDiffImage = false // data.some(hasDiffImage)
 
       const components = new Set<string>()
       const previews = data.map((state, i) => {
         const diffImage = state.diffImage
-        const hiddenClass = state.hidden ? '' : 'pt-active'
+        const hiddenType = state.hidden ? void 0 : 'primary'
         let errors = 0
         const preview = renderComponent(
           component,
@@ -145,67 +145,98 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
         })
         return (
           <div className="preview" key={i}>
-            <p>
+            <div>
               <span className="preview-bar">
-                {errors > 0 && <span className="pt-icon-error">{errors}</span>}
-                <button
-                  className={`pt-button pt-minimal pt-small pt-icon-eye-open ${hiddenClass}`}
-                  type="button"
-                  onClick={() => this.toggleHiddenState(state)}
-                />
-                <DiffImagePopoverProps
-                  position={Position.LEFT_TOP}
-                  componentName={this.props.activeComponent}
-                  diffImage={diffImage}
-                  buttonClassName={`pt-button pt-minimal pt-small pt-icon-media ${hasDiffImage(
-                    state
-                  )
-                    ? 'pt-active'
-                    : ''}`}
-                  onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
-                  onChange={image => editors.dataEditor!.setDiffImage(image, i)}
-                />
-                <MediaPopoverProps
-                  position={Position.LEFT_TOP}
-                  buttonClassName={`pt-button pt-minimal pt-small pt-icon-widget ${hasMediaInfo(
-                    state
-                  )
-                    ? 'pt-active'
-                    : ''}`}
-                  media={media}
-                  onChange={newMedia =>
-                    editors.dataEditor!.setMedia(newMedia, i)}
-                />
+                {errors > 0 && (
+                  <span className="error">
+                    <Icon type="close-circle-o" /> {errors}
+                  </span>
+                )}
+                <Button.Group>
+                  <Tooltip title="Show / Hide state">
+                    <Button
+                      type={hiddenType}
+                      icon="eye"
+                      size="small"
+                      onClick={() => this.toggleHiddenState(state)}
+                    />
+                  </Tooltip>
+                  <Popover
+                    trigger="click"
+                    placement="bottomRight"
+                    content={
+                      <DiffImagePopover
+                        componentName={this.props.activeComponent}
+                        diffImage={diffImage}
+                        onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
+                        onChange={image =>
+                          editors.dataEditor!.setDiffImage(image, i)
+                        }
+                      />
+                    }
+                  >
+                    <Tooltip title="Set / Delete diff image">
+                      <Button
+                        icon="picture"
+                        size="small"
+                        type={hasDiffImage(state) ? 'primary' : undefined}
+                      />
+                    </Tooltip>
+                  </Popover>
+                  <Popover
+                    placement="bottomRight"
+                    trigger="click"
+                    content={
+                      <MediaPopoverProps
+                        media={media}
+                        onChange={newMedia =>
+                          editors.dataEditor!.setMedia(newMedia, i)
+                        }
+                      />
+                    }
+                  >
+                    <Tooltip title="Configure media properties">
+                      <Button
+                        icon="filter"
+                        size="small"
+                        type={hasMediaInfo(state) ? 'primary' : undefined}
+                      />
+                    </Tooltip>
+                  </Popover>
+                </Button.Group>
+
                 <InputPopover
-                  position={Position.LEFT}
+                  placement="bottomRight"
                   placeholder="New state"
-                  buttonClassName="pt-button pt-minimal pt-small pt-icon-duplicate"
+                  tooltipTitle="Duplicate state"
+                  buttonIcon="api"
                   onEnter={name => {
                     editors.dataEditor!.addState(name, i)
                   }}
                 />
-                <ConfirmPopover
-                  position={Position.LEFT}
-                  buttonClassName="pt-button pt-minimal pt-small pt-icon-trash"
-                  message="Are you sure you want to delete this state?"
-                  confirmText="Yes, delete it"
-                  cancelText="Cancel"
-                  confirmClassName="pt-button pt-intent-danger"
-                  cancelClassName="pt-button"
-                  onConfirm={() => {
-                    editors.dataEditor!.deleteState(i)
-                  }}
-                />
+                <Tooltip title="Delete state">
+                  <Popconfirm
+                    placement="left"
+                    title="Are you sure you want to delete this state?"
+                    okText="Yes, delete it"
+                    cancelText="Cancel"
+                    onConfirm={() => {
+                      editors.dataEditor!.deleteState(i)
+                    }}
+                  >
+                    <Button icon="delete" type="danger" size="small" />
+                  </Popconfirm>
+                </Tooltip>
               </span>
               {state.name}
-            </p>
+            </div>
             <div style={{ position: 'relative' }}>
               <div className={classNames.join(' ')}>{preview}</div>
               {state.diffImage && (
                 <div
-                  className={`preview-content-overlay ${state.hidden
-                    ? 'hidden'
-                    : ''}`}
+                  className={`preview-content-overlay ${
+                    state.hidden ? 'hidden' : ''
+                  }`}
                   style={{
                     clipPath:
                       this.state.diffMode === 'slider'
@@ -227,50 +258,54 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       const componentsInformation = Array.from(components).map(name => {
         return workspace.loadComponent(name)
       })
+      const updateDiffValue = throttle(
+        (diffValue: number) => this.setState({ diffValue }),
+        10
+      )
       return (
         <div>
-          <div
-            className="pt-button-group pt-minimal"
-            style={{ float: 'right' }}
-          >
-            {/* <button className="pt-button pt-icon-grid" type="button" /> */}
-            <button
-              className={`pt-button pt-icon-grid-view ${this.state.showGrid
-                ? 'pt-active'
-                : ''}`}
-              type="button"
-              onClick={() => this.setState({ showGrid: !this.state.showGrid })}
-            />
-            <button
-              className={`pt-button pt-icon-locate ${this.state.inspecting
-                ? 'pt-active'
-                : ''}`}
-              type="button"
-              onClick={() => this.toggleInspecting()}
-            />
+          <div style={{ float: 'right' }}>
+            <Button.Group>
+              <Tooltip title="Toggle grid">
+                <Button
+                  size="small"
+                  icon="layout"
+                  type={this.state.showGrid ? 'primary' : undefined}
+                  onClick={() =>
+                    this.setState({ showGrid: !this.state.showGrid })
+                  }
+                />
+              </Tooltip>
+              <Tooltip title="Toggle inspecting tool">
+                <Button
+                  size="small"
+                  icon="select"
+                  type={this.state.inspecting ? 'primary' : undefined}
+                  onClick={() => this.toggleInspecting()}
+                />
+              </Tooltip>
+            </Button.Group>
           </div>
-          <div className="pt-button-group pt-minimal">
+          <Button.Group>
             {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
             <InputPopover
-              position={Position.BOTTOM}
+              placement="bottomRight"
               placeholder="New state"
-              buttonClassName="pt-button pt-icon-new-object"
+              buttonIcon="plus-square-o"
+              tooltipTitle="Add a new state"
               onEnter={name => {
                 this.scrollDown = true
                 editors.addState(name)
               }}
             />
             {someHaveDiffImage && (
-              <button
-                type="button"
-                className={`pt-button pt-minimal ${this.state.diffMode ===
-                'slider'
-                  ? 'pt-icon-layers'
-                  : 'pt-icon-contrast'}`}
+              <Button
+                size="small"
+                icon={this.state.diffMode === 'slider' ? 'swap' : 'copy'}
                 onClick={() => this.toggleDiffMode()}
               />
             )}
-          </div>
+          </Button.Group>
           <style>{'[data-unicycle-component-root] { all: initial }'}</style>
           {componentsInformation.map(info =>
             info.style
@@ -284,10 +319,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
               <Slider
                 min={0}
                 max={100}
-                stepSize={1}
-                onChange={diffValue => this.setState({ diffValue })}
-                showTrackFill={false}
-                renderLabel={false}
+                tipFormatter={null}
+                onChange={diffValue => updateDiffValue(diffValue as number)}
                 value={this.state.diffValue}
               />
             </div>
@@ -298,43 +331,6 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
           >
             {previews}
           </div>
-          <Overlay
-            isOpen={this.state.isOutputOpen}
-            onClose={() => this.setState({ isOutputOpen: false })}
-          >
-            <div className="pt-card output">
-              <div>
-                <button
-                  className="pt-button pt-minimal pt-icon-cross"
-                  onClick={() => this.setState({ isOutputOpen: false })}
-                />
-                <div className="pt-select pt-minimal">
-                  <select defaultValue="0">
-                    <option value="0">React.js</option>
-                    <option value="1">Angular.js</option>
-                    <option value="2">Vue.js</option>
-                    <option value="3">Elm</option>
-                  </select>
-                </div>
-                <div className="pt-select pt-minimal">
-                  <select defaultValue="0">
-                    <option value="0">SCSS</option>
-                    <option value="1">CSS</option>
-                  </select>
-                </div>
-                <div className="pt-select pt-minimal">
-                  <select defaultValue="0">
-                    <option value="0">ES 2017</option>
-                    <option value="1">TypeScript</option>
-                    <option value="2">Flow</option>
-                  </select>
-                </div>
-              </div>
-              <div className="output-code">
-                <textarea className="pt-input pt-fill" value={code} readOnly />
-              </div>
-            </div>
-          </Overlay>
         </div>
       )
     })

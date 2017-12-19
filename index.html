@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Unicycle</title>
-  <link rel="stylesheet" href="./node_modules/@blueprintjs/core/dist/blueprint.css">
+  <link rel="stylesheet" href="./node_modules/antd/dist/antd.min.css">
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="./node_modules/monaco-editor/min/vs/editor/editor.main.css">
   <link rel="stylesheet" href="./style.css">
   <script src="./node_modules/mousetrap/mousetrap.min.js"></script>
@@ -13,13 +13,13 @@
 <body>
   <div id="app">
     <div id="loading">
-      <div class="pt-spinner pt-large">
-        <div class="pt-spinner-svg-container">
-          <svg viewBox="0 0 100 100">
-            <path class="pt-spinner-track" d="M 50,50 m 0,-44.5 a 44.5,44.5 0 1 1 0,89 a 44.5,44.5 0 1 1 0,-89"></path>
-            <path class="pt-spinner-head" d="M 94.5 50 A 44.5 44.5 0 0 0 50 5.5"></path>
-          </svg>
-        </div>
+      <div class="ant-spin ant-spin-spinning">
+        <span class="ant-spin-dot">
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+        </span>
       </div>
     </div>
   </div>

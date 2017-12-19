@@ -1,18 +1,18 @@
-import { Popover, Position } from '@blueprintjs/core'
+import { Button, Switch, Form } from 'antd'
 import electron = require('electron')
 import * as React from 'react'
 import * as sharp from 'sharp'
 import errorHandler from '../error-handler'
 import workspace from '../workspace'
 
-const { BrowserWindow, dialog } = electron.remote
-
 import { DiffImage } from '../types'
+
+const FormItem = Form.Item
+
+const { BrowserWindow, dialog } = electron.remote
 
 interface DiffImagePopoverProps {
   componentName: string
-  position?: Position
-  buttonClassName: string
   diffImage?: DiffImage
   onChange: (image: DiffImage) => void
   onDelete: () => void
@@ -113,131 +113,111 @@ export default class DiffImagePopover extends React.Component<
   public render() {
     const renderResolutionButton = (value: string) => {
       return (
-        <button
-          className={`pt-button ${this.state.resolution === value
-            ? 'pt-active'
-            : ''}`}
-          type="button"
+        <Button
+          type={this.state.resolution === value ? 'primary' : undefined}
           onClick={e =>
-            this.setState({ resolution: value }, () => this.sendChanges())}
+            this.setState({ resolution: value }, () => this.sendChanges())
+          }
         >
           {value}
-        </button>
+        </Button>
       )
     }
 
-    const renderAlignButton = (icon: string, value: string) => {
+    const renderAlignButton = (text: string, value: string) => {
       return (
-        <button
-          className={`pt-button pt-minimal pt-icon-${icon} ${this.state
-            .align === value
-            ? 'pt-active'
-            : ''}`}
-          type="button"
+        <Button
+          type={this.state.align === value ? 'primary' : undefined}
           onClick={e =>
-            this.setState({ align: value }, () => this.sendChanges())}
-        />
+            this.setState({ align: value }, () => this.sendChanges())
+          }
+        >
+          {text}
+        </Button>
       )
     }
 
     return (
-      <Popover
-        position={this.props.position}
-        isOpen={this.state.isOpen}
-        isModal
-        onInteraction={interaction =>
-          !interaction && this.setState({ isOpen: false })}
-      >
-        <button
-          className={this.props.buttonClassName}
-          type="button"
-          onClick={() => this.setState({ isOpen: !this.state.isOpen })}
-        />
-        <div style={{ padding: 20 }}>
-          <div
-            className="drop-zone"
-            onDrop={e => this.handleDrop(e)}
-            onDragEnter={e => e.preventDefault()}
-            onDragOver={e => e.preventDefault()}
-            onClick={e => {
-              const paths = dialog.showOpenDialog(
-                BrowserWindow.getFocusedWindow(),
-                {
-                  properties: ['openFile'],
-                  filters: [
-                    {
-                      name: 'Images',
-                      extensions: ['jpg', 'jpeg', 'tiff', 'png', 'gif']
-                    }
-                  ]
-                }
-              )
-              if (paths.length > 0) {
-                this.handleFile(paths[0])
+      <div style={{ padding: 20 }}>
+        <div
+          className="drop-zone"
+          onDrop={e => this.handleDrop(e)}
+          onDragEnter={e => e.preventDefault()}
+          onDragOver={e => e.preventDefault()}
+          onClick={e => {
+            const paths = dialog.showOpenDialog(
+              BrowserWindow.getFocusedWindow(),
+              {
+                properties: ['openFile'],
+                filters: [
+                  {
+                    name: 'Images',
+                    extensions: ['jpg', 'jpeg', 'tiff', 'png', 'gif']
+                  }
+                ]
               }
-            }}
-          >
-            <p>Click or drop an image here</p>
-          </div>
-          {this.state.path && (
-            <div>
-              <div style={{ textAlign: 'center' }}>
-                <div className="pt-button-group">
-                  {renderResolutionButton('@1x')}
-                  {renderResolutionButton('@2x')}
-                </div>
-                <br />
-                <br />
-                <div className="pt-button-group">
-                  {renderAlignButton('arrow-top-left', 'top left')}
-                  {renderAlignButton('arrow-up', 'top')}
-                  {renderAlignButton('arrow-top-right', 'top right')}
-                </div>
-                <br />
-                <div className="pt-button-group">
-                  {renderAlignButton('arrow-left', 'left')}
-                  {renderAlignButton('symbol-circle', 'center')}
-                  {renderAlignButton('arrow-right', 'right')}
-                </div>
-                <br />
-                <div className="pt-button-group">
-                  {renderAlignButton('arrow-bottom-left', 'bottom left')}
-                  {renderAlignButton('arrow-down', 'bottom')}
-                  {renderAlignButton('arrow-bottom-right', 'bottom right')}
-                </div>
-              </div>
-              <p>
-                <br />
-                <label className="pt-control pt-switch">
-                  <input
-                    type="checkbox"
-                    checked={!!this.state.adjustWidthPreview}
-                    onChange={e =>
-                      this.setState(
-                        {
-                          adjustWidthPreview: !this.state.adjustWidthPreview
-                        },
-                        () => this.sendChanges()
-                      )}
-                  />
-                  <span className="pt-control-indicator" />
-                  Adjust preview width to image width
-                </label>
-              </p>
-              <p>
-                <br />
-                <button
-                  className="pt-button pt-intent-danger pt-fill"
-                  onClick={e =>
-                    this.setState(defaultState, this.props.onDelete)}
-                >
-                  Delete diff image
-                </button>
-              </p>
-            </div>
-          )}
+            )
+            if (paths.length > 0) {
+              this.handleFile(paths[0])
+            }
+          }}
+        >
+          <p>Click or drop an image here</p>
         </div>
-      </Popover>
+        {this.state.path && (
+          <div>
+            <div style={{ textAlign: 'center' }}>
+              <Button.Group>
+                {renderResolutionButton('@1x')}
+                {renderResolutionButton('@2x')}
+              </Button.Group>
+              <br />
+              <br />
+              <div>
+                {renderAlignButton('↖︎', 'top left')}
+                {renderAlignButton('↑', 'top')}
+                {renderAlignButton('↗︎', 'top right')}
+              </div>
+              <div>
+                {renderAlignButton('←', 'left')}
+                {renderAlignButton('◉', 'center')}
+                {renderAlignButton('→', 'right')}
+              </div>
+              <div>
+                {renderAlignButton('↙︎', 'bottom left')}
+                {renderAlignButton('↓', 'bottom')}
+                {renderAlignButton('↘︎', 'bottom right')}
+              </div>
+            </div>
+            <div>
+              <br />
+              <div>
+                <Switch
+                  checked={!!this.state.adjustWidthPreview}
+                  onChange={e =>
+                    this.setState(
+                      {
+                        adjustWidthPreview: !this.state.adjustWidthPreview
+                      },
+                      () => this.sendChanges()
+                    )
+                  }
+                />{' '}
+                Adjust preview width to image width
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <br />
+              <Button
+                type="danger"
+                onClick={e => this.setState(defaultState, this.props.onDelete)}
+              >
+                Delete diff image
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     )
   }
 }

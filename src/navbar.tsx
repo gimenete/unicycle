@@ -3,6 +3,9 @@ import * as React from 'react'
 import BroadcastPopover from './components/BroadcastPopover'
 import workspace from './workspace'
 
+import { Layout, Button } from 'antd'
+const { Header } = Layout
+
 const { BrowserWindow, dialog } = electron.remote
 
 interface NavbarState {
@@ -19,19 +22,12 @@ class Navbar extends React.Component<any, NavbarState> {
 
   public render() {
     return (
-      <div id="navbar">
-        <nav className="pt-navbar">
-          <div className="pt-navbar-group pt-align-left">
-            <div className="pt-navbar-heading">Unicycle</div>
-            {/* <input
-              className="pt-input"
-              placeholder="Search files..."
-              type="text"
-            /> */}
-          </div>
-          <div className="pt-navbar-group pt-align-right">
-            <button
-              className="pt-button pt-minimal pt-icon-download"
+      <Header>
+        <div className="logo" />
+        <div style={{ lineHeight: '64px', float: 'right' }}>
+          <Button.Group>
+            <Button
+              icon="save"
               onClick={() => {
                 console.log(
                   dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
@@ -41,19 +37,19 @@ class Navbar extends React.Component<any, NavbarState> {
               }}
             >
               Save
-            </button>
-            <button
-              className="pt-button pt-minimal pt-icon-export"
+            </Button>
+            <Button
+              icon="upload"
               onClick={() => {
                 workspace.emit('export')
               }}
             >
               Export
-            </button>
+            </Button>
             <BroadcastPopover />
-          </div>
-        </nav>
-      </div>
+          </Button.Group>
+        </div>
+      </Header>
     )
   }
 }
