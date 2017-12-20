@@ -62,6 +62,13 @@ class JSONEditor extends Editor {
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 
+  public toggleHiddenState(index: number) {
+    const str = this.editor.getValue()
+    const data = JSON.parse(str) as States
+    data[index].hidden = !data[index].hidden
+    this.editor.setValue(JSON.stringify(data, null, 2))
+  }
+
   public setDiffImage(diffImage: DiffImage, index: number) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States

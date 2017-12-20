@@ -158,7 +158,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                       type={hiddenType}
                       icon="eye"
                       size="small"
-                      onClick={() => this.toggleHiddenState(state)}
+                      onClick={() => this.toggleHiddenState(i)}
                     />
                   </Tooltip>
                   <Popover
@@ -389,11 +389,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     })
   }
 
-  private toggleHiddenState(state: State) {
-    state.hidden = !state.hidden
-    editors.dataEditor!.editor.setValue(
-      JSON.stringify(editors.dataEditor!.latestJSON, null, 2)
-    )
+  private toggleHiddenState(index: number) {
+    editors.dataEditor!.toggleHiddenState(index)
   }
 
   private generateOutput(): string {

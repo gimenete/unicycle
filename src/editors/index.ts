@@ -47,7 +47,7 @@ class Editor {
     this.editor.getModel().updateOptions({ tabSize: 2 })
     this.editor.onDidChangeModelContent(
       (e: monaco.editor.IModelContentChangedEvent) => {
-        if (this.doNotTriggerEvents) return
+        if (this.doNotTriggerEvents) return this.update()
         workspace
           .writeComponentFile(this.componentName, file, this.editor.getValue())
           .then(() => {
