@@ -1,16 +1,10 @@
 import { ErrorHandler } from '../types'
 import workspace from '../workspace'
 
-interface Message {
+export interface Message {
   text: string
   position: monaco.Position
 }
-
-interface MessagesResolver {
-  addMessage(position: monaco.Position, text: string): void
-}
-
-type MessageRunner<T> = (resolve: MessagesResolver) => T
 
 const defaultOptions: monaco.editor.IEditorConstructionOptions = {
   lineNumbers: 'on',
@@ -81,16 +75,7 @@ class Editor {
     this.oldDecorations[type] = []
   }
 
-  public calculateMessages<T>(type: string, runner: MessageRunner<T>): T {
-    const messages = new Array<Message>()
-    const returnValue = runner({
-      addMessage(position: monaco.Position, text: string) {
-        messages.push({
-          position,
-          text
-        })
-      }
-    })
+  public setMessages(type: string, messages: Message[]) {
     this.oldDecorations[type] = this.editor.deltaDecorations(
       this.oldDecorations[type] || [],
       messages.map(message => {
@@ -113,7 +98,6 @@ class Editor {
         }
       })
     )
-    return returnValue
   }
 
   public update() {

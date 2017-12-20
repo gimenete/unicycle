@@ -4,7 +4,7 @@ import * as EventEmitter from 'events'
 import * as os from 'os'
 import * as React from 'react'
 
-import Editor from './editors/index'
+import Editor, { Message } from './editors/index'
 import JSONEditor from './editors/json'
 import MarkupEditor from './editors/markup'
 import StyleEditor from './editors/style'
@@ -86,7 +86,8 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
         animated={false}
         activeKey={this.state.selectedTabId}
         onTabClick={(selectedTabId: string) =>
-          this.handleTabChange(selectedTabId)}
+          this.handleTabChange(selectedTabId)
+        }
       >
         <TabPane tab={`Markup ${key}1`} key="markup" forceRender>
           <div
@@ -153,19 +154,19 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
 
     const { activeComponent } = this.props
     const component = workspace.getComponent(activeComponent)
-    Editors.styleEditor!.calculateMessages('inspector', handler => {
-      component.style.iterateSelectors(info => {
-        if (element.matches(info.selector)) {
-          handler.addMessage(
-            new monaco.Position(
-              info.mapping.originalLine,
-              info.mapping.originalColumn
-            ),
-            ''
-          )
-        }
-      })
+    const messages: Message[] = []
+    component.style.iterateSelectors(info => {
+      if (element.matches(info.selector)) {
+        messages.push({
+          position: new monaco.Position(
+            info.mapping.originalLine,
+            info.mapping.originalColumn
+          ),
+          text: ''
+        })
+      }
     })
+    Editors.styleEditor!.setMessages('inspector', messages)
   }
 
   private focusVisibleEditor() {

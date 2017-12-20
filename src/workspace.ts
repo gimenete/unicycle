@@ -104,7 +104,7 @@ class Workspace extends EventEmitter {
       component.markup.setMarkup(data)
     } else if (file === 'data.json') {
       component.data.setData(data)
-    } else if (file === 'styles.css') {
+    } else if (file === 'styles.scss') {
       component.style.setStyle(data)
     }
     this.emit('componentUpdated')
@@ -140,7 +140,6 @@ class Workspace extends EventEmitter {
   public getComponent(name: string): Component {
     let info = this.components.get(name)
     if (info) return info
-
     info = this.loadComponent(name)
     this.components.set(name, info)
     return info

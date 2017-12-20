@@ -49,7 +49,11 @@ class ComponentData {
   }
 
   public setData(source: string) {
-    this.states = JSON.parse(source)
+    try {
+      this.states = JSON.parse(source)
+    } catch (err) {
+      // Ignore this error. This should be handled by json.update()
+    }
   }
 
   public getStates() {
@@ -96,46 +100,52 @@ class ComponentStyle {
   }
 
   public iterateSelectors(iterator: SelectorIterator) {
-    const css = this.getCSS()
-    const smc = new SourceMapConsumer(css.map)
-    const allMappings: SourceMapMapping[] = []
-    smc.eachMapping((m: SourceMapMapping) => {
-      allMappings.push(m)
-    })
-    const findMapping = (position: PostCSSPosition) => {
-      let lastMapping: SourceMapMapping | null = null
-      for (const m of allMappings) {
-        if (m.generatedLine === position.line) {
-          lastMapping = m
-        }
-      }
-      return lastMapping
-    }
-    const iterateNode = (node: PostCSSNode) => {
-      if (node.type === 'rule') {
-        const rule = node as PostCSSRule
-        const startMapping = findMapping(node.source.start)
-        // TODO: calculate endMapping with rule.selector.split(/[\\r\\n]/)
-        // increase lineNumber depending on arr.length - 1
-        // calculate column with last line's length
-        if (startMapping) {
-          if (rule.ids) {
-            const selector =
-              rule.ids!.map(id => `.${id}`).join('') + ' ' + rule.selector
-            iterator({
-              selector,
-              originalSelector: selector.substring(CSS_PREFIX.length),
-              mapping: startMapping
-            })
-          } else {
-            console.warn('selector without ids', rule)
+    try {
+      const css = this.getCSS()
+      const smc = new SourceMapConsumer(css.map)
+      const allMappings: SourceMapMapping[] = []
+      smc.eachMapping((m: SourceMapMapping) => {
+        allMappings.push(m)
+      })
+      const findMapping = (position: PostCSSPosition) => {
+        let lastMapping: SourceMapMapping | null = null
+        for (const m of allMappings) {
+          if (m.generatedLine === position.line) {
+            lastMapping = m
           }
         }
-      } else if (node.nodes) {
-        node.nodes.forEach(iterateNode)
+        return lastMapping
+      }
+      const iterateNode = (node: PostCSSNode) => {
+        if (node.type === 'rule') {
+          const rule = node as PostCSSRule
+          const startMapping = findMapping(node.source.start)
+          // TODO: calculate endMapping with rule.selector.split(/[\\r\\n]/)
+          // increase lineNumber depending on arr.length - 1
+          // calculate column with last line's length
+          if (startMapping) {
+            if (rule.ids) {
+              const selector =
+                rule.ids!.map(id => `.${id}`).join('') + ' ' + rule.selector
+              iterator({
+                selector,
+                originalSelector: selector.substring(CSS_PREFIX.length),
+                mapping: startMapping
+              })
+            } else {
+              console.warn('selector without ids', rule)
+            }
+          }
+        } else if (node.nodes) {
+          node.nodes.forEach(iterateNode)
+        }
+      }
+      iterateNode(css.ast)
+    } catch (err) {
+      if (err.line == null && err.column == null) {
+        throw err
       }
     }
-    iterateNode(css.ast)
   }
 }
 

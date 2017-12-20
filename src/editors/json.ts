@@ -18,15 +18,19 @@ class JSONEditor extends Editor {
   }
 
   public update() {
-    this.calculateMessages('error', handler => {
-      try {
-        this.latestJSON = JSON.parse(this.editor.getValue())
-      } catch (e) {
-        const index = +e.message.match(/\d+/)
-        const position = this.editor.getModel().getPositionAt(index)
-        handler.addMessage(position, e.message)
-      }
-    })
+    try {
+      this.latestJSON = JSON.parse(this.editor.getValue())
+      this.setMessages('error', [])
+    } catch (e) {
+      const index = +e.message.match(/\d+/)
+      const position = this.editor.getModel().getPositionAt(index)
+      this.setMessages('error', [
+        {
+          position,
+          text: e.message
+        }
+      ])
+    }
   }
 
   public addState(name: string, index?: number) {

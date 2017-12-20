@@ -13,6 +13,7 @@ import reactGenerator from './generators/react'
 import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
+import { Message } from './editors/index'
 
 const mediaQuery = require('css-mediaquery')
 
@@ -49,8 +50,6 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
   }
 
   public render(): JSX.Element | null {
-    // const code = this.generateOutput()
-
     const component = workspace.getComponent(this.props.activeComponent)
     if (!component) return <div />
 
@@ -58,82 +57,70 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
 
-    const calculateMessages = (
-      foo: string,
-      callback: (handler: any) => JSX.Element
-    ): JSX.Element => {
-      return callback({
-        addMessage: () => {
-          console.log('...')
-        }
-      })
+    const markupMessages: Message[] = []
+    const styleMessages: Message[] = []
+
+    const diffImageProperties = (diffImage: DiffImage): React.CSSProperties => {
+      const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
+      const { width, height } = diffImage
+      return {
+        backgroundImage: `url(${workspace.pathForComponentFile(
+          component.name,
+          diffImage.file
+        )})`,
+        backgroundSize: `${width / multiplier}px ${height / multiplier}px`,
+        backgroundPosition: diffImage.align
+      }
     }
 
-    return calculateMessages('error', handler => {
-      const diffImageProperties = (
-        diffImage: DiffImage
-      ): React.CSSProperties => {
-        const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
-        const { width, height } = diffImage
-        return {
-          backgroundImage: `url(${workspace.pathForComponentFile(
-            component.name,
-            diffImage.file
-          )})`,
-          backgroundSize: `${width / multiplier}px ${height / multiplier}px`,
-          backgroundPosition: diffImage.align
-        }
+    const rootNodeProperties = (diffImage?: DiffImage): React.CSSProperties => {
+      if (!diffImage || !diffImage.adjustWidthPreview) return {}
+      const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
+      const { width } = diffImage
+      return {
+        width: width / multiplier,
+        boxSizing: 'border-box'
       }
+    }
 
-      const rootNodeProperties = (
-        diffImage?: DiffImage
-      ): React.CSSProperties => {
-        if (!diffImage || !diffImage.adjustWidthPreview) return {}
-        const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
-        const { width } = diffImage
-        return {
-          width: width / multiplier,
-          boxSizing: 'border-box'
-        }
-      }
+    const hasDiffImage = (state: State) => {
+      return !!state.diffImage
+    }
 
-      const hasDiffImage = (state: State) => {
-        return !!state.diffImage
-      }
+    const hasMediaInfo = (state: State) => {
+      return !!state.media
+    }
 
-      const hasMediaInfo = (state: State) => {
-        return !!state.media
-      }
+    const data: States = component.data.getStates()
+    const someHaveDiffImage = false // data.some(hasDiffImage)
 
-      const data: States = component.data.getStates()
-      const someHaveDiffImage = false // data.some(hasDiffImage)
-
-      const components = new Set<string>()
-      const previews = data.map((state, i) => {
-        const diffImage = state.diffImage
-        const hiddenType = state.hidden ? void 0 : 'primary'
-        let errors = 0
-        const preview = renderComponent(
-          component,
-          state,
-          rootNodeProperties(state.diffImage),
-          components,
-          (name: string, position: monaco.Position, text: string) => {
-            if (name === component.name) {
-              handler.addMessage(position, text)
-            }
-            errors++
+    const components = new Set<string>()
+    const previews = data.map((state, i) => {
+      const diffImage = state.diffImage
+      const hiddenType = state.hidden ? void 0 : 'primary'
+      let errors = 0
+      const preview = renderComponent(
+        component,
+        state,
+        rootNodeProperties(state.diffImage),
+        components,
+        (name: string, position: monaco.Position, text: string) => {
+          if (name === component.name) {
+            markupMessages.push({ position, text })
           }
-        )
-        const classNames: string[] = ['preview-content']
-        if (state.hidden) {
-          classNames.push('hidden')
+          errors++
         }
-        const allComponents = Array.from(components).map(name => {
-          return workspace.loadComponent(name)
-        })
-        const media: Media = state.media || {}
-        allComponents.forEach(comp => {
+      )
+      const classNames: string[] = ['preview-content']
+      if (state.hidden) {
+        classNames.push('hidden')
+      }
+      const allComponents = Array.from(components).map(name =>
+        workspace.getComponent(name)
+      )
+      const media: Media = state.media || {}
+      allComponents.forEach(comp => {
+        try {
           const { mediaQueries } = comp.style.getCSS().striped
           Object.keys(mediaQueries).forEach(id => {
             const condition = mediaQueries[id]
@@ -142,201 +129,229 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
               classNames.push(id)
             }
           })
-        })
-        return (
-          <div className="preview" key={i}>
-            <div>
-              <span className="preview-bar">
-                {errors > 0 && (
-                  <span className="error">
-                    <Icon type="close-circle-o" /> {errors}
-                  </span>
-                )}
-                <Button.Group>
-                  <Tooltip title="Show / Hide state">
-                    <Button
-                      type={hiddenType}
-                      icon="eye"
-                      size="small"
-                      onClick={() => this.toggleHiddenState(i)}
-                    />
-                  </Tooltip>
-                  <Popover
-                    trigger="click"
-                    placement="bottomRight"
-                    content={
-                      <DiffImagePopover
-                        componentName={this.props.activeComponent}
-                        diffImage={diffImage}
-                        onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
-                        onChange={image =>
-                          editors.dataEditor!.setDiffImage(image, i)
-                        }
-                      />
-                    }
-                  >
-                    <Tooltip title="Set / Delete diff image">
-                      <Button
-                        icon="picture"
-                        size="small"
-                        type={hasDiffImage(state) ? 'primary' : undefined}
-                      />
-                    </Tooltip>
-                  </Popover>
-                  <Popover
-                    placement="bottomRight"
-                    trigger="click"
-                    content={
-                      <MediaPopoverProps
-                        media={media}
-                        onChange={newMedia =>
-                          editors.dataEditor!.setMedia(newMedia, i)
-                        }
-                      />
-                    }
-                  >
-                    <Tooltip title="Configure media properties">
-                      <Button
-                        icon="filter"
-                        size="small"
-                        type={hasMediaInfo(state) ? 'primary' : undefined}
-                      />
-                    </Tooltip>
-                  </Popover>
-                </Button.Group>
-
-                <InputPopover
-                  placement="bottomRight"
-                  placeholder="New state"
-                  tooltipTitle="Duplicate state"
-                  buttonIcon="api"
-                  onEnter={name => {
-                    editors.dataEditor!.addState(name, i)
-                  }}
-                />
-                <Tooltip title="Delete state">
-                  <Popconfirm
-                    placement="left"
-                    title="Are you sure you want to delete this state?"
-                    okText="Yes, delete it"
-                    cancelText="Cancel"
-                    onConfirm={() => {
-                      editors.dataEditor!.deleteState(i)
-                    }}
-                  >
-                    <Button icon="delete" type="danger" size="small" />
-                  </Popconfirm>
-                </Tooltip>
-              </span>
-              {state.name}
-            </div>
-            <div style={{ position: 'relative' }}>
-              <div className={classNames.join(' ')}>{preview}</div>
-              {state.diffImage && (
-                <div
-                  className={`preview-content-overlay ${
-                    state.hidden ? 'hidden' : ''
-                  }`}
-                  style={{
-                    clipPath:
-                      this.state.diffMode === 'slider'
-                        ? `inset(0 ${100 - this.state.diffValue}% 0 0)`
-                        : undefined,
-                    opacity:
-                      this.state.diffMode === 'opacity'
-                        ? this.state.diffValue / 100
-                        : 1,
-                    ...diffImageProperties(state.diffImage)
-                  }}
-                />
-              )}
-            </div>
-          </div>
-        )
+        } catch (err) {
+          if (err.line != null && err.column != null) {
+            if (editors.styleEditor) {
+              // err.formatted
+              styleMessages.push({
+                position: new monaco.Position(err.line, err.column),
+                text: err.message
+              })
+            } else {
+              console.warn('Style editor not initialized')
+            }
+          } else {
+            errorHandler(err)
+          }
+        }
       })
-
-      const componentsInformation = Array.from(components).map(name => {
-        return workspace.loadComponent(name)
-      })
-      const updateDiffValue = throttle(
-        (diffValue: number) => this.setState({ diffValue }),
-        10
-      )
       return (
-        <div>
-          <div style={{ padding: 5, paddingLeft: 0 }}>
-            <div style={{ float: 'right' }}>
+        <div className="preview" key={i}>
+          <div>
+            <span className="preview-bar">
+              {errors > 0 && (
+                <span className="error">
+                  <Icon type="close-circle-o" /> {errors}
+                </span>
+              )}
               <Button.Group>
-                <Button
-                  icon="layout"
-                  type={this.state.showGrid ? 'primary' : undefined}
-                  onClick={() =>
-                    this.setState({ showGrid: !this.state.showGrid })
+                <Tooltip title="Show / Hide state">
+                  <Button
+                    type={hiddenType}
+                    icon="eye"
+                    size="small"
+                    onClick={() => this.toggleHiddenState(i)}
+                  />
+                </Tooltip>
+                <Popover
+                  trigger="click"
+                  placement="bottomRight"
+                  content={
+                    <DiffImagePopover
+                      componentName={this.props.activeComponent}
+                      diffImage={diffImage}
+                      onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
+                      onChange={image =>
+                        editors.dataEditor!.setDiffImage(image, i)
+                      }
+                    />
                   }
                 >
-                  Grid
-                </Button>
-
-                <Button
-                  icon="select"
-                  type={this.state.inspecting ? 'primary' : undefined}
-                  onClick={() => this.toggleInspecting()}
+                  <Tooltip title="Set / Delete diff image">
+                    <Button
+                      icon="picture"
+                      size="small"
+                      type={hasDiffImage(state) ? 'primary' : undefined}
+                    />
+                  </Tooltip>
+                </Popover>
+                <Popover
+                  placement="bottomRight"
+                  trigger="click"
+                  content={
+                    <MediaPopoverProps
+                      media={media}
+                      onChange={newMedia =>
+                        editors.dataEditor!.setMedia(newMedia, i)
+                      }
+                    />
+                  }
                 >
-                  Inspect
-                </Button>
+                  <Tooltip title="Configure media properties">
+                    <Button
+                      icon="filter"
+                      size="small"
+                      type={hasMediaInfo(state) ? 'primary' : undefined}
+                    />
+                  </Tooltip>
+                </Popover>
               </Button.Group>
-            </div>
-            <Button.Group>
-              {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
+
               <InputPopover
-                placement="bottom"
+                placement="bottomRight"
                 placeholder="New state"
-                buttonIcon="plus-square-o"
-                buttonSize="default"
+                tooltipTitle="Duplicate state"
+                buttonIcon="api"
                 onEnter={name => {
-                  this.scrollDown = true
-                  editors.addState(name)
+                  editors.dataEditor!.addState(name, i)
                 }}
-              >
-                Add a new state
-              </InputPopover>
-              {someHaveDiffImage && (
-                <Button
-                  size="small"
-                  icon={this.state.diffMode === 'slider' ? 'swap' : 'copy'}
-                  onClick={() => this.toggleDiffMode()}
-                />
-              )}
-            </Button.Group>
-          </div>
-          <style>{'[data-unicycle-component-root] { all: initial }'}</style>
-          {componentsInformation.map(info =>
-            info.style
-              .getCSS()
-              .striped.chunks.map((chunk, i) => (
-                <style key={i}>{chunk.scopedCSS || chunk.css}</style>
-              ))
-          )}
-          {someHaveDiffImage && (
-            <div className="preview-diff">
-              <Slider
-                min={0}
-                max={100}
-                tipFormatter={null}
-                onChange={diffValue => updateDiffValue(diffValue as number)}
-                value={this.state.diffValue}
               />
-            </div>
-          )}
-          <div
-            id="previews-markup"
-            className={this.state.showGrid ? 'show-grid' : ''}
-          >
-            {previews}
+              <Tooltip title="Delete state">
+                <Popconfirm
+                  placement="left"
+                  title="Are you sure you want to delete this state?"
+                  okText="Yes, delete it"
+                  cancelText="Cancel"
+                  onConfirm={() => {
+                    editors.dataEditor!.deleteState(i)
+                  }}
+                >
+                  <Button icon="delete" type="danger" size="small" />
+                </Popconfirm>
+              </Tooltip>
+            </span>
+            {state.name}
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div className={classNames.join(' ')}>{preview}</div>
+            {state.diffImage && (
+              <div
+                className={`preview-content-overlay ${
+                  state.hidden ? 'hidden' : ''
+                }`}
+                style={{
+                  clipPath:
+                    this.state.diffMode === 'slider'
+                      ? `inset(0 ${100 - this.state.diffValue}% 0 0)`
+                      : undefined,
+                  opacity:
+                    this.state.diffMode === 'opacity'
+                      ? this.state.diffValue / 100
+                      : 1,
+                  ...diffImageProperties(state.diffImage)
+                }}
+              />
+            )}
           </div>
         </div>
       )
     })
+
+    const componentsInformation = Array.from(components).map(name =>
+      workspace.getComponent(name)
+    )
+    const updateDiffValue = throttle(
+      (diffValue: number) => this.setState({ diffValue }),
+      10
+    )
+    const result = (
+      <div>
+        <div style={{ padding: 5, paddingLeft: 0 }}>
+          <div style={{ float: 'right' }}>
+            <Button.Group>
+              <Button
+                icon="layout"
+                type={this.state.showGrid ? 'primary' : undefined}
+                onClick={() =>
+                  this.setState({ showGrid: !this.state.showGrid })
+                }
+              >
+                Grid
+              </Button>
+
+              <Button
+                icon="select"
+                type={this.state.inspecting ? 'primary' : undefined}
+                onClick={() => this.toggleInspecting()}
+              >
+                Inspect
+              </Button>
+            </Button.Group>
+          </div>
+          <Button.Group>
+            {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
+            <InputPopover
+              placement="bottom"
+              placeholder="New state"
+              buttonIcon="plus-square-o"
+              buttonSize="default"
+              onEnter={name => {
+                this.scrollDown = true
+                editors.addState(name)
+              }}
+            >
+              Add a new state
+            </InputPopover>
+            {someHaveDiffImage && (
+              <Button
+                size="small"
+                icon={this.state.diffMode === 'slider' ? 'swap' : 'copy'}
+                onClick={() => this.toggleDiffMode()}
+              />
+            )}
+          </Button.Group>
+        </div>
+        <style>{'[data-unicycle-component-root] { all: initial }'}</style>
+        {componentsInformation.map(info => {
+          try {
+            return info.style
+              .getCSS()
+              .striped.chunks.map((chunk, i) => (
+                <style key={i}>{chunk.scopedCSS || chunk.css}</style>
+              ))
+          } catch (err) {
+            if (err.line == null && err.column == null) {
+              errorHandler(err)
+            }
+            return null
+          }
+        })}
+        {someHaveDiffImage && (
+          <div className="preview-diff">
+            <Slider
+              min={0}
+              max={100}
+              tipFormatter={null}
+              onChange={diffValue => updateDiffValue(diffValue as number)}
+              value={this.state.diffValue}
+            />
+          </div>
+        )}
+        <div
+          id="previews-markup"
+          className={this.state.showGrid ? 'show-grid' : ''}
+        >
+          {previews}
+        </div>
+      </div>
+    )
+    if (editors.markupEditor) {
+      editors.markupEditor.setMessages('error', markupMessages)
+    }
+    if (editors.styleEditor) {
+      editors.styleEditor.setMessages('error', styleMessages)
+    }
+    return result
   }
 
   public componentDidMount() {
@@ -347,19 +362,21 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     workspace.emit('previewUpdated')
     try {
       const component = workspace.getComponent(this.props.activeComponent)
-      editors.styleEditor!.calculateMessages('warning', handler => {
-        component.style.iterateSelectors(info => {
-          if (!document.querySelector(info.selector)) {
-            handler.addMessage(
-              new monaco.Position(
-                info.mapping.originalLine,
-                info.mapping.originalColumn
-              ),
-              `Selector '${info.originalSelector}' doesn't match any element`
-            )
-          }
-        })
+      const messages: Message[] = []
+      component.style.iterateSelectors(info => {
+        if (!document.querySelector(info.selector)) {
+          messages.push({
+            position: new monaco.Position(
+              info.mapping.originalLine,
+              info.mapping.originalColumn
+            ),
+            text: `Selector '${
+              info.originalSelector
+            }' doesn't match any element`
+          })
+        }
       })
+      editors.styleEditor!.setMessages('warning', messages)
     } catch (e) {
       errorHandler(e)
     }
