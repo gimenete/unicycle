@@ -76,7 +76,7 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
     })
 
     Editors.eventBus.on('selectEditor', (selectedTabId: string) => {
-      this.setState({ selectedTabId })
+      this.handleTabChange(selectedTabId)
     })
   }
 
@@ -208,6 +208,10 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
 
   private handleTabChange(selectedTabId: string) {
     this.setState({ selectedTabId })
+    const editor = Editors.editors.get(selectedTabId)
+    if (editor) {
+      editor.setDirty()
+    }
   }
 
   private initMarkupEditor(element: HTMLDivElement) {

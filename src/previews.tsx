@@ -361,31 +361,12 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
 
   public componentDidMount() {
     workspace.emit('previewUpdated')
+    this.cssCoverage()
   }
 
   public componentDidUpdate() {
     workspace.emit('previewUpdated')
-    try {
-      const component = workspace.getComponent(this.props.activeComponent)
-      const messages: Message[] = []
-      component.style.iterateSelectors(info => {
-        if (!document.querySelector(info.selector)) {
-          messages.push({
-            position: new monaco.Position(
-              info.mapping.line,
-              info.mapping.column
-            ),
-            text: `Selector '${
-              info.originalSelector
-            }' doesn't match any element`,
-            type: 'warning'
-          })
-        }
-      })
-      editors.styleEditor!.setMessages('warning', messages)
-    } catch (e) {
-      errorHandler(e)
-    }
+    this.cssCoverage()
     if (this.scrollDown) {
       this.scrollDown = false
       const previews = document.querySelector('#previews-markup')!
@@ -430,6 +411,37 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
 
   private onComponentUpdated() {
     this.forceUpdate()
+  }
+
+  private cssCoverage() {
+    try {
+      const component = workspace.getComponent(this.props.activeComponent)
+      const messages: Message[] = []
+      component.style.iterateSelectors(info => {
+        if (!document.querySelector(info.selector)) {
+          info.children.forEach(child => {
+            messages.push({
+              position: new monaco.Position(child.line, child.column),
+              text: '',
+              type: 'warning'
+            })
+          })
+          messages.push({
+            position: new monaco.Position(
+              info.mapping.line,
+              info.mapping.column
+            ),
+            text: `Selector '${
+              info.originalSelector
+            }' doesn't match any element`,
+            type: 'warning'
+          })
+        }
+      })
+      editors.styleEditor!.setMessages('warning', messages)
+    } catch (e) {
+      errorHandler(e)
+    }
   }
 }
 

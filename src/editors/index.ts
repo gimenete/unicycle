@@ -31,10 +31,10 @@ class Editor {
   protected errorHandler: ErrorHandler
   private componentName: string
   private file: string
-  private oldDecorations: {
-    [index: string]: string[]
-  }
+  private oldDecorations = new Map<string, string[]>()
+  private messages = new Map<string, Message[]>()
   private doNotTriggerEvents: boolean
+  private dirty = false
 
   constructor(
     file: string,
@@ -43,7 +43,6 @@ class Editor {
     errorHandler: ErrorHandler
   ) {
     this.file = file
-    this.oldDecorations = {}
     this.editor = monaco.editor.create(
       element,
       Object.assign(options, defaultOptions)
@@ -60,8 +59,17 @@ class Editor {
           .catch(errorHandler)
       }
     )
+    this.editor.onDidLayoutChange(() => {
+      if (this.dirty) {
+        this.resetEditor()
+      }
+    })
 
     this.errorHandler = errorHandler
+  }
+
+  public setDirty() {
+    this.dirty = true
   }
 
   public setComponent(componentName: string) {
@@ -81,34 +89,39 @@ class Editor {
   }
 
   public cleanUpMessages(type: string) {
-    this.editor.deltaDecorations(this.oldDecorations[type] || [], [])
-    this.oldDecorations[type] = []
+    this.editor.deltaDecorations(this.oldDecorations.get(type) || [], [])
+    this.oldDecorations.set(type, [])
+    this.messages.set(type, [])
   }
 
   public setMessages(key: string, messages: Message[]) {
-    this.oldDecorations[key] = this.editor.deltaDecorations(
-      this.oldDecorations[key] || [],
-      messages.map(message => {
-        const { type } = message
-        const color = messageColors[type]
-        return {
-          range: new monaco.Range(
-            message.position.lineNumber,
-            message.position.column,
-            message.position.lineNumber,
-            message.position.column
-          ),
-          options: {
-            isWholeLine: true,
-            className: type,
-            overviewRuler: {
-              color,
-              darkColor: color,
-              position: monaco.editor.OverviewRulerLane.Full
+    this.messages.set(key, messages)
+    this.oldDecorations.set(
+      key,
+      this.editor.deltaDecorations(
+        this.oldDecorations.get(key) || [],
+        messages.map(message => {
+          const { type } = message
+          const color = messageColors[type]
+          return {
+            range: new monaco.Range(
+              message.position.lineNumber,
+              message.position.column,
+              message.position.lineNumber,
+              message.position.column
+            ),
+            options: {
+              isWholeLine: true,
+              className: type,
+              overviewRuler: {
+                color,
+                darkColor: color,
+                position: monaco.editor.OverviewRulerLane.Full
+              }
             }
           }
-        }
-      })
+        })
+      )
     )
   }
 
@@ -119,6 +132,13 @@ class Editor {
   public scrollDown() {
     const lines = this.editor.getModel().getLineCount()
     this.editor.revealLine(lines)
+  }
+
+  private resetEditor() {
+    for (const [key, messages] of this.messages.entries()) {
+      this.setMessages(key, messages)
+    }
+    this.dirty = false
   }
 }
 
