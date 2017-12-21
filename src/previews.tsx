@@ -378,6 +378,11 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     return result
   }
 
+  public componentDidCatch(error: any, info: any) {
+    // TODO
+    console.log({ error, info })
+  }
+
   public componentDidMount() {
     workspace.emit('previewUpdated')
     this.cssCoverage()
