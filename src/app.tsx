@@ -80,14 +80,20 @@ class App extends React.Component<any, AppState> {
           />
           {activeSelection === 'component' &&
             activeComponent && (
-              <div id="editors">
-                <Editors activeComponent={activeComponent} />
-              </div>
-            )}
-          {activeSelection === 'component' &&
-            activeComponent && (
-              <div id="previews">
-                <Previews activeComponent={activeComponent} />
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '50% 50%',
+                  gridColumnGap: 0,
+                  width: '100%'
+                }}
+              >
+                <div id="editors">
+                  <Editors activeComponent={activeComponent} />
+                </div>
+                <div id="previews">
+                  <Previews activeComponent={activeComponent} />
+                </div>
               </div>
             )}
           {!activeSelection && (

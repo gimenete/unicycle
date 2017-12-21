@@ -26,7 +26,14 @@ class StylePaletteView extends React.Component<any, any> {
     const previewText =
       palette.attributes.get('font-preview-text') || 'Hello world'
     return (
-      <div style={{ display: 'flex' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '50% 50%',
+          gridColumnGap: 0,
+          width: '100%'
+        }}
+      >
         <div
           className="editor"
           ref={element => {
@@ -34,9 +41,7 @@ class StylePaletteView extends React.Component<any, any> {
             this.initEditor(element)
           }}
           style={{
-            height: 'calc(100vh - 60px)',
-            width: 700,
-            marginRight: 20
+            height: 'calc(100vh - 90px)'
           }}
         />
         <div id="style-palette">
@@ -66,7 +71,6 @@ class StylePaletteView extends React.Component<any, any> {
             {palette.animations.map(animation => animation.value).join('\n')}
           </style>
           <Tabs
-            id="StylePaletteTabs"
             defaultActiveKey="fonts"
             onChange={(selectedTabId: string) => {
               setTimeout(() => {

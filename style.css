@@ -32,39 +32,16 @@ body {
   flex-direction: row;
 }
 #menu {
-  height: 100%;
-  overflow: auto;
-  width: 200px;
   min-width: 200px;
-  padding: 0;
-  margin: 10px;
-  margin-top: 0;
-  margin-left: 0;
-}
-#menu > p {
-  margin: 10px;
-}
-#menu .pt-popover-target {
-  width: 100%;
-}
-#editors .ant-tabs-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-#editors .ant-tabs-content .ant-tabs-tabpane {
-  flex-grow: 1;
-}
-#editors .ant-tabs-content .ant-tabs-tabpane .editor {
-  height: calc(100vh - 120px);
-  width: calc(50vw - 100px);
-}
-#previews {
-  flex-grow: 1;
 }
 
-#previews > div {
-  height: calc(100vh - 90px); /* FIX */
+#previews {
+  max-height: 100%;
+  overflow: auto;
+}
+
+#editors .editor {
+  height: calc(100vh - 125px);
 }
 
 span.error {
@@ -91,10 +68,6 @@ span.error {
   height: calc(100% - 30px);
 }
 
-#previews {
-  width: calc(50vw - 100px);
-}
-
 #previews-markup .preview > div {
   font-size: 12px;
   margin: 0;
@@ -115,14 +88,6 @@ span.error {
 
 #previews-markup .preview-bar > * {
   margin-left: 10px;
-}
-
-#previews-markup .preview-bar .pt-icon-error {
-  color: #c23030;
-}
-
-#previews-markup .preview-bar .pt-icon-error::before {
-  margin-right: 5px;
 }
 
 #previews-markup .preview .preview-content {
@@ -178,10 +143,6 @@ input,
   -webkit-app-region: no-drag;
 }
 
-.pt-navbar {
-  box-shadow: none;
-}
-
 .output {
   right: 0;
   width: 30vw;
@@ -214,25 +175,6 @@ input,
 
 body.loading #app {
   display: none;
-}
-
-#editors .pt-tab-panel[aria-hidden='true'] {
-  display: block;
-  visibility: hidden;
-  margin-left: -100vw;
-  position: absolute;
-}
-
-.pt-tree-node {
-  cursor: pointer;
-}
-
-.pt-tab-list {
-  margin: 0 auto;
-}
-
-.pt-popover-backdrop {
-  background: rgba(0, 0, 0, 0.2);
 }
 
 .input-popover input {
@@ -304,25 +246,9 @@ body.loading #app {
   flex-direction: row;
 }
 
-body #open .pt-non-ideal-state {
-  cursor: pointer;
-  border: 10px solid white;
-  border-top: 40px solid white;
-  border-bottom: 40px solid white;
-}
-
-body #open .pt-non-ideal-state:hover {
-  background: #eee;
-}
-
 .spinner-centered.spinner-centered {
   display: block;
   margin: 0 auto;
-}
-
-.pt-button.broadcasting,
-.pt-button.broadcasting::before {
-  color: green;
 }
 
 .logo {
@@ -337,4 +263,10 @@ body #open .pt-non-ideal-state:hover {
 
 #navbar {
   padding-top: 10px;
+}
+
+#style-palette {
+  padding-left: 20px;
+  max-height: 100%;
+  overflow: auto;
 }
