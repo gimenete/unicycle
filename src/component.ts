@@ -53,6 +53,8 @@ interface ComponentCSS {
   readonly striped: StripedCSS
 }
 
+type UnvisitedNodesIterator = (node: parse5.AST.Default.Element) => any
+
 class ComponentData {
   private states: States
 
@@ -232,6 +234,19 @@ class ComponentMarkup {
     return this.markup
   }
 
+  public getRootNode() {
+    return this.getDOM().childNodes[0]
+  }
+
+  public cleanUpVisits() {
+    this.cleanUpVisitsOf(this.getRootNode())
+  }
+
+  public iterateUnvisitedNodes(iterator: UnvisitedNodesIterator) {
+    const rootNode = this.getRootNode()
+    this.iterateUnvisitedNodesOf(rootNode, iterator)
+  }
+
   public calculateEventHanlders() {
     const eventHandlers = new Map<string, boolean>()
     const calculate = (node: parse5.AST.Default.Node) => {
@@ -252,6 +267,31 @@ class ComponentMarkup {
     }
     calculate(this.getDOM().childNodes[0])
     return eventHandlers
+  }
+
+  private cleanUpVisitsOf(node: parse5.AST.Default.Node) {
+    const nodeCounter = node as any
+    delete nodeCounter.visits
+    const elem = node as Element
+    if (elem.childNodes) {
+      elem.childNodes.forEach(child => this.cleanUpVisitsOf(child))
+    }
+  }
+
+  private iterateUnvisitedNodesOf(
+    node: parse5.AST.Default.Node,
+    iterator: UnvisitedNodesIterator
+  ) {
+    const nodeCounter = node as any
+    const elem = node as parse5.AST.Default.Element
+    if (elem.childNodes) {
+      if (!nodeCounter.visits) {
+        iterator(elem)
+      }
+      elem.childNodes.forEach(child =>
+        this.iterateUnvisitedNodesOf(child, iterator)
+      )
+    }
   }
 }
 

@@ -34,6 +34,8 @@ const renderComponent = (
     additionalDataAttribute: string | null,
     isRoot: boolean
   ): React.ReactNode => {
+    const nodeCounter = node as any
+    nodeCounter.visits = (nodeCounter.visits || 0) + 1
     const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
       JSON.stringify({
         ln: location.line,
@@ -53,13 +55,22 @@ const renderComponent = (
       const ifs = element.attrs.find(attr => attr.name === '@if')
       if (ifs) {
         const result = evaluateExpression(ifs.value, data)
-        if (!result) return undefined
+        if (!result) {
+          nodeCounter.visits--
+          return undefined
+        }
       }
       const loop = element.attrs.find(attr => attr.name === '@loop')
       const as = element.attrs.find(attr => attr.name === '@as')
       if (loop && as) {
         const collection = evaluateExpression(loop.value, data) as any[]
-        if (!collection) return undefined
+        if (!Array.isArray(collection)) {
+          throw new Error('Trying to loop a non-array')
+        }
+        if (collection.length === 0) {
+          nodeCounter.visits--
+          return undefined
+        }
         const template = Object.assign({}, node, {
           attrs: element.attrs.filter(attr => !attr.name.startsWith('@'))
         })
@@ -180,7 +191,7 @@ const renderComponent = (
       )
     }
   }
-  const rootNode = info.markup.getDOM().childNodes[0]
+  const rootNode = info.markup.getRootNode()
   return renderNode(
     state.props,
     rootNode,

@@ -94,6 +94,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     const data: States = component.data.getStates()
     const someHaveDiffImage = false // data.some(hasDiffImage)
 
+    component.markup.cleanUpVisits()
+
     const components = new Set<string>()
     const previews = data.map((state, i) => {
       const diffImage = state.diffImage
@@ -351,6 +353,23 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       </div>
     )
     if (editors.markupEditor) {
+      const markupWarningMessages: Message[] = []
+      component.markup.iterateUnvisitedNodes(node => {
+        if (node.__location) {
+          const start = node.__location.line
+          const end = node.__location.endTag.line
+          let line = start
+          while (line <= end) {
+            markupWarningMessages.push({
+              position: new monaco.Position(line, 0),
+              type: 'warning',
+              text: ''
+            })
+            line++
+          }
+        }
+      })
+      editors.markupEditor.setMessages('warning', markupWarningMessages)
       editors.markupEditor.setMessages('error', markupErrorMessages)
     }
     if (editors.styleEditor) {

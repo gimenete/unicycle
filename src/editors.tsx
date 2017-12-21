@@ -220,6 +220,15 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
     Editors.markupEditor = editor
     Editors.editors.set('markup', editor)
     actions.forEach(action => editor.editor.addAction(action))
+
+    // Hack to get the first previews.render() with the editor loaded and ready
+    let first = true
+    editor.editor.onDidChangeModelContent(() => {
+      if (first) {
+        workspace.emit('componentUpdated')
+        first = false
+      }
+    })
   }
 
   private initStyleEditor(element: HTMLDivElement) {
