@@ -223,7 +223,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                   editors.dataEditor!.addState(name, i)
                 }}
               />
-              <Tooltip title="Delete state" placement="bottom">
+              <Tooltip title="Delete state" placement="bottomLeft">
                 <Popconfirm
                   placement="left"
                   title="Are you sure you want to delete this state?"

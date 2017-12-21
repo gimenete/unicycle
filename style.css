@@ -25,13 +25,14 @@ body {
   height: 100%;
   flex-direction: column;
 }
-#content {
+.content {
   display: flex;
   height: 100%;
   width: 100%;
   flex-direction: row;
 }
-#menu {
+
+.ant-layout-sider {
   min-width: 200px;
 }
 
@@ -132,10 +133,6 @@ body {
   width: 100%;
 }
 
-#menu .menu-list {
-  padding-bottom: 10px;
-}
-
 .no-drag,
 button,
 .button,
@@ -229,12 +226,12 @@ body.loading #app {
   width: calc(100vw - 200px);
 }
 
-#content.blank-slate #previews,
-#content.blank-slate #editors {
+.content.blank-slate #previews,
+.content.blank-slate #editors {
   display: none;
 }
 
-#content.blank-slate #blank-slate {
+.content.blank-slate #blank-slate {
   display: block;
 }
 

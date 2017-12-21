@@ -23,7 +23,7 @@ class Sidebar extends React.Component<SidebarProps, any> {
     const { components } = metadata
     const { activeComponent, activeSelection } = this.props
     return (
-      <Sider id="menu">
+      <Sider>
         <Menu
           selectedKeys={
             activeSelection

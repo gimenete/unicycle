@@ -53,7 +53,7 @@ class App extends React.Component<any, AppState> {
             })
           }}
         />
-        <Content id="content" className={className}>
+        <Content className={'content ' + className}>
           <Sidebar
             metadata={workspace.metadata}
             activeSelection={activeSelection}
