@@ -363,7 +363,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
             markupWarningMessages.push({
               position: new monaco.Position(line, 0),
               type: 'warning',
-              text: ''
+              text: 'Element never rendered'
             })
             line++
           }
@@ -438,10 +438,11 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       const messages: Message[] = []
       component.style.iterateSelectors(info => {
         if (!document.querySelector(info.selector)) {
+          const text = `Selector \`${info.selector}\` doesn't match any element`
           info.children.forEach(child => {
             messages.push({
               position: new monaco.Position(child.line, child.column),
-              text: '',
+              text,
               type: 'warning'
             })
           })
@@ -450,9 +451,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
               info.mapping.line,
               info.mapping.column
             ),
-            text: `Selector '${
-              info.originalSelector
-            }' doesn't match any element`,
+            text,
             type: 'warning'
           })
         }

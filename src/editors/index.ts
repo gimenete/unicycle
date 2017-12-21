@@ -23,7 +23,8 @@ const defaultOptions: monaco.editor.IEditorConstructionOptions = {
   autoIndent: true,
   theme: 'vs',
   automaticLayout: true,
-  fontLigatures: false // true
+  fontLigatures: false, // true
+  glyphMargin: true
 }
 
 class Editor {
@@ -113,6 +114,9 @@ class Editor {
             options: {
               isWholeLine: true,
               className: type,
+              glyphMarginClassName: 'glyph ' + type,
+              hoverMessage: message.text,
+              glyphMarginHoverMessage: message.text,
               overviewRuler: {
                 color,
                 darkColor: color,

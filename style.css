@@ -59,6 +59,10 @@ span.error {
   background-color: rgba(196, 223, 184, 0.5);
 }
 
+.glyph {
+  cursor: pointer;
+}
+
 #previews-markup {
   border-left: 1px solid var(--gray);
   border-right: 1px solid var(--gray);

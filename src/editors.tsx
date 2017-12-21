@@ -173,6 +173,8 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
       const match = matches(element, info.selector)
       if (match) {
         const type = match === element ? 'success' : 'info'
+        const text =
+          match === element ? 'Matching selector' : 'Parent matching selector'
         info.children.forEach(mapping => {
           const affects =
             match === element ||
@@ -180,14 +182,14 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
           if (affects) {
             messages.push({
               position: new monaco.Position(mapping.line, mapping.column),
-              text: '',
+              text,
               type
             })
           }
         })
         messages.push({
           position: new monaco.Position(info.mapping.line, info.mapping.column),
-          text: '',
+          text,
           type
         })
       }
