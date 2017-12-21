@@ -1,4 +1,5 @@
 import * as parse5 from 'parse5'
+import { inheritedProperties, textInheritedProperties } from './common'
 
 const prettier = require('prettier')
 
@@ -148,15 +149,18 @@ const calculateRows = (layer: SketchLayer) => {
   children = children.sort((a, b) => a.frame.y - b.frame.y)
   layer.children = children.reduce((layerChildNodes, child1, i) => {
     let y = child1.frame.y + child1.frame.height
-    const childNodes = children.slice(i + 1).reduce((arr, child2) => {
-      if (child2.frame.y < y) {
-        arr.push(child2)
-        children.splice(i, 1)
-        child2.children.forEach(calculateRows)
-        y = Math.max(y, child2.frame.y + child2.frame.height)
-      }
-      return arr
-    }, [child1])
+    const childNodes = children.slice(i + 1).reduce(
+      (arr, child2) => {
+        if (child2.frame.y < y) {
+          arr.push(child2)
+          children.splice(i, 1)
+          child2.children.forEach(calculateRows)
+          y = Math.max(y, child2.frame.y + child2.frame.height)
+        }
+        return arr
+      },
+      [child1]
+    )
     if (childNodes.length > 1) {
       const frame = childNodes.reduce(
         (frme, node) => {
@@ -226,77 +230,6 @@ const calculateContainers = (layer: SketchLayer) => {
   })
   layer.children = layer.children.sort((a, b) => a.frame.y - b.frame.y)
 }
-
-// see https://gist.github.com/dcneiner/1137601
-// see https://www.w3.org/TR/CSS22/propidx.html
-const inheritedProperties = [
-  'azimuth',
-  'border-collapse',
-  'border-spacing',
-  'caption-side',
-  'color',
-  'cursor',
-  'direction',
-  'elevation',
-  'empty-cells',
-  'font-family',
-  'font-size',
-  'font-style',
-  'font-variant',
-  'font-weight',
-  'font',
-  'letter-spacing',
-  'line-height',
-  'list-style-image',
-  'list-style-position',
-  'list-style-type',
-  'list-style',
-  'orphans',
-  'pitch-range',
-  'pitch',
-  'quotes',
-  'richness',
-  'speak-header',
-  'speak-numeral',
-  'speak-punctuation',
-  'speak',
-  'speech-rate',
-  'stress',
-  'text-align',
-  'text-indent',
-  'text-transform',
-  'visibility',
-  'voice-family',
-  'volume',
-  'white-space',
-  'widows',
-  'word-spacing'
-]
-
-const textInheritedProperties = [
-  'color',
-  'font-family',
-  'font-size',
-  'font-style',
-  'font-variant',
-  'font-weight',
-  'font',
-  'letter-spacing',
-  'line-height',
-  'speak-header',
-  'speak-numeral',
-  'speak-punctuation',
-  'speak',
-  'speech-rate',
-  'stress',
-  'text-align',
-  'text-indent',
-  'text-transform',
-  'voice-family',
-  'volume',
-  'white-space',
-  'word-spacing'
-]
 
 const simplifyCSSRules = (layer: SketchLayer) => {
   const allKeys: { [index: string]: { [index: string]: number } } = {}

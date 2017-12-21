@@ -27,7 +27,8 @@ class JSONEditor extends Editor {
       this.setMessages('error', [
         {
           position,
-          text: e.message
+          text: e.message,
+          type: 'error'
         }
       ])
     }

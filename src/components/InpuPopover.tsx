@@ -56,7 +56,12 @@ export default class InputPopover extends React.Component<
       </Button>
     )
     const target = this.props.tooltipTitle ? (
-      <Tooltip title={this.props.tooltipTitle}>{button}</Tooltip>
+      <Tooltip
+        title={this.props.tooltipTitle}
+        placement={this.props.tooltipPlacement}
+      >
+        {button}
+      </Tooltip>
     ) : (
       button
     )

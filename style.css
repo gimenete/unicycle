@@ -35,11 +35,6 @@ body {
   min-width: 200px;
 }
 
-#previews {
-  max-height: 100%;
-  overflow: auto;
-}
-
 #editors .editor {
   height: calc(100vh - 125px);
 }
@@ -56,16 +51,19 @@ span.error {
   background-color: rgba(255, 201, 64, 0.5);
 }
 
-.monaco-editor .inspector {
+.monaco-editor .info {
   background-color: rgba(160, 198, 232, 0.5);
+}
+
+.monaco-editor .success {
+  background-color: rgba(196, 223, 184, 0.5);
 }
 
 #previews-markup {
   border-left: 1px solid var(--gray);
   border-right: 1px solid var(--gray);
   overflow: auto;
-  max-height: 100%;
-  height: calc(100% - 30px);
+  max-height: calc(100vh - 108px);
 }
 
 #previews-markup .preview > div {

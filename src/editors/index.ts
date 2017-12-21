@@ -3,7 +3,17 @@ import workspace from '../workspace'
 
 export interface Message {
   text: string
+  type: MessageType
   position: monaco.Position
+}
+
+type MessageType = 'info' | 'warning' | 'error' | 'success'
+
+const messageColors = {
+  error: 'rgba(255, 115, 115, 0.5)',
+  warning: 'rgba(255, 201, 64, 0.5)',
+  info: 'rgba(160, 198, 232, 0.5)',
+  success: 'rgba(196, 223, 184, 0.5)'
 }
 
 const defaultOptions: monaco.editor.IEditorConstructionOptions = {
@@ -71,14 +81,16 @@ class Editor {
   }
 
   public cleanUpMessages(type: string) {
-    this.editor.deltaDecorations(this.oldDecorations[type], [])
+    this.editor.deltaDecorations(this.oldDecorations[type] || [], [])
     this.oldDecorations[type] = []
   }
 
-  public setMessages(type: string, messages: Message[]) {
-    this.oldDecorations[type] = this.editor.deltaDecorations(
-      this.oldDecorations[type] || [],
+  public setMessages(key: string, messages: Message[]) {
+    this.oldDecorations[key] = this.editor.deltaDecorations(
+      this.oldDecorations[key] || [],
       messages.map(message => {
+        const { type } = message
+        const color = messageColors[type]
         return {
           range: new monaco.Range(
             message.position.lineNumber,
@@ -90,8 +102,8 @@ class Editor {
             isWholeLine: true,
             className: type,
             overviewRuler: {
-              color: 'red',
-              darkColor: 'red',
+              color,
+              darkColor: color,
               position: monaco.editor.OverviewRulerLane.Full
             }
           }

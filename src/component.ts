@@ -10,7 +10,8 @@ import {
   PostCSSRoot,
   PostCSSRule,
   States,
-  StripedCSS
+  StripedCSS,
+  PostCSSDeclaration
 } from './types'
 
 import { stripeCSS } from './css-striper'
@@ -26,11 +27,22 @@ interface SourceMapMapping {
   originalColumn: number
 }
 
+interface MappedPosition {
+  line: number
+  column: number
+  source: string
+}
+
+interface MappedDeclaration extends MappedPosition {
+  declaration: PostCSSDeclaration
+}
+
 type SelectorIterator = (
   info: {
     selector: string
     originalSelector: string
-    mapping: SourceMapMapping
+    mapping: MappedPosition
+    children: MappedDeclaration[]
   }
 ) => any
 
@@ -107,15 +119,60 @@ class ComponentStyle {
       smc.eachMapping((m: SourceMapMapping) => {
         allMappings.push(m)
       })
-      const findMapping = (position: PostCSSPosition) => {
+      const findOriginalPosition = (
+        position: PostCSSPosition
+      ): MappedPosition | null => {
+        const mapping = smc.originalPositionFor({
+          ...position,
+          bias: SourceMapConsumer.LEAST_UPPER_BOUND
+        })
+        const { line, column, source } = mapping
+        if (mapping && line != null && column != null) {
+          return {
+            line,
+            column,
+            source: source || ''
+          }
+        }
+        return null
+      }
+      const findMapping = (
+        position: PostCSSPosition
+      ): MappedPosition | null => {
         let lastMapping: SourceMapMapping | null = null
         for (const m of allMappings) {
           if (m.generatedLine === position.line) {
             lastMapping = m
           }
         }
-        return lastMapping
+        if (!lastMapping) return null
+        const {
+          originalLine: line,
+          originalColumn: column,
+          source
+        } = lastMapping
+        return { line, column, source }
       }
+
+      const findDeclarations = (
+        children: MappedDeclaration[],
+        node: PostCSSNode
+      ) => {
+        if (node.type === 'decl') {
+          // console.log('decl', this.style.split('\n')[node.source.start.line])
+          const startMapping = findOriginalPosition(node.source.start)
+          if (startMapping) {
+            children.push({
+              ...startMapping,
+              declaration: node as PostCSSDeclaration
+            })
+          }
+        }
+        if (node.nodes) {
+          node.nodes.forEach(child => findDeclarations(children, child))
+        }
+      }
+
       const iterateNode = (node: PostCSSNode) => {
         if (node.type === 'rule') {
           const rule = node as PostCSSRule
@@ -125,12 +182,17 @@ class ComponentStyle {
           // calculate column with last line's length
           if (startMapping) {
             if (rule.ids) {
-              const selector =
-                rule.ids!.map(id => `.${id}`).join('') + ' ' + rule.selector
+              const joinedIds = rule.ids!.map(id => `.${id}`).join('')
+              const selector = joinedIds + ' ' + rule.selector
+              const children: MappedDeclaration[] = []
+              if (node.nodes) {
+                findDeclarations(children, node)
+              }
               iterator({
                 selector,
                 originalSelector: selector.substring(CSS_PREFIX.length),
-                mapping: startMapping
+                mapping: startMapping,
+                children
               })
             } else {
               console.warn('selector without ids', rule)

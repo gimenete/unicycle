@@ -33,7 +33,7 @@ class Navbar extends React.Component<NavbarProps, NavbarState> {
         <div style={{ lineHeight: '64px', float: 'right' }}>
           <Button.Group>
             <Button
-              icon="save"
+              icon="hdd"
               onClick={() => {
                 console.log(
                   dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {

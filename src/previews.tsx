@@ -57,8 +57,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     const rootNode = dom.childNodes[0]
     if (!rootNode) return <div />
 
-    const markupMessages: Message[] = []
-    const styleMessages: Message[] = []
+    const markupErrorMessages: Message[] = []
+    const styleErrorMessages: Message[] = []
 
     const diffImageProperties = (diffImage: DiffImage): React.CSSProperties => {
       const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
@@ -106,7 +106,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
         components,
         (name: string, position: monaco.Position, text: string) => {
           if (name === component.name) {
-            markupMessages.push({ position, text })
+            markupErrorMessages.push({ position, text, type: 'error' })
           }
           errors++
         }
@@ -133,9 +133,10 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
           if (err.line != null && err.column != null) {
             if (editors.styleEditor) {
               // err.formatted
-              styleMessages.push({
+              styleErrorMessages.push({
                 position: new monaco.Position(err.line, err.column),
-                text: err.message
+                text: err.message,
+                type: 'error'
               })
             } else {
               console.warn('Style editor not initialized')
@@ -155,7 +156,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                 </span>
               )}
               <Button.Group>
-                <Tooltip title="Show / Hide state">
+                <Tooltip title="Show / Hide state" placement="bottom">
                   <Button
                     type={hiddenType}
                     icon="eye"
@@ -177,7 +178,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                     />
                   }
                 >
-                  <Tooltip title="Set / Delete diff image">
+                  <Tooltip title="Set / Delete diff image" placement="bottom">
                     <Button
                       icon="picture"
                       size="small"
@@ -197,7 +198,10 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                     />
                   }
                 >
-                  <Tooltip title="Configure media properties">
+                  <Tooltip
+                    title="Configure media properties"
+                    placement="bottom"
+                  >
                     <Button
                       icon="filter"
                       size="small"
@@ -211,12 +215,13 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                 placement="bottomRight"
                 placeholder="New state"
                 tooltipTitle="Duplicate state"
+                tooltipPlacement="bottom"
                 buttonIcon="api"
                 onEnter={name => {
                   editors.dataEditor!.addState(name, i)
                 }}
               />
-              <Tooltip title="Delete state">
+              <Tooltip title="Delete state" placement="bottom">
                 <Popconfirm
                   placement="left"
                   title="Are you sure you want to delete this state?"
@@ -346,10 +351,10 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       </div>
     )
     if (editors.markupEditor) {
-      editors.markupEditor.setMessages('error', markupMessages)
+      editors.markupEditor.setMessages('error', markupErrorMessages)
     }
     if (editors.styleEditor) {
-      editors.styleEditor.setMessages('error', styleMessages)
+      editors.styleEditor.setMessages('error', styleErrorMessages)
     }
     return result
   }
@@ -367,12 +372,13 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
         if (!document.querySelector(info.selector)) {
           messages.push({
             position: new monaco.Position(
-              info.mapping.originalLine,
-              info.mapping.originalColumn
+              info.mapping.line,
+              info.mapping.column
             ),
             text: `Selector '${
               info.originalSelector
-            }' doesn't match any element`
+            }' doesn't match any element`,
+            type: 'warning'
           })
         }
       })

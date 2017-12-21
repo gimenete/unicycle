@@ -14,6 +14,7 @@ import actions from './editor-actions'
 import errorHandler from './error-handler'
 import inspector from './inspector'
 import workspace from './workspace'
+import { inheritedProperties } from './common'
 
 const { TabPane } = Tabs
 
@@ -137,7 +138,10 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
 
   private inspect(element: HTMLElement) {
     const location = element.getAttribute('data-location')
-    if (!location) return
+    if (!location) {
+      Editors.styleEditor!.setMessages('inspector', [])
+      return
+    }
     const locationData = JSON.parse(location)
     const lineNumber = locationData.ln as number
     const column = locationData.c as number
@@ -152,17 +156,39 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
     })
     this.focusVisibleEditor()
 
+    const matches = (
+      elem: HTMLElement,
+      selector: string
+    ): HTMLElement | null => {
+      if (elem.matches('.preview-content')) return null
+      if (elem.matches(selector)) return elem
+      if (elem.parentElement) return matches(elem.parentElement, selector)
+      return null
+    }
+
     const { activeComponent } = this.props
     const component = workspace.getComponent(activeComponent)
     const messages: Message[] = []
     component.style.iterateSelectors(info => {
-      if (element.matches(info.selector)) {
+      const match = matches(element, info.selector)
+      if (match) {
+        const type = match === element ? 'success' : 'info'
+        info.children.forEach(mapping => {
+          const affects =
+            match === element ||
+            inheritedProperties.includes(mapping.declaration.prop)
+          if (affects) {
+            messages.push({
+              position: new monaco.Position(mapping.line, mapping.column),
+              text: '',
+              type
+            })
+          }
+        })
         messages.push({
-          position: new monaco.Position(
-            info.mapping.originalLine,
-            info.mapping.originalColumn
-          ),
-          text: ''
+          position: new monaco.Position(info.mapping.line, info.mapping.column),
+          text: '',
+          type
         })
       }
     })
