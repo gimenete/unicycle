@@ -64,36 +64,16 @@ span.error {
   cursor: pointer;
 }
 
-#previews-markup {
-  border-left: 1px solid var(--gray);
-  border-right: 1px solid var(--gray);
-  overflow: auto;
-  max-height: calc(100vh - 108px);
-}
-
-#previews-markup .preview > div {
-  font-size: 12px;
-  margin: 0;
-  border-top: 1px solid var(--gray);
-  background-color: whitesmoke;
-  border-radius: 3px 3px 0 0;
-  color: #363636;
-  font-size: 1.25em;
-  font-weight: 300;
-  line-height: 1.25;
-  padding: 0.5em 0.75em;
-}
-
-#previews-markup .preview-bar {
+.previews-markup .preview-bar {
   float: right;
-  font-size: 14px;
+  margin-right: 5px;
 }
 
-#previews-markup .preview-bar > * {
+.previews-markup .preview-bar > * {
   margin-left: 10px;
 }
 
-#previews-markup .preview .preview-content {
+.previews-markup .preview .preview-content {
   all: initial;
   padding: 20px;
   display: flex;
@@ -101,15 +81,7 @@ span.error {
   overflow-x: scroll;
 }
 
-#previews-markup .preview .preview-content.hidden {
-  display: none;
-}
-
-#previews-markup .preview .preview-content-overlay.hidden {
-  display: none;
-}
-
-#previews-markup.show-grid .preview .preview-content {
+.previews-markup.show-grid .preview .preview-content {
   background: url('./assets/grid.png');
   background-size: 16px 16px;
 }
@@ -268,4 +240,8 @@ body.loading #app {
   padding-left: 20px;
   max-height: 100%;
   overflow: auto;
+}
+
+.ant-collapse-content {
+  background: whitesmoke;
 }

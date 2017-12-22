@@ -141,7 +141,7 @@ export interface StylePalette {
   animations: StylePaletteEntity[]
 }
 
-export const CSS_PREFIX = '#previews-markup .preview-content'
+export const CSS_PREFIX = '.previews-markup .preview-content'
 export const INCLUDE_PREFIX = 'include:'
 
 export const componentDataAttribute = (name: string) =>

@@ -67,10 +67,12 @@ class JSONEditor extends Editor {
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 
-  public toggleHiddenState(index: number) {
+  public setVisibleStates(indexes: number[]) {
     const str = this.editor.getValue()
     const data = JSON.parse(str) as States
-    data[index].hidden = !data[index].hidden
+    data.forEach((state, index) => {
+      data[index].hidden = !indexes.includes(index)
+    })
     this.editor.setValue(JSON.stringify(data, null, 2))
   }
 

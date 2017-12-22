@@ -1,4 +1,12 @@
-import { Popover, Button, Slider, Tooltip, Popconfirm, Icon } from 'antd'
+import {
+  Popover,
+  Button,
+  Slider,
+  Tooltip,
+  Popconfirm,
+  Icon,
+  Collapse
+} from 'antd'
 import { throttle } from 'lodash'
 import * as React from 'react'
 
@@ -14,6 +22,8 @@ import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
 import { Message } from './editors/index'
+
+const Panel = Collapse.Panel
 
 const mediaQuery = require('css-mediaquery')
 
@@ -99,7 +109,6 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     const components = new Set<string>()
     const previews = data.map((state, i) => {
       const diffImage = state.diffImage
-      const hiddenType = state.hidden ? void 0 : 'primary'
       let errors = 0
       const preview = renderComponent(
         component,
@@ -114,9 +123,6 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
         }
       )
       const classNames: string[] = ['preview-content']
-      if (state.hidden) {
-        classNames.push('hidden')
-      }
       const allComponents = Array.from(components).map(name =>
         workspace.getComponent(name)
       )
@@ -149,96 +155,93 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
         }
       })
       return (
-        <div className="preview" key={i}>
-          <div>
-            <span className="preview-bar">
-              {errors > 0 && (
-                <span className="error">
-                  <Icon type="close-circle-o" /> {errors}
-                </span>
-              )}
-              <Button.Group>
-                <Tooltip title="Show / Hide state" placement="bottom">
-                  <Button
-                    type={hiddenType}
-                    icon="eye"
-                    size="small"
-                    onClick={() => this.toggleHiddenState(i)}
-                  />
-                </Tooltip>
-                <Popover
-                  trigger="click"
-                  placement="bottomRight"
-                  content={
-                    <DiffImagePopover
-                      componentName={this.props.activeComponent}
-                      diffImage={diffImage}
-                      onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
-                      onChange={image =>
-                        editors.dataEditor!.setDiffImage(image, i)
-                      }
-                    />
-                  }
-                >
-                  <Tooltip title="Set / Delete diff image" placement="bottom">
-                    <Button
-                      icon="picture"
-                      size="small"
-                      type={hasDiffImage(state) ? 'primary' : undefined}
-                    />
-                  </Tooltip>
-                </Popover>
-                <Popover
-                  placement="bottomRight"
-                  trigger="click"
-                  content={
-                    <MediaPopoverProps
-                      media={media}
-                      onChange={newMedia =>
-                        editors.dataEditor!.setMedia(newMedia, i)
-                      }
-                    />
-                  }
-                >
-                  <Tooltip
-                    title="Configure media properties"
-                    placement="bottom"
+        <Panel
+          className="preview"
+          key={String(i)}
+          header={
+            <div>
+              <span className="preview-bar">
+                {errors > 0 && (
+                  <span className="error">
+                    <Icon type="close-circle-o" /> {errors}
+                  </span>
+                )}
+                <Button.Group>
+                  <Popover
+                    trigger="click"
+                    placement="bottomRight"
+                    content={
+                      <DiffImagePopover
+                        componentName={this.props.activeComponent}
+                        diffImage={diffImage}
+                        onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
+                        onChange={image =>
+                          editors.dataEditor!.setDiffImage(image, i)
+                        }
+                      />
+                    }
                   >
-                    <Button
-                      icon="filter"
-                      size="small"
-                      type={hasMediaInfo(state) ? 'primary' : undefined}
-                    />
-                  </Tooltip>
-                </Popover>
-              </Button.Group>
+                    <Tooltip title="Set / Delete diff image" placement="bottom">
+                      <Button
+                        icon="picture"
+                        size="small"
+                        type={hasDiffImage(state) ? 'primary' : undefined}
+                      />
+                    </Tooltip>
+                  </Popover>
+                  <Popover
+                    placement="bottomRight"
+                    trigger="click"
+                    content={
+                      <MediaPopoverProps
+                        media={media}
+                        onChange={newMedia =>
+                          editors.dataEditor!.setMedia(newMedia, i)
+                        }
+                      />
+                    }
+                  >
+                    <Tooltip
+                      title="Configure media properties"
+                      placement="bottom"
+                    >
+                      <Button
+                        icon="filter"
+                        size="small"
+                        type={hasMediaInfo(state) ? 'primary' : undefined}
+                      />
+                    </Tooltip>
+                  </Popover>
+                </Button.Group>
 
-              <InputPopover
-                placement="bottomRight"
-                placeholder="New state"
-                tooltipTitle="Duplicate state"
-                tooltipPlacement="bottom"
-                buttonIcon="api"
-                onEnter={name => {
-                  editors.dataEditor!.addState(name, i)
-                }}
-              />
-              <Tooltip title="Delete state" placement="bottomLeft">
-                <Popconfirm
-                  placement="left"
-                  title="Are you sure you want to delete this state?"
-                  okText="Yes, delete it"
-                  cancelText="Cancel"
-                  onConfirm={() => {
-                    editors.dataEditor!.deleteState(i)
+                <InputPopover
+                  placement="bottomRight"
+                  placeholder="New state"
+                  tooltipTitle="Duplicate state"
+                  tooltipPlacement="bottom"
+                  buttonIcon="api"
+                  onEnter={name => {
+                    editors.dataEditor!.addState(name, i)
                   }}
-                >
-                  <Button icon="delete" type="danger" size="small" />
-                </Popconfirm>
-              </Tooltip>
-            </span>
-            {state.name}
-          </div>
+                />
+                <Tooltip title="Delete state" placement="bottomLeft">
+                  <Popconfirm
+                    placement="left"
+                    title="Are you sure you want to delete this state?"
+                    okText="Yes, delete it"
+                    cancelText="Cancel"
+                    onConfirm={() => {
+                      editors.dataEditor!.deleteState(i)
+                    }}
+                  >
+                    <Button icon="delete" type="danger" size="small" />
+                  </Popconfirm>
+                </Tooltip>
+              </span>
+              {state.name}
+            </div>
+          }
+        >
           <div style={{ position: 'relative' }}>
             <div className={classNames.join(' ')}>{preview}</div>
             {state.diffImage && (
@@ -260,7 +263,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
               />
             )}
           </div>
-        </div>
+        </Panel>
       )
     })
 
@@ -344,11 +347,22 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
             />
           </div>
         )}
-        <div
-          id="previews-markup"
-          className={this.state.showGrid ? 'show-grid' : ''}
-        >
-          {previews}
+        <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 108px)' }}>
+          <Collapse
+            activeKey={
+              data
+                .map((state, i) => (state.hidden ? null : String(i)))
+                .filter(Boolean) as string[]
+            }
+            onChange={activeKeys => {
+              this.setVisibleStates((activeKeys as string[]).map(Number))
+            }}
+            className={
+              'previews-markup ' + (this.state.showGrid ? 'show-grid' : '')
+            }
+          >
+            {previews}
+          </Collapse>
         </div>
       </div>
     )
@@ -393,8 +407,10 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     this.cssCoverage()
     if (this.scrollDown) {
       this.scrollDown = false
-      const previews = document.querySelector('#previews-markup')!
-      previews.scrollTop = previews.scrollHeight
+      const previews = document.querySelector('.previews-markup')
+      if (previews) {
+        previews.scrollTop = previews.scrollHeight
+      }
     }
   }
 
@@ -417,8 +433,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     })
   }
 
-  private toggleHiddenState(index: number) {
-    editors.dataEditor!.toggleHiddenState(index)
+  private setVisibleStates(indexes: number[]) {
+    editors.dataEditor!.setVisibleStates(indexes)
   }
 
   private generateOutput(): string {
