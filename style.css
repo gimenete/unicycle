@@ -36,6 +36,10 @@ body {
   min-width: 200px;
 }
 
+#editors {
+  margin: 0 10px;
+}
+
 #editors .editor {
   height: calc(100vh - 125px);
 }
@@ -230,6 +234,7 @@ body.loading #app {
 
 .ant-layout-header {
   padding-left: 21px;
+  padding-right: 5px;
 }
 
 #navbar {

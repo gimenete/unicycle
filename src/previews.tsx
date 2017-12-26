@@ -160,7 +160,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
           key={String(i)}
           header={
             <div>
-              <span className="preview-bar">
+              <span className="preview-bar" onClick={e => e.stopPropagation()}>
                 {errors > 0 && (
                   <span className="error">
                     <Icon type="close-circle-o" /> {errors}
