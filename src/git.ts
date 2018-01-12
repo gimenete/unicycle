@@ -12,14 +12,7 @@ const run = async () => {
   const refNames = await repo.getReferenceNames(Reference.TYPE.LISTALL)
   for (const refname of refNames) {
     const ref = await Reference.lookup(repo, refname)
-    console.log(
-      'ref',
-      ref.name(),
-      ref.isBranch(),
-      ref.isHead(),
-      ref.isRemote(),
-      ref.isSymbolic()
-    )
+    console.log('ref', ref.name(), ref.isBranch(), ref.isHead(), ref.isRemote(), ref.isSymbolic())
   }
 
   console.log('', commit.sha())

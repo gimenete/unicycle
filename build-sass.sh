@@ -19,19 +19,3 @@ cd ../../
 
 # Clean up
 rm -rf build
-
-
-cd node_modules/sharp/
-
-# Build for Electron for current version
-node-gyp rebuild --target=$TARGET --arch=$ARCH --dist-url=https://atom.io/download/electron
-
-# Create vendor directory
-VENDOR="vendor/$PLATFORM-$ARCH-54"
-mkdir -p $VENDOR
-cp build/Release/sharp.node $VENDOR
-
-cd ../../
-
-# Clean up
-rm -rf build

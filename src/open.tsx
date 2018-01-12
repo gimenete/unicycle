@@ -1,5 +1,6 @@
 import * as path from 'path'
 import * as React from 'react'
+import { Button } from 'antd'
 
 import electron = require('electron')
 
@@ -23,27 +24,21 @@ class OpenPage extends React.Component<any, any> {
   public render() {
     return (
       <div id="open">
-        <div className="pt-non-ideal-state" onClick={() => this.openProject()}>
-          <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-            <span className="pt-icon pt-icon-folder-open" />
-          </div>
-          <h4 className="pt-non-ideal-state-title">Open an existing project</h4>
-          <div className="pt-non-ideal-state-description">
-            Create a new file to populate the folder.
-          </div>
-        </div>
-        <div
-          className="pt-non-ideal-state"
-          onClick={() => this.createProject()}
-        >
-          <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-            <span className="pt-icon pt-icon-document" />
-          </div>
-          <h4 className="pt-non-ideal-state-title">Create a new one</h4>
-          <div className="pt-non-ideal-state-description">
-            Create a new file to populate the folder.
-          </div>
-        </div>
+        <h1>Unicycle</h1>
+        <p>
+          <Button type="primary" onClick={() => this.openProject()}>
+            Open an existing project
+          </Button>
+        </p>
+        <p>
+          <Button
+            type="primary"
+            className="pt-non-ideal-state"
+            onClick={() => this.createProject()}
+          >
+            Create a new project
+          </Button>
+        </p>
       </div>
     )
   }
@@ -52,7 +47,7 @@ class OpenPage extends React.Component<any, any> {
     const paths = dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
       properties: ['openDirectory']
     })
-    if (paths.length === 0) return
+    if (!paths || paths.length === 0) return
     this.loadProject(paths[0])
   }
 

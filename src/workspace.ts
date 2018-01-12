@@ -11,6 +11,10 @@ import { ErrorHandler, GeneratedCode, Metadata, States } from './types'
 import reactGenerator from './generators/react'
 import vueGenerator from './generators/vuejs'
 
+import * as Git from 'nodegit'
+
+const { Repository, Reference } = Git
+
 const metadataFile = 'unicycle.json'
 const paletteFile = 'palette.scss'
 const sourceDir = 'components'
@@ -20,6 +24,7 @@ class Workspace extends EventEmitter {
   public metadata: Metadata
   public components = new Map<string, Component>()
   public palette = new StylePalette()
+  private repo: Git.Repository
 
   public async loadProject(dir: string) {
     this.dir = dir
@@ -33,10 +38,7 @@ class Workspace extends EventEmitter {
     const initialMetadata: Metadata = {
       components: []
     }
-    await fse.writeFile(
-      path.join(this.dir, metadataFile),
-      JSON.stringify(initialMetadata)
-    )
+    await fse.writeFile(path.join(this.dir, metadataFile), JSON.stringify(initialMetadata))
     await fse.writeFile(path.join(this.dir, paletteFile), '')
     await fse.mkdirp(path.join(this.dir, sourceDir))
   }
@@ -48,11 +50,7 @@ class Workspace extends EventEmitter {
           markup: '<div>\n  \n</div>',
           style: ''
         }
-    const initialState = JSON.stringify(
-      [{ name: 'Some state', props: {} }] as States,
-      null,
-      2
-    )
+    const initialState = JSON.stringify([{ name: 'Some state', props: {} }] as States, null, 2)
     await fse.mkdir(path.join(this.dir, sourceDir, name))
     await Promise.all([
       this.writeFile(path.join(sourceDir, name, 'index.html'), initial.markup),
@@ -65,9 +63,7 @@ class Workspace extends EventEmitter {
 
   public async deleteComponent(name: string) {
     await fse.remove(path.join(this.dir, sourceDir, name))
-    this.metadata.components = this.metadata.components.filter(
-      component => component.name !== name
-    )
+    this.metadata.components = this.metadata.components.filter(component => component.name !== name)
     await this.saveMetadata()
     this.components.delete(name)
   }
@@ -92,11 +88,7 @@ class Workspace extends EventEmitter {
     return fse.readFileSync(fullPath, 'utf8')
   }
 
-  public async writeComponentFile(
-    componentName: string,
-    file: string,
-    data: string
-  ) {
+  public async writeComponentFile(componentName: string, file: string, data: string) {
     const fullPath = path.join(sourceDir, name, componentName, file)
     await this.writeFile(fullPath, data)
     const component = this.getComponent(componentName)
@@ -121,15 +113,9 @@ class Workspace extends EventEmitter {
     return this.writeFile(paletteFile, source)
   }
 
-  public async copyComponentFile(
-    componentName: string,
-    fullPath: string
-  ): Promise<string> {
+  public async copyComponentFile(componentName: string, fullPath: string): Promise<string> {
     const basename = path.basename(fullPath)
-    await fse.copy(
-      fullPath,
-      path.join(this.dir, sourceDir, componentName, basename)
-    )
+    await fse.copy(fullPath, path.join(this.dir, sourceDir, componentName, basename))
     return basename
   }
 
@@ -155,10 +141,7 @@ class Workspace extends EventEmitter {
 
   public async generate(errorHandler: ErrorHandler) {
     const generators: {
-      [index: string]: (
-        information: Component,
-        options?: prettier.Options
-      ) => GeneratedCode
+      [index: string]: (information: Component, options?: prettier.Options) => GeneratedCode
     } = {
       react: reactGenerator,
       vue: vueGenerator
@@ -191,6 +174,27 @@ class Workspace extends EventEmitter {
           })
         )
       }
+    }
+  }
+
+  public async getRepository() {
+    if (this.repo) return this.repo
+
+    const repoDir = await this.findRepositoryDir()
+    if (!repoDir) return null
+
+    this.repo = await Repository.open(repoDir)
+    return this.repo
+  }
+
+  private async findRepositoryDir() {
+    let currentDir = this.dir
+    while (true) {
+      if (await fse.pathExists(path.join(currentDir, '.git'))) {
+        return currentDir
+      }
+      currentDir = path.resolve(currentDir, '..')
+      return null
     }
   }
 

@@ -19,11 +19,7 @@ const renderComponent = (
   state: State,
   rootNodeProperties: React.CSSProperties | null,
   components: Set<string>,
-  errorHandler: (
-    component: string,
-    position: monaco.Position,
-    text: string
-  ) => void
+  errorHandler: (component: string, position: monaco.Position, text: string) => void
 ): React.ReactNode => {
   components.add(info.name)
   const renderNode = (
@@ -40,8 +36,7 @@ const renderComponent = (
       JSON.stringify({
         ln: location.line,
         c: location.col,
-        eln:
-          location.endTag !== undefined ? location.endTag.line : location.line
+        eln: location.endTag !== undefined ? location.endTag.line : location.line
       })
     try {
       if (node.nodeName === '#text') {
@@ -108,18 +103,10 @@ const renderComponent = (
           props
         }
         // TODO: key?
-        return renderComponent(
-          componentInfo,
-          componentState,
-          null,
-          components,
-          errorHandler
-        )
+        return renderComponent(componentInfo, componentState, null, components, errorHandler)
       }
       const attrs: ReactAttributes = element.attrs
-        .filter(
-          attr => !attr.name.startsWith(':') && !attr.name.startsWith('@')
-        )
+        .filter(attr => !attr.name.startsWith(':') && !attr.name.startsWith('@'))
         .reduce(
           (obj, attr) => {
             const name = toReactAttributeName(attr.name)

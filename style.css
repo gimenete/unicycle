@@ -212,13 +212,8 @@ body.loading #app {
 }
 
 #open {
-  height: 100%;
-}
-
-#open[data-reactroot] {
-  height: 100%;
-  display: flex;
-  flex-direction: row;
+  text-align: center;
+  margin-top: 30vh;
 }
 
 .spinner-centered.spinner-centered {
