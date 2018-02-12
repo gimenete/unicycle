@@ -1,12 +1,4 @@
-import {
-  Popover,
-  Button,
-  Slider,
-  Tooltip,
-  Popconfirm,
-  Icon,
-  Collapse
-} from 'antd'
+import { Popover, Button, Slider, Tooltip, Popconfirm, Icon, Collapse } from 'antd'
 import { throttle } from 'lodash'
 import * as React from 'react'
 
@@ -22,6 +14,8 @@ import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
 import { Message } from './editors/index'
+
+const ShadowDOM = require('react-shadow').default
 
 const Panel = Collapse.Panel
 
@@ -74,10 +68,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
       const multiplier = parseFloat(diffImage.resolution.substring(1)) || 1
       const { width, height } = diffImage
       return {
-        backgroundImage: `url(${workspace.pathForComponentFile(
-          component.name,
-          diffImage.file
-        )})`,
+        backgroundImage: `url(${workspace.pathForComponentFile(component.name, diffImage.file)})`,
         backgroundSize: `${width / multiplier}px ${height / multiplier}px`,
         backgroundPosition: diffImage.align
       }
@@ -123,9 +114,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
         }
       )
       const classNames: string[] = ['preview-content']
-      const allComponents = Array.from(components).map(name =>
-        workspace.getComponent(name)
-      )
+      const allComponents = Array.from(components).map(name => workspace.getComponent(name))
       const media: Media = state.media || {}
       allComponents.forEach(comp => {
         try {
@@ -154,126 +143,107 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
           }
         }
       })
-      return (
-        <Panel
-          className="preview"
-          key={String(i)}
-          header={
-            <div>
-              <span className="preview-bar" onClick={e => e.stopPropagation()}>
-                {errors > 0 && (
-                  <span className="error">
-                    <Icon type="close-circle-o" /> {errors}
-                  </span>
-                )}
-                <Button.Group>
-                  <Popover
-                    trigger="click"
-                    placement="bottomRight"
-                    content={
-                      <DiffImagePopover
-                        componentName={this.props.activeComponent}
-                        diffImage={diffImage}
-                        onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
-                        onChange={image =>
-                          editors.dataEditor!.setDiffImage(image, i)
-                        }
-                      />
-                    }
-                  >
-                    <Tooltip title="Set / Delete diff image" placement="bottom">
-                      <Button
-                        icon="picture"
-                        size="small"
-                        type={hasDiffImage(state) ? 'primary' : undefined}
-                      />
-                    </Tooltip>
-                  </Popover>
-                  <Popover
-                    placement="bottomRight"
-                    trigger="click"
-                    content={
-                      <MediaPopoverProps
-                        media={media}
-                        onChange={newMedia =>
-                          editors.dataEditor!.setMedia(newMedia, i)
-                        }
-                      />
-                    }
-                  >
-                    <Tooltip
-                      title="Configure media properties"
-                      placement="bottom"
-                    >
-                      <Button
-                        icon="filter"
-                        size="small"
-                        type={hasMediaInfo(state) ? 'primary' : undefined}
-                      />
-                    </Tooltip>
-                  </Popover>
-                </Button.Group>
 
-                <InputPopover
+      return {
+        header: (
+          <div>
+            <span className="preview-bar" onClick={e => e.stopPropagation()}>
+              {errors > 0 && (
+                <span className="error">
+                  <Icon type="close-circle-o" /> {errors}
+                </span>
+              )}
+              <Button.Group>
+                <Popover
+                  trigger="click"
                   placement="bottomRight"
-                  placeholder="New state"
-                  tooltipTitle="Duplicate state"
-                  tooltipPlacement="bottom"
-                  buttonIcon="api"
-                  onEnter={name => {
-                    editors.dataEditor!.addState(name, i)
+                  content={
+                    <DiffImagePopover
+                      componentName={this.props.activeComponent}
+                      diffImage={diffImage}
+                      onDelete={() => editors.dataEditor!.deleteDiffImage(i)}
+                      onChange={image => editors.dataEditor!.setDiffImage(image, i)}
+                    />
+                  }
+                >
+                  <Tooltip title="Set / Delete diff image" placement="bottom">
+                    <Button
+                      icon="picture"
+                      size="small"
+                      type={hasDiffImage(state) ? 'primary' : undefined}
+                    />
+                  </Tooltip>
+                </Popover>
+                <Popover
+                  placement="bottomRight"
+                  trigger="click"
+                  content={
+                    <MediaPopoverProps
+                      media={media}
+                      onChange={newMedia => editors.dataEditor!.setMedia(newMedia, i)}
+                    />
+                  }
+                >
+                  <Tooltip title="Configure media properties" placement="bottom">
+                    <Button
+                      icon="filter"
+                      size="small"
+                      type={hasMediaInfo(state) ? 'primary' : undefined}
+                    />
+                  </Tooltip>
+                </Popover>
+              </Button.Group>
+
+              <InputPopover
+                placement="bottomRight"
+                placeholder="New state"
+                tooltipTitle="Duplicate state"
+                tooltipPlacement="bottom"
+                buttonIcon="api"
+                onEnter={name => {
+                  editors.dataEditor!.addState(name, i)
+                }}
+              />
+              <Tooltip title="Delete state" placement="bottomLeft">
+                <Popconfirm
+                  placement="left"
+                  title="Are you sure you want to delete this state?"
+                  okText="Yes, delete it"
+                  cancelText="Cancel"
+                  onConfirm={() => {
+                    editors.dataEditor!.deleteState(i)
                   }}
-                />
-                <Tooltip title="Delete state" placement="bottomLeft">
-                  <Popconfirm
-                    placement="left"
-                    title="Are you sure you want to delete this state?"
-                    okText="Yes, delete it"
-                    cancelText="Cancel"
-                    onConfirm={() => {
-                      editors.dataEditor!.deleteState(i)
-                    }}
-                  >
-                    <Button icon="delete" type="danger" size="small" />
-                  </Popconfirm>
-                </Tooltip>
-              </span>
-              {state.name}
-            </div>
-          }
-        >
+                >
+                  <Button icon="delete" type="danger" size="small" />
+                </Popconfirm>
+              </Tooltip>
+            </span>
+            {state.name}
+          </div>
+        ),
+        content: (
           <div style={{ position: 'relative' }}>
             <div className={classNames.join(' ')}>{preview}</div>
             {state.diffImage && (
               <div
-                className={`preview-content-overlay ${
-                  state.hidden ? 'hidden' : ''
-                }`}
+                className={`preview-content-overlay ${state.hidden ? 'hidden' : ''}`}
                 style={{
                   clipPath:
                     this.state.diffMode === 'slider'
                       ? `inset(0 ${100 - this.state.diffValue}% 0 0)`
                       : undefined,
-                  opacity:
-                    this.state.diffMode === 'opacity'
-                      ? this.state.diffValue / 100
-                      : 1,
+                  opacity: this.state.diffMode === 'opacity' ? this.state.diffValue / 100 : 1,
                   ...diffImageProperties(state.diffImage)
                 }}
               />
             )}
           </div>
-        </Panel>
-      )
+        )
+      }
     })
 
-    const componentsInformation = Array.from(components).map(name =>
-      workspace.getComponent(name)
-    )
-    const updateDiffValue = throttle(
-      (diffValue: number) => this.setState({ diffValue }),
-      10
-    )
+    const componentsInformation = Array.from(components).map(name => workspace.getComponent(name))
+    const updateDiffValue = throttle((diffValue: number) => this.setState({ diffValue }), 10)
     const result = (
       <div>
         <div style={{ padding: 5, paddingLeft: 0 }}>
@@ -282,9 +252,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
               <Button
                 icon="layout"
                 type={this.state.showGrid ? 'primary' : undefined}
-                onClick={() =>
-                  this.setState({ showGrid: !this.state.showGrid })
-                }
+                onClick={() => this.setState({ showGrid: !this.state.showGrid })}
               >
                 Grid
               </Button>
@@ -322,20 +290,6 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
           </Button.Group>
         </div>
         <style>{'[data-unicycle-component-root] { all: initial }'}</style>
-        {componentsInformation.map(info => {
-          try {
-            return info.style
-              .getCSS()
-              .striped.chunks.map((chunk, i) => (
-                <style key={i}>{chunk.scopedCSS || chunk.css}</style>
-              ))
-          } catch (err) {
-            if (err.line == null && err.column == null) {
-              errorHandler(err)
-            }
-            return null
-          }
-        })}
         {someHaveDiffImage && (
           <div className="preview-diff">
             <Slider
@@ -350,18 +304,36 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
         <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 108px)' }}>
           <Collapse
             activeKey={
-              data
-                .map((state, i) => (state.hidden ? null : String(i)))
-                .filter(Boolean) as string[]
+              data.map((state, i) => (state.hidden ? null : String(i))).filter(Boolean) as string[]
             }
             onChange={activeKeys => {
               this.setVisibleStates((activeKeys as string[]).map(Number))
             }}
-            className={
-              'previews-markup ' + (this.state.showGrid ? 'show-grid' : '')
-            }
+            className={'previews-markup ' + (this.state.showGrid ? 'show-grid' : '')}
           >
-            {previews}
+            {previews.map((preview, i) => (
+              <Panel className="preview" key={String(i)} header={preview.header}>
+                <ShadowDOM>
+                  <div>
+                    {componentsInformation.map(info => {
+                      try {
+                        return info.style
+                          .getCSS()
+                          .striped.chunks.map((chunk, i) => (
+                            <style key={i}>{chunk.scopedCSS || chunk.css}</style>
+                          ))
+                      } catch (err) {
+                        if (err.line == null && err.column == null) {
+                          errorHandler(err)
+                        }
+                        return null
+                      }
+                    })}
+                    {preview.content}
+                  </div>
+                </ShadowDOM>
+              </Panel>
+            ))}
           </Collapse>
         </div>
       </div>
@@ -369,7 +341,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     if (editors.markupEditor) {
       const markupWarningMessages: Message[] = []
       component.markup.iterateUnvisitedNodes(node => {
-        if (node.__location) {
+        if (node.__location && node.__location.endTag) {
           const start = node.__location.line
           const end = node.__location.endTag.line
           let line = start
@@ -425,9 +397,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
   }
 
   private toggleInspecting() {
-    this.state.inspecting
-      ? inspector.stopInspecting()
-      : inspector.startInspecting()
+    this.state.inspecting ? inspector.stopInspecting() : inspector.startInspecting()
     this.setState({
       inspecting: !this.state.inspecting
     })
@@ -457,8 +427,11 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
     try {
       const component = workspace.getComponent(this.props.activeComponent)
       const messages: Message[] = []
+      const roots = Array.from(document.querySelectorAll('.preview .resolved'))
+        .map(el => el.shadowRoot)
+        .filter(Boolean)
       component.style.iterateSelectors(info => {
-        if (!document.querySelector(info.selector)) {
+        if (!roots.find(root => !!root!.querySelector(info.selector))) {
           const text = `Selector \`${info.selector}\` doesn't match any element`
           info.children.forEach(child => {
             messages.push({
@@ -468,10 +441,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
             })
           })
           messages.push({
-            position: new monaco.Position(
-              info.mapping.line,
-              info.mapping.column
-            ),
+            position: new monaco.Position(info.mapping.line, info.mapping.column),
             text,
             type: 'warning'
           })

@@ -41,7 +41,7 @@ export default class BroadcastPopover extends React.Component<
             onChange={() => {
               server.setBroadcast(!server.isBroadcasting())
             }}
-          />
+          />{' '}
           Enable broadcasting
         </p>
         <p>
@@ -51,7 +51,7 @@ export default class BroadcastPopover extends React.Component<
             onChange={() => {
               server.setBroadcastPublicly(!server.isBroadcastingPublicly())
             }}
-          />
+          />{' '}
           Broadcast publicly
         </p>
         <div>
@@ -63,7 +63,7 @@ export default class BroadcastPopover extends React.Component<
             }}
           >
             Open in browser
-          </Button>
+          </Button>{' '}
           <Button
             disabled={!url}
             onClick={() => {
@@ -74,11 +74,11 @@ export default class BroadcastPopover extends React.Component<
           </Button>
         </div>
         {server.isBroadcastingPublicly() &&
-          !qr && (
-            <div style={{ margin: 15 }}>
-              <Spin />
-            </div>
-          )}
+        !qr && (
+          <div style={{ margin: 15 }}>
+            <Spin />
+          </div>
+        )}
         {qr && (
           <p style={{ margin: 0 }}>
             <img

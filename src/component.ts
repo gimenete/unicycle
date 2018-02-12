@@ -4,7 +4,6 @@ import { SourceMapConsumer } from 'source-map'
 
 import Typer from './typer'
 import {
-  CSS_PREFIX,
   PostCSSNode,
   PostCSSPosition,
   PostCSSRoot,
@@ -121,9 +120,7 @@ class ComponentStyle {
       smc.eachMapping((m: SourceMapMapping) => {
         allMappings.push(m)
       })
-      const findOriginalPosition = (
-        position: PostCSSPosition
-      ): MappedPosition | null => {
+      const findOriginalPosition = (position: PostCSSPosition): MappedPosition | null => {
         const mapping = smc.originalPositionFor({
           ...position,
           bias: SourceMapConsumer.LEAST_UPPER_BOUND
@@ -138,9 +135,7 @@ class ComponentStyle {
         }
         return null
       }
-      const findMapping = (
-        position: PostCSSPosition
-      ): MappedPosition | null => {
+      const findMapping = (position: PostCSSPosition): MappedPosition | null => {
         let lastMapping: SourceMapMapping | null = null
         for (const m of allMappings) {
           if (m.generatedLine === position.line) {
@@ -148,18 +143,11 @@ class ComponentStyle {
           }
         }
         if (!lastMapping) return null
-        const {
-          originalLine: line,
-          originalColumn: column,
-          source
-        } = lastMapping
+        const { originalLine: line, originalColumn: column, source } = lastMapping
         return { line, column, source }
       }
 
-      const findDeclarations = (
-        children: MappedDeclaration[],
-        node: PostCSSNode
-      ) => {
+      const findDeclarations = (children: MappedDeclaration[], node: PostCSSNode) => {
         if (node.type === 'decl') {
           // console.log('decl', this.style.split('\n')[node.source.start.line])
           const startMapping = findOriginalPosition(node.source.start)
@@ -192,7 +180,7 @@ class ComponentStyle {
               }
               iterator({
                 selector,
-                originalSelector: selector.substring(CSS_PREFIX.length),
+                originalSelector: selector,
                 mapping: startMapping,
                 children
               })
@@ -278,19 +266,14 @@ class ComponentMarkup {
     }
   }
 
-  private iterateUnvisitedNodesOf(
-    node: parse5.AST.Default.Node,
-    iterator: UnvisitedNodesIterator
-  ) {
+  private iterateUnvisitedNodesOf(node: parse5.AST.Default.Node, iterator: UnvisitedNodesIterator) {
     const nodeCounter = node as any
     const elem = node as parse5.AST.Default.Element
     if (elem.childNodes) {
       if (!nodeCounter.visits) {
         iterator(elem)
       }
-      elem.childNodes.forEach(child =>
-        this.iterateUnvisitedNodesOf(child, iterator)
-      )
+      elem.childNodes.forEach(child => this.iterateUnvisitedNodesOf(child, iterator))
     }
   }
 }

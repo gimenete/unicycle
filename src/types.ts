@@ -141,7 +141,6 @@ export interface StylePalette {
   animations: StylePaletteEntity[]
 }
 
-export const CSS_PREFIX = '.previews-markup .preview-content'
 export const INCLUDE_PREFIX = 'include:'
 
 export const componentDataAttribute = (name: string) =>
@@ -161,9 +160,4 @@ export type AntPlacement =
   | 'leftTop'
   | 'leftBottom'
 
-export type AntButtonType =
-  | 'ghost'
-  | 'primary'
-  | 'dashed'
-  | 'danger'
-  | undefined
+export type AntButtonType = 'ghost' | 'primary' | 'dashed' | 'danger' | undefined

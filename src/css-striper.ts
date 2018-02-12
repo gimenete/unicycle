@@ -2,7 +2,6 @@ import * as crypto from 'crypto'
 
 import {
   componentDataAttribute,
-  CSS_PREFIX,
   CSSMediaQuery,
   PostCSSAtRule,
   PostCSSNode,
@@ -13,6 +12,9 @@ import {
 
 const parseImport = require('parse-import')
 const selectorParser = require('postcss-selector-parser')
+
+const CSS_PLACEHOLDER = '$$$$'
+const CSS_PLACEHOLDER_REGEXP = /\$\$\$\$/g
 
 interface ParseImportValue {
   condition: string
@@ -35,6 +37,7 @@ const addAttribute = (selectorText: string, value: string) => {
         if (n.type !== 'pseudo') node = n
       })
       selector.insertAfter(node, selectorParser.attribute({ attribute: value }))
+      selector.prepend(selectorParser.combinator({ value: CSS_PLACEHOLDER }))
     })
   }
   return selectorParser(transform).process(selectorText).result
@@ -80,9 +83,7 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
           node.nodes.forEach(childNode => iterateNode(childNode, arr))
         }
       } else if (atrule.name === 'import') {
-        const values = parseImport(
-          `@import ${atrule.params};`
-        ) as ParseImportValue[]
+        const values = parseImport(`@import ${atrule.params};`) as ParseImportValue[]
         if (values.length > 0) {
           // TODO
           // const condition = values[0].condition
@@ -111,11 +112,9 @@ export const stripeCSS = (component: string, ast: PostCSSRoot): StripedCSS => {
   chunks.forEach(chunk => {
     if (!chunk.scopedCSS) return
     const classes = chunk.mediaQueries.map(id => `.${id}`).join('')
-    const repeat = '.preview-content'.repeat(
-      mediaQueriesCount - chunk.mediaQueries.length
-    )
-    chunk.css = `${CSS_PREFIX}${classes}${repeat} ${chunk.css}`
-    chunk.scopedCSS = `${CSS_PREFIX}${classes}${repeat} ${chunk.scopedCSS}`
+    const repeat = '.preview-content'.repeat(mediaQueriesCount - chunk.mediaQueries.length)
+    chunk.css = `${classes}${repeat} ${chunk.css}`
+    chunk.scopedCSS = chunk.scopedCSS.replace(CSS_PLACEHOLDER_REGEXP, `${classes}${repeat} `)
   })
   return {
     mediaQueries,

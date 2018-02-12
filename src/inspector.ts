@@ -3,6 +3,7 @@ import EventEmitter = require('events')
 const parsePixels = (value: string | null) => parseFloat(value || '0')
 
 class Inspector extends EventEmitter {
+  private selected: HTMLElement | null
   private target: HTMLElement | null
   private marginOverlay: HTMLElement
   private paddingOverlay: HTMLElement
@@ -32,6 +33,7 @@ class Inspector extends EventEmitter {
 
     document.addEventListener('click', e => {
       if (this.target !== e.target) return
+      this.selected = this.target
       this.emit('inspect', { target: this.target })
     })
 
@@ -42,6 +44,16 @@ class Inspector extends EventEmitter {
         return
       }
       this.target = element
+      this.recalculate()
+    })
+
+    document.addEventListener('mouseout', e => {
+      if (!this.inspecting) return
+      const element = e.target as HTMLElement
+      if (!element.matches('.preview-content')) {
+        return
+      }
+      this.target = this.selected
       this.recalculate()
     })
   }
@@ -75,8 +87,7 @@ class Inspector extends EventEmitter {
     paddingOverlay.style.marginLeft = `${paddingLeft}px`
     paddingOverlay.style.marginTop = `${paddingTop}px`
     paddingOverlay.style.width = rect.width - paddingLeft - paddingRight + 'px'
-    paddingOverlay.style.height =
-      rect.height - paddingTop - paddingBottom + 'px'
+    paddingOverlay.style.height = rect.height - paddingTop - paddingBottom + 'px'
   }
 
   public startInspecting() {
