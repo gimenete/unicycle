@@ -34,6 +34,7 @@ const renderComponent = (
     nodeCounter.visits = (nodeCounter.visits || 0) + 1
     const locationJSON = (location: parse5.MarkupData.ElementLocation) =>
       JSON.stringify({
+        cmp: info.name,
         ln: location.line,
         c: location.col,
         eln: location.endTag !== undefined ? location.endTag.line : location.line
@@ -179,8 +180,18 @@ const renderComponent = (
     }
   }
   const rootNode = info.markup.getRootNode()
+  // Make all root properties in all states available even if they are not defined
+  // This way you can do @if="rootVarThatIsNotInAllStates"
+  const initialData = info.data.getStates().reduce((obj, st) => {
+    for (const prop of Object.keys(st.props)) {
+      obj[prop] = undefined
+    }
+    return obj
+  }, {} as any)
+  Object.assign(initialData, state.props)
+
   return renderNode(
-    state.props,
+    initialData,
     rootNode,
     null,
     rootNodeProperties,

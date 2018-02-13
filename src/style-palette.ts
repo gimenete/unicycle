@@ -23,6 +23,7 @@ class StylePalette {
   public readonly animations: StylePaletteEntity[] = []
   public readonly attributes = new Map<string, string>()
   public source: string = ''
+  public result: string = ''
 
   public setSource(source: string) {
     this.source = source
@@ -31,7 +32,8 @@ class StylePalette {
       data: source,
       sourceMap: false
     })
-    const ast = postcss.parse(result.css.toString()) as PostCSSRoot
+    this.result = result.css.toString()
+    const ast = postcss.parse(this.result) as PostCSSRoot
 
     this.fonts.splice(0)
     this.colors.splice(0)

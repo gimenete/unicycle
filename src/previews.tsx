@@ -222,7 +222,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
           </div>
         ),
         content: (
-          <div style={{ position: 'relative' }}>
+          <div>
             <div className={classNames.join(' ')}>{preview}</div>
             {state.diffImage && (
               <div
@@ -315,6 +315,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
               <Panel className="preview" key={String(i)} header={preview.header}>
                 <ShadowDOM>
                   <div>
+                    <style>{workspace.palette.result}</style>
                     {componentsInformation.map(info => {
                       try {
                         return info.style
