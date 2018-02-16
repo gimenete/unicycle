@@ -1,0 +1,31 @@
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unicycle</title>
+</head>
+
+<body class="brodcast-device">
+  <div id="markup"></div>
+  <script>
+    var host = window.location.host
+    var protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    var connection = new WebSocket(protocol + '://' + host);
+    connection.onopen = function () {
+      connection.send('Ping'); // Send the message 'Ping' to the server
+    };
+
+    // Log errors
+    connection.onerror = function (error) {
+      console.log('WebSocket Error ' + error);
+    };
+
+    // Log messages from the server
+    connection.onmessage = function (e) {
+      console.log('Refreshing', e);
+      document.getElementById('markup').innerHTML = JSON.parse(e.data).map(node => node.html).join('<hr style="border: 1px solid #eee; padding: 0; margin: 20px 0;">');
+    };
+  </script>
+</body>
+
+</html>

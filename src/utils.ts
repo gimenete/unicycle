@@ -511,3 +511,6 @@ export function toReactAttributeName(name: string): string | null {
 export function toReactEventName(name: string): string | null {
   return validEventNames.get(name) || null
 }
+
+const CSS_URL_REGEXP = new RegExp(/(url\(\s*['"]?)([^"')]+)(["']?\s*\))/g)
+export { CSS_URL_REGEXP }

@@ -62,8 +62,7 @@ class App extends React.Component<any, AppState> {
               this.setState({
                 activeComponent: component,
                 activeSelection: 'component'
-              })
-            }
+              })}
             onDeleteComponent={(component: string) => {
               workspace.deleteComponent(component).then(() => {
                 if (this.state.activeComponent === component) {
@@ -79,23 +78,23 @@ class App extends React.Component<any, AppState> {
             }}
           />
           {activeSelection === 'component' &&
-            activeComponent && (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '50% 50%',
-                  gridColumnGap: 0,
-                  width: '100%'
-                }}
-              >
-                <div id="editors">
-                  <Editors activeComponent={activeComponent} />
-                </div>
-                <div id="previews">
-                  <Previews activeComponent={activeComponent} />
-                </div>
+          activeComponent && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '50% 50%',
+                gridColumnGap: 0,
+                width: '100%'
+              }}
+            >
+              <div id="editors">
+                <Editors activeComponent={activeComponent} />
               </div>
-            )}
+              <div id="previews">
+                <Previews activeComponent={activeComponent} />
+              </div>
+            </div>
+          )}
           {!activeSelection && (
             <div id="blank-slate">
               <BlankSlate />

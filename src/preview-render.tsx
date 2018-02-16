@@ -19,7 +19,8 @@ const renderComponent = (
   state: State,
   rootNodeProperties: React.CSSProperties | null,
   components: Set<string>,
-  errorHandler: (component: string, position: monaco.Position, text: string) => void
+  errorHandler: (component: string, position: monaco.Position, text: string) => void,
+  componentKey: string | number | null
 ): React.ReactNode => {
   components.add(info.name)
   const renderNode = (
@@ -104,7 +105,7 @@ const renderComponent = (
           props
         }
         // TODO: key?
-        return renderComponent(componentInfo, componentState, null, components, errorHandler)
+        return renderComponent(componentInfo, componentState, null, components, errorHandler, key)
       }
       const attrs: ReactAttributes = element.attrs
         .filter(attr => !attr.name.startsWith(':') && !attr.name.startsWith('@'))
@@ -193,7 +194,7 @@ const renderComponent = (
   return renderNode(
     initialData,
     rootNode,
-    null,
+    componentKey,
     rootNodeProperties,
     componentDataAttribute(info.name),
     true

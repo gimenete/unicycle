@@ -1,10 +1,18 @@
 import * as EventEmitter from 'events'
 import * as http from 'http'
+import * as path from 'path'
+import * as fs from 'fs-extra'
 import * as QRCode from 'qrcode'
 import * as WebSocket from 'ws'
 import workspace from './workspace'
+import { CSS_URL_REGEXP } from './utils'
+
+import * as finalhandler from 'finalhandler'
+import * as serveStatic from 'serve-static'
 
 const localtunnel = require('localtunnel')
+
+const html = fs.readFileSync(path.join(__dirname, '../broadcast.html'))
 
 class Server extends EventEmitter {
   private server: http.Server | null = null
@@ -24,9 +32,7 @@ class Server extends EventEmitter {
   }
 
   public getURL() {
-    return this.isBroadcastingPublicly()
-      ? this.getPublicURL()
-      : this.getLocalURL()
+    return this.isBroadcastingPublicly() ? this.getPublicURL() : this.getLocalURL()
   }
 
   public getLocalURL() {
@@ -47,73 +53,15 @@ class Server extends EventEmitter {
       return
     }
     this.server = http.createServer((req, res) => {
+      const serve = serveStatic(path.join(workspace.dir, 'assets'), {
+        index: false
+      })
+      // TODO: favicon
+      if (req.url !== '/') {
+        return serve(req as any, res as any, finalhandler(req, res))
+      }
       res.setHeader('Content-Type', 'text/html; charset=utf-8')
-      res.end(`
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Unicycle</title>
-          <style>
-          body {
-            padding: 0;
-            margin: 0;
-            font-family: -apple-system, "BlinkMacSystemFont",
-              "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-              "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
-          }
-          .preview-bar {
-            display: none;
-          }
-          .preview-content {
-            padding: 10px;
-          }
-          .preview > p {
-            font-size: 12px;
-            margin: 0;
-            border-top: 1px solid #dbdddd;
-            border-bottom: 1px solid #dbdddd;
-            background-color: whitesmoke;
-            border-radius: 3px 3px 0 0;
-            color: #363636;
-            font-size: 1.25em;
-            font-weight: 300;
-            line-height: 1.25;
-            padding: 0.5em 0.75em;
-          }
-          #markup .pt-button-group {
-            display: none;
-          }
-          #markup .pt-tabs .pt-tab-list {
-            display: none;
-          }
-          [aria-hidden=true] {
-            display: none;
-          }
-          </style>
-        </head>
-        <body>
-          <div id="markup">${this.getContent()}</div>
-          <script>
-            var host = window.location.host
-            var protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-            var connection = new WebSocket(protocol + '://' + host);
-            connection.onopen = function () {
-              connection.send('Ping'); // Send the message 'Ping' to the server
-            };
-
-            // Log errors
-            connection.onerror = function (error) {
-              console.log('WebSocket Error ' + error);
-            };
-
-            // Log messages from the server
-            connection.onmessage = function (e) {
-              console.log('Refreshing');
-              document.getElementById('markup').innerHTML = e.data;
-            };
-          </script>
-        </body>
-      </html>`)
+      res.end(html)
     })
     this.server.listen(0, (err: any) => {
       if (err) {
@@ -125,9 +73,12 @@ class Server extends EventEmitter {
       const wss = new WebSocket.Server({ server })
 
       workspace.on('previewUpdated', () => {
-        wss.clients.forEach(client => {
-          client.send(this.getContent())
-        })
+        console.log('preview updated!!')
+        setTimeout(() => {
+          wss.clients.forEach(client => {
+            client.send(JSON.stringify(this.getContent()))
+          })
+        }, 100) // shadow dom updates seem to not be immediate
       })
 
       wss.on('connection', ws => {
@@ -135,7 +86,7 @@ class Server extends EventEmitter {
           console.log('received: %s', message)
         })
 
-        ws.send(this.getContent())
+        ws.send(JSON.stringify(this.getContent()))
       })
       this.emit('statusChanged')
     })
@@ -154,20 +105,17 @@ class Server extends EventEmitter {
     if (!this.server) {
       return console.error('Cannot broadcast if server is not running')
     }
-    this.tunnel = localtunnel(
-      this.server.address().port,
-      (err: any, tunnel: any) => {
-        if (err) return console.error(err) // TODO
-        if (!this.tunnel) return
+    this.tunnel = localtunnel(this.server.address().port, (err: any, tunnel: any) => {
+      if (err) return console.error(err) // TODO
+      if (!this.tunnel) return
 
-        QRCode.toDataURL(this.tunnel.url, (error, value) => {
-          if (error) return console.error(err)
-          this.qr = value
-          this.emit('statusChanged')
-        })
+      QRCode.toDataURL(this.tunnel.url, (error, value) => {
+        if (error) return console.error(err)
+        this.qr = value
         this.emit('statusChanged')
-      }
-    )
+      })
+      this.emit('statusChanged')
+    })
 
     this.tunnel.on('close', () => {
       console.error('tunnel closed')
@@ -178,13 +126,20 @@ class Server extends EventEmitter {
   }
 
   private getContent() {
-    const markup =
-      document.getElementById('previews') ||
-      document.getElementById('style-palette')
-    if (!markup) {
-      return `<p style="text-align: center">Nothing selected</p>`
+    const markup = Array.from(document.querySelectorAll('.broadcast, .broadcast-shadow .resolved'))
+    if (markup.length === 0) {
+      return [
+        {
+          html: `<p style="text-align: center">Nothing selected</p>`
+        }
+      ]
     }
-    return markup.outerHTML
+    return markup.map(el => ({
+      html: (el.shadowRoot || el).innerHTML.replace(CSS_URL_REGEXP, (match, p1, p2) => {
+        if (!p2.startsWith(workspace.dir)) return match
+        return `url('${p2.substring((workspace.dir + '/assets').length)}')`
+      })
+    }))
   }
 }
 

@@ -22,7 +22,7 @@ const actions = [
   },
   {
     id: 'switch-states-editor',
-    label: 'Switch to states editor',
+    label: 'Switch to tests editor',
     // tslint:disable-next-line:no-bitwise
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_3],
     contextMenuGroupId: 'navigation',

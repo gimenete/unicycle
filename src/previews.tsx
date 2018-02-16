@@ -14,6 +14,7 @@ import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
 import { Message } from './editors/index'
+import { JSXElement } from 'babel-types'
 
 const ShadowDOM = require('react-shadow').default
 
@@ -244,6 +245,41 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
 
     const componentsInformation = Array.from(components).map(name => workspace.getComponent(name))
     const updateDiffValue = throttle((diffValue: number) => this.setState({ diffValue }), 10)
+
+    const createShadowContent = (content: JSX.Element) => {
+      let inspectable: HTMLElement | null = null
+
+      const updateInspectable = (el: HTMLElement | null) => {
+        inspectable = el
+        if (inspectable) {
+          inspector.startInspectingElement(inspectable)
+        }
+      }
+
+      return (
+        <div>
+          <style>{workspace.palette.result}</style>
+          {componentsInformation.map(info => {
+            try {
+              return info.style
+                .getCSS()
+                .striped.chunks.map((chunk, i) => (
+                  <style key={i}>{chunk.scopedCSS || chunk.css}</style>
+                ))
+            } catch (err) {
+              if (err.line == null && err.column == null) {
+                errorHandler(err)
+              }
+              return null
+            }
+          })}
+          <div ref={(el: any) => updateInspectable(el)} className="inspectable">
+            {content}
+          </div>
+        </div>
+      )
+    }
+
     const result = (
       <div>
         <div style={{ padding: 5, paddingLeft: 0 }}>
@@ -270,7 +306,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
             {/* <button className="pt-button pt-icon-comparison" type="button" /> */}
             <InputPopover
               placement="bottom"
-              placeholder="New state"
+              placeholder="New test"
               buttonIcon="plus-square-o"
               buttonSize="default"
               onEnter={name => {
@@ -278,7 +314,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                 editors.addState(name)
               }}
             >
-              Add a new state
+              Add a new test
             </InputPopover>
             {someHaveDiffImage && (
               <Button
@@ -312,27 +348,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
             className={'previews-markup ' + (this.state.showGrid ? 'show-grid' : '')}
           >
             {previews.map((preview, i) => (
-              <Panel className="preview" key={String(i)} header={preview.header}>
-                <ShadowDOM>
-                  <div>
-                    <style>{workspace.palette.result}</style>
-                    {componentsInformation.map(info => {
-                      try {
-                        return info.style
-                          .getCSS()
-                          .striped.chunks.map((chunk, i) => (
-                            <style key={i}>{chunk.scopedCSS || chunk.css}</style>
-                          ))
-                      } catch (err) {
-                        if (err.line == null && err.column == null) {
-                          errorHandler(err)
-                        }
-                        return null
-                      }
-                    })}
-                    {preview.content}
-                  </div>
-                </ShadowDOM>
+              <Panel className="preview broadcast-shadow" key={String(i)} header={preview.header}>
+                <ShadowDOM>{createShadowContent(preview.content)}</ShadowDOM>
               </Panel>
             ))}
           </Collapse>

@@ -86,27 +86,16 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
       <Tabs
         animated={false}
         activeKey={this.state.selectedTabId}
-        onTabClick={(selectedTabId: string) =>
-          this.handleTabChange(selectedTabId)
-        }
+        onTabClick={(selectedTabId: string) => this.handleTabChange(selectedTabId)}
       >
         <TabPane tab={`Markup ${key}1`} key="markup" forceRender>
-          <div
-            className="editor"
-            ref={element => element && this.initMarkupEditor(element)}
-          />
+          <div className="editor" ref={element => element && this.initMarkupEditor(element)} />
         </TabPane>
         <TabPane tab={`Style ${key}2`} key="style" forceRender>
-          <div
-            className="editor"
-            ref={element => element && this.initStyleEditor(element)}
-          />
+          <div className="editor" ref={element => element && this.initStyleEditor(element)} />
         </TabPane>
-        <TabPane tab={`States ${key}3`} key="data" forceRender>
-          <div
-            className="editor"
-            ref={element => element && this.initDataEditor(element)}
-          />
+        <TabPane tab={`Tests ${key}3`} key="data" forceRender>
+          <div className="editor" ref={element => element && this.initDataEditor(element)} />
         </TabPane>
       </Tabs>
     )
@@ -146,20 +135,14 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
     const lineNumber = locationData.ln as number
     const column = locationData.c as number
     const endLineNumber = locationData.eln as number
-    Editors.markupEditor!.editor.revealLinesInCenterIfOutsideViewport(
-      lineNumber,
-      endLineNumber
-    )
+    Editors.markupEditor!.editor.revealLinesInCenterIfOutsideViewport(lineNumber, endLineNumber)
     Editors.markupEditor!.editor.setPosition({
       lineNumber,
       column
     })
     this.focusVisibleEditor()
 
-    const matches = (
-      elem: HTMLElement,
-      selector: string
-    ): HTMLElement | null => {
+    const matches = (elem: HTMLElement, selector: string): HTMLElement | null => {
       if (elem.matches('.preview-content')) return null
       if (elem.matches(selector)) return elem
       if (elem.parentElement) return matches(elem.parentElement, selector)
@@ -173,12 +156,10 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
       const match = matches(element, info.selector)
       if (match) {
         const type = match === element ? 'success' : 'info'
-        const text =
-          match === element ? 'Matching selector' : 'Parent matching selector'
+        const text = match === element ? 'Matching selector' : 'Parent matching selector'
         info.children.forEach(mapping => {
           const affects =
-            match === element ||
-            inheritedProperties.includes(mapping.declaration.prop)
+            match === element || inheritedProperties.includes(mapping.declaration.prop)
           if (affects) {
             messages.push({
               position: new monaco.Position(mapping.line, mapping.column),

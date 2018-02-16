@@ -23,8 +23,15 @@ class StylePaletteView extends React.Component<any, any> {
 
   public render() {
     const palette = workspace.palette
-    const previewText =
-      palette.attributes.get('font-preview-text') || 'Hello world'
+    const previewText = palette.attributes.get('font-preview-text') || 'Hello world'
+    const commonStyle = `.style-palette-name {
+        opacity: 0.7;
+      }
+
+      .style-palette-value {
+        opacity: 0.7;
+      }
+    `
     return (
       <div
         style={{
@@ -45,31 +52,6 @@ class StylePaletteView extends React.Component<any, any> {
           }}
         />
         <div id="style-palette">
-          <style>
-            {`.style-palette-name {
-                opacity: 0.7;
-              }
-
-              .style-palette-value {
-                opacity: 0.7;
-              }`}
-            {palette.shadows
-              .map(
-                shadow => `
-                  .style-palette-shadow-${shadow.name} {
-                    box-shadow: ${shadow.value};
-                    width: 130px;
-                    height: 66px;
-                    transition: all 0.1s;
-                  }
-                  .style-palette-shadow-${shadow.name}:hover {
-                    box-shadow: ${shadow.hover};
-                  }
-              `
-              )
-              .join('\n')}
-            {palette.animations.map(animation => animation.value).join('\n')}
-          </style>
           <Tabs
             defaultActiveKey="fonts"
             onChange={(selectedTabId: string) => {
@@ -78,8 +60,11 @@ class StylePaletteView extends React.Component<any, any> {
               }, 300)
             }}
           >
-            <TabPane tab="Fonts" key="fonts">
-              <div>
+            <TabPane tab="Fonts" key="fonts" forceRender>
+              <div className="broadcast">
+                <style>
+                  {commonStyle} {palette.allFontFaces}
+                </style>
                 {palette.fonts.map((font, i) => (
                   <div key={i} style={{ marginBottom: 20 }}>
                     <div className="style-palette-name">{font.name}</div>
@@ -88,8 +73,9 @@ class StylePaletteView extends React.Component<any, any> {
                 ))}
               </div>
             </TabPane>
-            <TabPane tab="Colors" key="colors">
-              <div>
+            <TabPane tab="Colors" key="colors" forceRender>
+              <div className="broadcast">
+                <style>{commonStyle}</style>
                 {palette.colors.map((color, i) => (
                   <div key={i} style={{ marginBottom: 20 }}>
                     <div className="style-palette-name">{color.name}</div>
@@ -105,8 +91,26 @@ class StylePaletteView extends React.Component<any, any> {
                 ))}
               </div>
             </TabPane>
-            <TabPane tab="Shadows" key="shadows">
-              <div>
+            <TabPane tab="Shadows" key="shadows" forceRender>
+              <div className="broadcast">
+                <style>
+                  {commonStyle}
+                  {palette.shadows
+                    .map(
+                      shadow => `
+                          .style-palette-shadow-${shadow.name} {
+                            box-shadow: ${shadow.value};
+                            width: 130px;
+                            height: 66px;
+                            transition: all 0.1s;
+                          }
+                          .style-palette-shadow-${shadow.name}:hover {
+                            box-shadow: ${shadow.hover};
+                          }
+                      `
+                    )
+                    .join('\n')}
+                </style>
                 {palette.shadows.map((shadow, i) => (
                   <div key={i} style={{ marginBottom: 20 }}>
                     <div className="style-palette-name">{shadow.name}</div>
@@ -121,8 +125,11 @@ class StylePaletteView extends React.Component<any, any> {
                 ))}
               </div>
             </TabPane>
-            <TabPane tab="Animations" key="animations">
-              <div>
+            <TabPane tab="Animations" key="animations" forceRender>
+              <div className="broadcast">
+                <style>
+                  {commonStyle} {palette.animations.map(animation => animation.value).join('\n')}
+                </style>
                 {palette.animations.map(animation => (
                   <div key={animation.name} style={{ marginBottom: 20 }}>
                     <div className="style-palette-name">{animation.name}</div>

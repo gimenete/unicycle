@@ -31,26 +31,10 @@ class Inspector extends EventEmitter {
     marginOverlay.appendChild(paddingOverlay)
     document.body.appendChild(marginOverlay)
 
-    document.addEventListener('click', e => {
-      if (this.target !== e.target) return
-      this.selected = this.target
-      this.emit('inspect', { target: this.target })
-    })
-
-    document.addEventListener('mousemove', e => {
-      if (!this.inspecting) return
-      const element = e.target as HTMLElement
-      if (!element.matches('.preview-content *')) {
-        return
-      }
-      this.target = element
-      this.recalculate()
-    })
-
     document.addEventListener('mouseout', e => {
       if (!this.inspecting) return
       const element = e.target as HTMLElement
-      if (!element.matches('.preview-content')) {
+      if (!element.classList.contains('resolved')) {
         return
       }
       this.target = this.selected
@@ -105,6 +89,24 @@ class Inspector extends EventEmitter {
     this.paddingOverlay.style.width = '0px'
     this.paddingOverlay.style.height = '0px'
     this.emit('stopInspecting')
+  }
+
+  public startInspectingElement(el: HTMLElement) {
+    el.addEventListener('click', e => {
+      if (this.target !== e.target) return
+      this.selected = this.target
+      this.emit('inspect', { target: this.target })
+    })
+
+    el.addEventListener('mousemove', e => {
+      if (!this.inspecting) return
+      const element = e.target as HTMLElement
+      if (!element.matches('.preview-content *')) {
+        return
+      }
+      this.target = element
+      this.recalculate()
+    })
   }
 }
 

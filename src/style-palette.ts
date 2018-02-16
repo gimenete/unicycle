@@ -7,6 +7,8 @@ import {
   PostCSSNode,
   PostCSSRoot
 } from './types'
+import workspace from './workspace'
+import { CSS_URL_REGEXP } from './utils'
 
 const postcss = require('postcss')
 
@@ -21,6 +23,8 @@ class StylePalette {
   public readonly colors: StylePaletteEntity[] = []
   public readonly shadows: StylePaletteEntity[] = []
   public readonly animations: StylePaletteEntity[] = []
+  public readonly fontFaces: StylePaletteEntity[] = []
+  public allFontFaces: string = ''
   public readonly attributes = new Map<string, string>()
   public source: string = ''
   public result: string = ''
@@ -67,6 +71,11 @@ class StylePalette {
       } else if (node.type === 'decl') {
         const decl = node as PostCSSDeclaration
         const { prop } = decl
+        // Replace relative URLs to absolute URLs
+        decl.value = decl.value.replace(
+          CSS_URL_REGEXP,
+          (match, p1, p2) => `url('${workspace.dir + '/assets/' + p2}')`
+        )
         for (const [prefix, collection] of Object.entries(prefixes)) {
           if (prop.startsWith(prefix)) {
             const name = prop.substr(prefix.length)
@@ -83,10 +92,19 @@ class StylePalette {
             name: rule.params,
             value: rule.toString()
           })
+        } else if (rule.name === 'font-face') {
+          if (node.nodes) {
+            node.nodes.forEach(childNode => iterateNode(childNode, ids))
+          }
+          this.fontFaces.push({
+            name: '',
+            value: rule.toString()
+          })
         }
       } else if (node.nodes) {
         node.nodes.forEach(childNode => iterateNode(childNode, ids))
       }
+      this.allFontFaces = this.fontFaces.map(fontFace => fontFace.value).join('\n')
     }
 
     iterateNode(ast, [])
