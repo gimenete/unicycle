@@ -25,6 +25,10 @@ class QuickSearch extends React.Component<QuickSearchProps, QuickSearchState> {
       value: ''
     }
 
+    Mousetrap.bind([`command+,`], (e: any) => {
+      this.props.onChangeSelection('settings')
+    })
+
     Mousetrap.bind([`command+t`, `ctrl+t`], (e: any) => {
       this.setState({ visible: true })
       const input = this.refs.searchInput as HTMLElement

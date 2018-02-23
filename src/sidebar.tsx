@@ -1,5 +1,6 @@
 import { Menu, Icon, Layout } from 'antd'
 import * as React from 'react'
+import * as os from 'os'
 
 import { Metadata } from './types'
 
@@ -18,6 +19,8 @@ interface SidebarProps {
 
 class Sidebar extends React.Component<SidebarProps, any> {
   public render() {
+    const key = os.platform() === 'darwin' ? '⌘' : 'Ctrl '
+
     const { metadata } = this.props
     if (!metadata) return <div />
     const { components } = metadata
@@ -82,6 +85,9 @@ class Sidebar extends React.Component<SidebarProps, any> {
             <span>Settings</span>
           </Menu.Item>
         </Menu>
+        <p style={{ color: '#777', marginTop: 50, textAlign: 'center' }}>
+          <span>Quick Search {key}+T</span>
+        </p>
       </Sider>
     )
   }
