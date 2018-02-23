@@ -26,7 +26,7 @@ class Sidebar extends React.Component<SidebarProps, any> {
     const { components } = metadata
     const { activeComponent, activeSelection } = this.props
     return (
-      <Sider>
+      <Sider style={{ height: '100%', overflow: 'auto' }}>
         <Menu
           selectedKeys={
             activeSelection ? (

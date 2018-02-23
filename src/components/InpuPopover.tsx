@@ -16,16 +16,15 @@ interface InputPopoverProps {
 
 interface InputPopoverState {
   inputValue: string
+  visible: boolean
 }
 
-export default class InputPopover extends React.Component<
-  InputPopoverProps,
-  InputPopoverState
-> {
+export default class InputPopover extends React.Component<InputPopoverProps, InputPopoverState> {
   constructor(props: InputPopoverProps) {
     super(props)
     this.state = {
-      inputValue: ''
+      inputValue: '',
+      visible: false
     }
   }
 
@@ -37,11 +36,10 @@ export default class InputPopover extends React.Component<
           autoFocus
           value={this.state.inputValue}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            this.setState({ inputValue: e.target.value })
-          }
+            this.setState({ inputValue: e.target.value })}
           onPressEnter={e => {
             this.props.onEnter(this.state.inputValue)
-            this.setState({ inputValue: '' })
+            this.setState({ inputValue: '', visible: false })
           }}
         />
       </div>
@@ -56,10 +54,7 @@ export default class InputPopover extends React.Component<
       </Button>
     )
     const target = this.props.tooltipTitle ? (
-      <Tooltip
-        title={this.props.tooltipTitle}
-        placement={this.props.tooltipPlacement}
-      >
+      <Tooltip title={this.props.tooltipTitle} placement={this.props.tooltipPlacement}>
         {button}
       </Tooltip>
     ) : (
@@ -70,9 +65,15 @@ export default class InputPopover extends React.Component<
         placement={this.props.placement}
         content={content}
         trigger="click"
+        visible={this.state.visible}
+        onVisibleChange={visible => this.handleVisibleChange(visible)}
       >
         {target}
       </Popover>
     )
+  }
+
+  private handleVisibleChange(visible: boolean) {
+    this.setState({ visible })
   }
 }

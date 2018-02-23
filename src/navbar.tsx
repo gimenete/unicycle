@@ -32,18 +32,17 @@ class Navbar extends React.Component<NavbarProps, NavbarState> {
       <Header>
         <div style={{ lineHeight: '64px', float: 'right' }}>
           <Button.Group>
-            <Button
-              icon="hdd"
-              onClick={() => {
-                console.log(
-                  dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
-                    properties: ['openDirectory']
-                  })
-                )
+            <InputPopover
+              placement="bottom"
+              placeholder="Commit message"
+              buttonSize="default"
+              buttonIcon="hdd"
+              onEnter={value => {
+                // foo
               }}
             >
               Save
-            </Button>
+            </InputPopover>
             <Button
               icon="upload"
               onClick={() => {
