@@ -9,6 +9,9 @@ import OpenPage from './open'
 import Previews from './previews'
 import StylePaletteView from './style-palette-view'
 import GitLog from './git-log'
+import Assets from './assets'
+import Settings from './settings'
+import QuickSearch from './quick-search'
 import workspace from './workspace'
 
 import { Layout } from 'antd'
@@ -41,6 +44,17 @@ class App extends React.Component<any, AppState> {
     if (this.state.mode === 'opening') return <OpenPage />
     const { activeComponent, activeSelection } = this.state
     const className = this.state.activeComponent ? '' : 'blank-slate'
+    const onSelectComponent = (component: string) =>
+      this.setState({
+        activeComponent: component,
+        activeSelection: 'component'
+      })
+    const onChangeSelection = (selection: string) => {
+      this.setState({
+        activeSelection: selection,
+        activeComponent: null
+      })
+    }
     return (
       <Layout className="layout">
         <Navbar
@@ -53,16 +67,13 @@ class App extends React.Component<any, AppState> {
             })
           }}
         />
+        <QuickSearch onSelectComponent={onSelectComponent} onChangeSelection={onChangeSelection} />
         <Content className={'content ' + className}>
           <Sidebar
             metadata={workspace.metadata}
             activeSelection={activeSelection}
             activeComponent={activeComponent}
-            onSelectComponent={component =>
-              this.setState({
-                activeComponent: component,
-                activeSelection: 'component'
-              })}
+            onSelectComponent={onSelectComponent}
             onDeleteComponent={(component: string) => {
               workspace.deleteComponent(component).then(() => {
                 if (this.state.activeComponent === component) {
@@ -70,12 +81,7 @@ class App extends React.Component<any, AppState> {
                 }
               })
             }}
-            onChangeSelection={selection => {
-              this.setState({
-                activeSelection: selection,
-                activeComponent: null
-              })
-            }}
+            onChangeSelection={onChangeSelection}
           />
           {activeSelection === 'component' &&
           activeComponent && (
@@ -101,8 +107,9 @@ class App extends React.Component<any, AppState> {
             </div>
           )}
           {activeSelection === 'style-palette' && <StylePaletteView />}
-          {activeSelection === 'assets' && <div>Assets</div>}
+          {activeSelection === 'assets' && <Assets />}
           {activeSelection === 'git-log' && <GitLog />}
+          {activeSelection === 'settings' && <Settings />}
         </Content>
       </Layout>
     )

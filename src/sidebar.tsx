@@ -26,13 +26,11 @@ class Sidebar extends React.Component<SidebarProps, any> {
       <Sider>
         <Menu
           selectedKeys={
-            activeSelection
-              ? [
-                  activeSelection === 'component'
-                    ? 'c-' + activeComponent
-                    : activeSelection
-                ]
-              : []
+            activeSelection ? (
+              [activeSelection === 'component' ? 'c-' + activeComponent : activeSelection]
+            ) : (
+              []
+            )
           }
           defaultOpenKeys={['components']}
           mode="inline"
@@ -58,20 +56,30 @@ class Sidebar extends React.Component<SidebarProps, any> {
             key="components"
             title={
               <span>
-                <Icon type="appstore-o" />
-                <span>Components</span>
+                <Icon type="global" />
+                <span>Web components</span>
               </span>
             }
           >
             {components.map(component => (
-              <Menu.Item key={'c-' + component.name}>
-                {component.name}
-              </Menu.Item>
+              <Menu.Item key={'c-' + component.name}>{component.name}</Menu.Item>
             ))}
           </SubMenu>
+          <Menu.Item key="react-native">
+            <Icon type="mobile" />
+            <span>React Native</span>
+          </Menu.Item>
+          <Menu.Item key="email-templates">
+            <Icon type="mail" />
+            <span>Email templates</span>
+          </Menu.Item>
           <Menu.Item key="git-log">
             <Icon type="fork" />
             <span>Git log</span>
+          </Menu.Item>
+          <Menu.Item key="settings">
+            <Icon type="setting" />
+            <span>Settings</span>
           </Menu.Item>
         </Menu>
       </Sider>

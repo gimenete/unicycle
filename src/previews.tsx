@@ -14,7 +14,6 @@ import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
 import { Message } from './editors/index'
-import { JSXElement } from 'babel-types'
 
 const ShadowDOM = require('react-shadow').default
 
@@ -112,7 +111,8 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
             markupErrorMessages.push({ position, text, type: 'error' })
           }
           errors++
-        }
+        },
+        null
       )
       const classNames: string[] = ['preview-content']
       const allComponents = Array.from(components).map(name => workspace.getComponent(name))
@@ -314,7 +314,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
                 editors.addState(name)
               }}
             >
-              Add a new test
+              New test
             </InputPopover>
             {someHaveDiffImage && (
               <Button
