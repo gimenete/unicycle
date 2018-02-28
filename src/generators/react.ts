@@ -3,15 +3,13 @@ import * as prettier from 'prettier'
 
 import Component from '../component'
 import css2obj from '../css2obj'
-import { GeneratedCode } from '../types'
-import {
-  docComment,
-  toReactAttributeName,
-  toReactEventName,
-  uppercamelcase
-} from '../utils'
+import { GeneratedCode, INCLUDE_PREFIX } from '../types'
+import { docComment, toReactAttributeName, toReactEventName, uppercamelcase } from '../utils'
+
+const camelcase = require('camelcase')
 
 const generateReact = (
+  componentNames: string[],
   information: Component,
   options?: prettier.Options
 ): GeneratedCode => {
@@ -37,8 +35,14 @@ const generateReact = (
       const value = props[key]
       if (typeof value === 'string') {
         codeExample += ` ${key}=${JSON.stringify(value)}`
-      } else if (typeof value === 'number' || typeof value === 'boolean') {
+      } else if (typeof value === 'number') {
         codeExample += ` ${key}=${value}`
+      } else if (typeof value === 'boolean') {
+        if (value) {
+          codeExample += ` ${key}`
+        } else {
+          codeExample += ` ${key}={${value}}`
+        }
       } else {
         codeExample += ` ${key}={${JSON.stringify(value)}}`
       }
@@ -51,9 +55,7 @@ const generateReact = (
   }
 
   const exampleCode = example()
-  const lines = [
-    'This file was generated automatically. Do not change it. Use composition instead'
-  ]
+  const lines = ['This file was generated automatically. Do not change it. Use composition instead']
   if (exampleCode) {
     lines.push('')
     lines.push('This is an example of how to use the generated component:')
@@ -62,18 +64,7 @@ const generateReact = (
   }
   const comment = docComment(lines.join('\n'))
 
-  let code = `${comment}
-  import React from 'react';
-  import PropTypes from 'prop-types'; // eslint-disable-line no-unused-vars
-  import './styles.css';
-
-  const ${componentName} = (props) => {`
-
-  if (keys.size > 0) {
-    code += `const {${Array.from(keys)
-      .concat(Array.from(eventHandlers.keys()))
-      .join(', ')}} = props;`
-  }
+  const dependencies = new Set<string>()
 
   const renderNode = (node: parse5.AST.Default.Node) => {
     if (node.nodeName === '#text') {
@@ -82,8 +73,25 @@ const generateReact = (
     }
     const element = node as parse5.AST.Default.Element
     if (!element.childNodes) return ''
+    const calculateElementName = () => {
+      const elemName = node.nodeName
+      if (!node.nodeName.startsWith(INCLUDE_PREFIX)) {
+        return {
+          name: elemName,
+          custom: false
+        }
+      }
+      const name = camelcase(elemName.substring(INCLUDE_PREFIX.length))
+      const canonicalName = componentNames.find(comp => comp.toLowerCase() === name) || name
+      dependencies.add(canonicalName)
+      return {
+        name: canonicalName,
+        custom: true
+      }
+    }
     const toString = () => {
-      let elementCode = `<${node.nodeName}`
+      const elementInfo = calculateElementName()
+      let elementCode = `<${elementInfo.name}`
       element.attrs.forEach(attr => {
         if (attr.name.startsWith(':')) return
         if (attr.name.startsWith('@on')) {
@@ -96,7 +104,7 @@ const generateReact = (
           }
         }
         if (attr.name.startsWith('@')) return
-        const name = toReactAttributeName(attr.name)
+        const name = elementInfo.custom ? attr.name : toReactAttributeName(attr.name)
         if (name === 'style') {
           elementCode += ` ${name}={${JSON.stringify(css2obj(attr.value))}}`
         } else if (name) {
@@ -105,17 +113,16 @@ const generateReact = (
       })
       element.attrs.forEach(attr => {
         if (!attr.name.startsWith(':')) return
-        const name = toReactAttributeName(attr.name.substring(1))
+        const attrName = attr.name.substring(1)
+        const name = elementInfo.custom ? attrName : toReactAttributeName(attrName)
         if (name) {
           const expression = attr.value
           elementCode += ` ${name}={${expression}}`
         }
       })
       elementCode += '>'
-      element.childNodes.forEach(
-        childNode => (elementCode += renderNode(childNode))
-      )
-      elementCode += `</${node.nodeName}>`
+      element.childNodes.forEach(childNode => (elementCode += renderNode(childNode)))
+      elementCode += `</${elementInfo.name}>`
       return elementCode
     }
     let basicMarkup = toString()
@@ -124,14 +131,31 @@ const generateReact = (
     const loop = element.attrs.find(attr => attr.name === '@loop')
     const as = element.attrs.find(attr => attr.name === '@as')
     if (loop && as) {
-      basicMarkup = `{(${loop.value}).map((${as.value}, i) => ${basicMarkup})}`
+      basicMarkup = `{(${loop.value}).map((${as.value}, i) => ${basicMarkup})}` // TODO: key attr
     }
     if (ifs) {
       basicMarkup = `{(${ifs.value}) && (${basicMarkup})}`
     }
     return basicMarkup
   }
-  code += 'return ' + renderNode(markup.getDOM().childNodes[0])
+
+  const renderReturn = renderNode(markup.getDOM().childNodes[0])
+
+  let code = `${comment}
+  import React from 'react';
+  import PropTypes from 'prop-types'; // eslint-disable-line no-unused-vars
+  import './styles.css';
+  ${[...dependencies].map(dep => `import ${dep} from '../${dep}';`).join('\n')}
+
+  const ${componentName} = (props) => {`
+
+  if (keys.size > 0) {
+    code += `const {${Array.from(keys)
+      .concat(Array.from(eventHandlers.keys()))
+      .join(', ')}} = props;`
+  }
+
+  code += 'return ' + renderReturn
   code += '}\n\n'
   code += typer.createPropTypes(`${componentName}.propTypes`)
   code += '\n\n'

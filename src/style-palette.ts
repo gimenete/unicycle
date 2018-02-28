@@ -30,6 +30,7 @@ class StylePalette {
   public result: string = ''
 
   public setSource(source: string) {
+    source = source || '/**/' // node-sass fails if the input is empty
     this.source = source
 
     const result = sass.renderSync({

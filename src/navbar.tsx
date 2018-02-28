@@ -5,9 +5,9 @@ import workspace from './workspace'
 
 import { Layout, Button } from 'antd'
 import InputPopover from './components/InpuPopover'
+import errorHandler from './error-handler'
 
 const { clipboard } = remote
-const { BrowserWindow, dialog } = remote
 
 const { Header } = Layout
 
@@ -46,7 +46,7 @@ class Navbar extends React.Component<NavbarProps, NavbarState> {
             <Button
               icon="upload"
               onClick={() => {
-                workspace.emit('export')
+                workspace.generate(errorHandler)
               }}
             >
               Export

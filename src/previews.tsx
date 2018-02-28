@@ -9,11 +9,12 @@ import { DiffImage, Media, State, States } from './types'
 
 import editors from './editors'
 import errorHandler from './error-handler'
-import reactGenerator from './generators/react'
 import inspector from './inspector'
 import renderComponent from './preview-render'
 import workspace from './workspace'
 import { Message } from './editors/index'
+
+const throttledGenerate = throttle(() => workspace.generate(errorHandler), 3000)
 
 const ShadowDOM = require('react-shadow').default
 
@@ -39,9 +40,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
   constructor(props: PreviewsProps) {
     super(props)
 
-    this.onExport = this.onExport.bind(this)
     this.onComponentUpdated = this.onComponentUpdated.bind(this)
-    workspace.on('export', this.onExport)
     workspace.on('componentUpdated', this.onComponentUpdated)
 
     this.state = {
@@ -384,6 +383,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
 
   public componentDidCatch(error: any, info: any) {
     // TODO
+    errorHandler(error)
     console.log({ error, info })
   }
 
@@ -394,6 +394,7 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
 
   public componentDidUpdate() {
     workspace.emit('previewUpdated')
+    // throttledGenerate()
     this.cssCoverage()
     if (this.scrollDown) {
       this.scrollDown = false
@@ -405,7 +406,6 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
   }
 
   public componentWillUnmount() {
-    workspace.removeListener('export', this.onExport)
     workspace.removeListener('componentUpdated', this.onComponentUpdated)
   }
 
@@ -423,18 +423,6 @@ class Previews extends React.Component<PreviewsProps, PreviewsState> {
 
   private setVisibleStates(indexes: number[]) {
     editors.dataEditor!.setVisibleStates(indexes)
-  }
-
-  private generateOutput(): string {
-    const component = workspace.getComponent(this.props.activeComponent)
-    if (!component) return ''
-    const prettierOptions = workspace.metadata.export!.prettier
-    const code = reactGenerator(component, prettierOptions)
-    return code.code
-  }
-
-  private onExport() {
-    this.setState({ isOutputOpen: true })
   }
 
   private onComponentUpdated() {

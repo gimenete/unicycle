@@ -1,6 +1,7 @@
 import * as path from 'path'
+import * as crypto from 'crypto'
+import * as fs from 'fs-extra'
 import * as React from 'react'
-import { Button } from 'antd'
 
 import electron = require('electron')
 
@@ -8,7 +9,7 @@ import errorHandler from './error-handler'
 import { isPackaged } from './utils'
 import workspace from './workspace'
 
-const { BrowserWindow, dialog } = electron.remote
+const { BrowserWindow, dialog, app } = electron.remote
 
 class OpenPage extends React.Component<any, any> {
   constructor(props: any) {
@@ -16,38 +17,28 @@ class OpenPage extends React.Component<any, any> {
   }
 
   public componentDidMount() {
-    if (!isPackaged() && document.location.search === '?first') {
+    const { search } = document.location
+    if (!isPackaged() && search === '?first') {
       this.loadProject(path.join(__dirname, '..', '..', 'example'))
+    } else if (search === '?open') {
+      this.openProject()
+    } else if (search === '?new') {
+      this.createProject()
     }
   }
 
   public render() {
-    return (
-      <div id="open">
-        <h1>Unicycle</h1>
-        <p>
-          <Button type="primary" onClick={() => this.openProject()}>
-            Open an existing project
-          </Button>
-        </p>
-        <p>
-          <Button
-            type="primary"
-            className="pt-non-ideal-state"
-            onClick={() => this.createProject()}
-          >
-            Create a new project
-          </Button>
-        </p>
-      </div>
-    )
+    return <div id="open" />
   }
 
   private openProject() {
     const paths = dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
       properties: ['openDirectory']
     })
-    if (!paths || paths.length === 0) return
+    if (!paths || paths.length === 0) {
+      const window = BrowserWindow.getFocusedWindow()
+      window.close()
+    }
     this.loadProject(paths[0])
   }
 
@@ -65,9 +56,12 @@ class OpenPage extends React.Component<any, any> {
   }
 
   private createProject() {
-    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
-      properties: ['openDirectory']
-    })
+    const random = crypto.randomBytes(4).toString('hex')
+    const fullpath = path.join(app.getPath('userData'), 'project-' + random)
+    Promise.resolve()
+      .then(() => fs.mkdirp(fullpath))
+      .then(() => workspace.createProject(fullpath))
+      .catch(errorHandler)
   }
 }
 

@@ -38,7 +38,8 @@ const renderComponent = (
         cmp: info.name,
         ln: location.line,
         c: location.col,
-        eln: location.endTag !== undefined ? location.endTag.line : location.line
+        eln: location.endTag !== undefined ? location.endTag.line : location.line,
+        ec: location.endTag !== undefined ? location.endTag.col : location.col
       })
     try {
       if (node.nodeName === '#text') {
@@ -84,7 +85,7 @@ const renderComponent = (
       }
       if (node.nodeName.startsWith(INCLUDE_PREFIX)) {
         const componentName = node.nodeName.substring(INCLUDE_PREFIX.length)
-        const componentInfo = workspace.loadComponent(componentName)
+        const componentInfo = workspace.getComponent(componentName)
         const props = element.attrs.reduce(
           (elementProps, attr) => {
             if (attr.name.startsWith(':')) {
@@ -129,10 +130,11 @@ const renderComponent = (
         const fname = toReactAttributeName(name)
         if (fname) {
           attrs[fname] = evaluateExpression(expression, data)
+          // TODO if attrs.style is dynamic it MUST be an object
         }
       })
-      if (attrs.style) {
-        attrs.style = css2obj(attrs.style as string)
+      if (attrs.style && typeof attrs.style === 'string') {
+        attrs.style = css2obj(attrs.style)
       }
       const location = element.__location
       if (location) {

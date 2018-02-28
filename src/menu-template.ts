@@ -10,14 +10,14 @@ const createMenuFile = (): Electron.MenuItemConstructorOptions[] => {
       label: 'Open…',
       accelerator: 'CmdOrCtrl+O',
       click() {
-        createWindow()
+        createWindow('open')
       }
     },
     {
       label: 'New…',
       accelerator: 'CmdOrCtrl+N',
       click() {
-        console.log('new...')
+        createWindow('new')
       }
     }
   ]
@@ -48,10 +48,7 @@ const createMenuEdit = (): Electron.MenuItemConstructorOptions[] => {
 }
 
 const createMenuView = (): Electron.MenuItemConstructorOptions[] => {
-  const base: Electron.MenuItemConstructorOptions[] = [
-    { role: 'reload' },
-    { role: 'forcereload' }
-  ]
+  const base: Electron.MenuItemConstructorOptions[] = [{ role: 'reload' }, { role: 'forcereload' }]
   if (!isPackaged()) {
     base.push({ role: 'toggledevtools' })
   }

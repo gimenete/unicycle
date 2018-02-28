@@ -8,6 +8,7 @@ import { docComment } from '../utils'
 const dashify = require('dashify')
 
 const generateVue = (
+  componentNames: string[],
   information: Component,
   options?: prettier.Options
 ): GeneratedCode => {

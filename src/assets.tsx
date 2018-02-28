@@ -1,9 +1,12 @@
-import { Icon, Breadcrumb } from 'antd'
+import { Icon, Breadcrumb, Button } from 'antd'
 import { Card } from 'antd'
 import * as React from 'react'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import * as url from 'url'
+
+import * as electron from 'electron'
+const { shell } = electron.remote
 
 import workspace from './workspace'
 import errorHandler from './error-handler'
@@ -48,21 +51,31 @@ class Assets extends React.Component<any, AssetsState> {
           height: '100%'
         }}
       >
-        <Breadcrumb>
-          <Breadcrumb.Item>Home</Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <a onClick={() => this.calculateAssets([])}>assets</a>
-          </Breadcrumb.Item>
-          {this.state.path.map(comp => {
-            partialPath.push(comp)
-            const thisPath = partialPath.slice(0)
-            return (
-              <Breadcrumb.Item key={comp}>
-                <a onClick={() => this.calculateAssets(thisPath)}>{comp}</a>
-              </Breadcrumb.Item>
-            )
-          })}
-        </Breadcrumb>
+        <div>
+          <div style={{ float: 'right' }}>
+            <Button
+              onClick={() =>
+                shell.showItemInFolder(path.join(workspace.dir, 'assets', ...this.state.path))}
+            >
+              Reveal in Finder
+            </Button>
+          </div>
+          <Breadcrumb>
+            <Breadcrumb.Item>Home</Breadcrumb.Item>
+            <Breadcrumb.Item>
+              <a onClick={() => this.calculateAssets([])}>assets</a>
+            </Breadcrumb.Item>
+            {this.state.path.map(comp => {
+              partialPath.push(comp)
+              const thisPath = partialPath.slice(0)
+              return (
+                <Breadcrumb.Item key={comp}>
+                  <a onClick={() => this.calculateAssets(thisPath)}>{comp}</a>
+                </Breadcrumb.Item>
+              )
+            })}
+          </Breadcrumb>
+        </div>
 
         <div
           style={{

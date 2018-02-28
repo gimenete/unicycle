@@ -12,6 +12,7 @@ import reactGenerator from './generators/react'
 import vueGenerator from './generators/vuejs'
 
 import * as Git from 'nodegit'
+import { CSS_URL_REGEXP } from './utils'
 
 const { Repository, Reference } = Git
 
@@ -34,13 +35,15 @@ class Workspace extends EventEmitter {
   }
 
   public async createProject(dir: string) {
-    this.dir = dir
     const initialMetadata: Metadata = {
       components: []
     }
-    await fse.writeFile(path.join(this.dir, metadataFile), JSON.stringify(initialMetadata))
-    await fse.writeFile(path.join(this.dir, paletteFile), '')
-    await fse.mkdirp(path.join(this.dir, sourceDir))
+    await Promise.all([
+      fse.writeFile(path.join(dir, metadataFile), JSON.stringify(initialMetadata)),
+      fse.writeFile(path.join(dir, paletteFile), ''),
+      fse.mkdirp(path.join(dir, sourceDir))
+    ])
+    this.loadProject(dir)
   }
 
   public async addComponent(name: string, structure?: string) {
@@ -50,7 +53,7 @@ class Workspace extends EventEmitter {
           markup: '<div>\n  \n</div>',
           style: ''
         }
-    const initialState = JSON.stringify([{ name: 'Some state', props: {} }] as States, null, 2)
+    const initialState = JSON.stringify([{ name: 'A test', props: {} }] as States, null, 2)
     await fse.mkdir(path.join(this.dir, sourceDir, name))
     await Promise.all([
       this.writeFile(path.join(sourceDir, name, 'index.html'), initial.markup),
@@ -140,40 +143,61 @@ class Workspace extends EventEmitter {
   }
 
   public async generate(errorHandler: ErrorHandler) {
-    const generators: {
-      [index: string]: (information: Component, options?: prettier.Options) => GeneratedCode
-    } = {
-      react: reactGenerator,
-      vue: vueGenerator
-    }
-
-    const exportOptions = this.metadata.export!
-    if (!exportOptions) {
-      return errorHandler(new Error('No export options set'))
-    }
-
-    const outDir = path.join(this.dir, exportOptions.dir)
-    await fse.mkdirp(outDir)
-    console.log('outDir', outDir)
-    for (const component of this.metadata.components) {
-      console.log('+', component.name)
-      const info = this.loadComponent(component.name)
-      const prettierOptions = exportOptions.prettier
-      const code = generators[exportOptions.framework](info, prettierOptions)
-      await fse.mkdirp(path.join(outDir, name))
-      console.log('-', path.join(outDir, code.path))
-      await fse.writeFile(path.join(outDir, code.path), code.code)
-      const css = info.style.getCSS().source
-      if (!code.embeddedStyle) {
-        console.log('-', path.join(outDir, code.path))
-        await fse.writeFile(
-          path.join(outDir, name, 'styles.css'),
-          prettier.format(css.toString(), {
-            parser: 'postcss',
-            ...prettierOptions
-          })
-        )
+    try {
+      const generators: {
+        [index: string]: (
+          componentNames: string[],
+          information: Component,
+          options?: prettier.Options
+        ) => GeneratedCode
+      } = {
+        react: reactGenerator,
+        vue: vueGenerator
       }
+
+      const componentNames = this.metadata.components.map(comp => comp.name)
+
+      const generalOptions = this.metadata.general || {}
+      const exportOptions = this.metadata.web || { framework: 'react', dir: null }
+      if (!exportOptions.dir) return
+
+      const outDir = exportOptions.dir // path.join(this.dir, exportOptions.dir)
+      await fse.mkdirp(outDir)
+      console.log('outDir', outDir)
+      for (const component of this.metadata.components) {
+        console.log('+', component.name)
+        const info = this.loadComponent(component.name)
+        const prettierOptions = generalOptions.prettier
+        const code = generators[exportOptions.framework || 'react'](
+          componentNames,
+          info,
+          prettierOptions
+        )
+        const fullPath = path.join(outDir, code.path)
+        const fullPathDir = path.dirname(fullPath)
+        await fse.mkdirp(fullPathDir)
+        console.log('-', fullPath)
+        await fse.writeFile(fullPath, code.code)
+        const css = info.style.getCSS().source.replace(CSS_URL_REGEXP, (match, p1, p2) => {
+          if (!p2.startsWith(this.dir)) return match
+          console.log('...................................')
+          return `url('${p2.substring((this.dir + '/assets').length)}')`
+        })
+        if (!code.embeddedStyle) {
+          console.log('-', fullPath)
+          await fse.writeFile(
+            path.join(fullPathDir, 'styles.css'),
+            prettier.format(css.toString(), {
+              parser: 'postcss',
+              ...prettierOptions
+            })
+          )
+        }
+      }
+      await fse.writeFile(path.join(outDir, 'index.css'), this.palette.result)
+      await fse.copy(path.join(this.dir, 'assets'), outDir)
+    } catch (err) {
+      errorHandler(err)
     }
   }
 
@@ -187,6 +211,12 @@ class Workspace extends EventEmitter {
     return this.repo
   }
 
+  public async saveMetadata() {
+    // TODO: make dirs relative to project dir
+    await this.writeFile(metadataFile, JSON.stringify(this.metadata, null, 2))
+    this.emit('metadataChanged')
+  }
+
   private async findRepositoryDir() {
     let currentDir = this.dir
     while (true) {
@@ -196,10 +226,6 @@ class Workspace extends EventEmitter {
       currentDir = path.resolve(currentDir, '..')
       return null
     }
-  }
-
-  private saveMetadata() {
-    return this.writeFile(metadataFile, JSON.stringify(this.metadata, null, 2))
   }
 }
 

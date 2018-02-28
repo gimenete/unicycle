@@ -8,11 +8,11 @@ import { isPackaged } from './utils'
 
 const windows: Electron.BrowserWindow[] = []
 
-export const createWindow = () => {
+export const createWindow = (search: string) => {
   const packaged = isPackaged()
   const window = new BrowserWindow({
-    width: packaged ? 800 : 800 + 400,
-    height: 600,
+    width: packaged ? 960 : 960 + 400,
+    height: 800,
     titleBarStyle: 'hidden'
   })
 
@@ -21,7 +21,7 @@ export const createWindow = () => {
       pathname: path.join(__dirname, '..', 'index.html'),
       protocol: 'file:',
       slashes: true,
-      search: windows.length === 0 ? 'first' : ''
+      search: windows.length === 0 ? 'first' : search
     })
   )
 
@@ -37,6 +37,6 @@ export const createWindow = () => {
 
 export const createWindowIfNoWindows = () => {
   if (windows.length === 0) {
-    createWindow()
+    createWindow('new')
   }
 }

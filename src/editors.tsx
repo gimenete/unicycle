@@ -135,11 +135,20 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
     const lineNumber = locationData.ln as number
     const column = locationData.c as number
     const endLineNumber = locationData.eln as number
+    const endColumn = locationData.ec as number
     Editors.markupEditor!.editor.revealLinesInCenterIfOutsideViewport(lineNumber, endLineNumber)
     Editors.markupEditor!.editor.setPosition({
       lineNumber,
       column
     })
+    if (endLineNumber !== undefined && endColumn !== undefined) {
+      Editors.markupEditor!.editor.setSelection({
+        startLineNumber: lineNumber,
+        startColumn: column,
+        endLineNumber,
+        endColumn
+      })
+    }
     this.focusVisibleEditor()
 
     const matches = (elem: HTMLElement, selector: string): HTMLElement | null => {

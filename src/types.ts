@@ -104,12 +104,26 @@ export interface ComponentMetadata {
 
 export interface Metadata {
   components: ComponentMetadata[]
-  export?: {
+  general?: {
+    prettier?: prettier.Options
+  }
+  web?: {
     dir: string
     framework: string
     style: string
     language: string
-    prettier?: prettier.Options
+    // browserlist
+  }
+  reactNative?: {
+    dir: string
+    language: string
+    iOS: boolean
+    android: boolean
+  }
+  email?: {
+    dir: string
+    language: string
+    inky: boolean
   }
 }
 

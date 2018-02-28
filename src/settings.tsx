@@ -1,5 +1,11 @@
-import { Form, Input, Radio, Icon, Switch, Collapse, Button } from 'antd'
+import { Form, Input, Radio, Icon, Switch, Collapse } from 'antd'
 import * as React from 'react'
+import workspace from './workspace'
+
+import electron = require('electron')
+import errorHandler from './error-handler'
+
+const { BrowserWindow, dialog, app } = electron.remote
 
 const FormItem = Form.Item
 const { Button: RadioButton, Group: RadioGroup } = Radio
@@ -26,7 +32,24 @@ class WebComponentsSettings extends React.Component<any, any> {
           label="Output directory"
           extra="Directory where files for the frontend project should be generated"
         >
-          <Search defaultValue="~/projects/Demo/frontend/src" enterButton="Change..." />
+          <Search
+            value={workspace.metadata.web && workspace.metadata.web.dir}
+            enterButton="Change..."
+            readOnly
+            onSearch={() => {
+              const paths = dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+                properties: ['openDirectory'],
+                defaultPath: workspace.metadata.web && workspace.metadata.web.dir
+              })
+              if (!paths || paths.length === 0) return
+              workspace.metadata.web = Object.assign({}, workspace.metadata.web)
+              workspace.metadata.web.dir = paths[0]
+              workspace
+                .saveMetadata()
+                .then(() => workspace.generate(errorHandler))
+                .catch(errorHandler)
+            }}
+          />
         </FormItem>
         <FormItem {...formItemLayout} label="Framework">
           <RadioGroup defaultValue="a">
@@ -84,7 +107,11 @@ class EmailTemplateSettings extends React.Component<any, any> {
           label="Output directory"
           extra="Directory where files for the email templates should be generated"
         >
-          <Search defaultValue="~/projects/Demo/app/email/templates" enterButton="Change..." />
+          <Search
+            defaultValue="~/projects/Demo/app/email/templates"
+            enterButton="Change..."
+            readOnly
+          />
         </FormItem>
         <FormItem {...formItemLayout} label="Template engine">
           <RadioGroup defaultValue="a">
@@ -119,7 +146,7 @@ class ReactNativeSettings extends React.Component<any, any> {
           label="Output directory"
           extra="Directory where files for the React Native project should be generated"
         >
-          <Search defaultValue="~/projects/Demo/mobile/src" enterButton="Change..." />
+          <Search defaultValue="~/projects/Demo/mobile/src" enterButton="Change..." readOnly />
         </FormItem>
         <FormItem {...formItemLayout} label="JavaScript flavor">
           <RadioGroup defaultValue="a">
@@ -140,6 +167,12 @@ class ReactNativeSettings extends React.Component<any, any> {
 
 class GeneralSettings extends React.Component<any, any> {
   public render() {
+    const data = workspace.metadata.general || {
+      prettier: {
+        printWidth: 100,
+        singleQuote: true
+      }
+    }
     return (
       <div>
         <FormItem
@@ -147,7 +180,18 @@ class GeneralSettings extends React.Component<any, any> {
           label="Project directory"
           extra="Directory where files used by Unicycle should be stored"
         >
-          <Search defaultValue="~/projects/Demo/unicycle" enterButton="Change..." />
+          <Search
+            enterButton="Change..."
+            value={workspace.dir}
+            onSearch={() => {
+              const paths = dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+                properties: ['openDirectory']
+              })
+              if (!paths || paths.length === 0) return
+              // TODO workspace.setDirectory(paths[0])
+            }}
+            readOnly
+          />
         </FormItem>
         <FormItem
           {...formItemLayout}
@@ -164,10 +208,10 @@ class GeneralSettings extends React.Component<any, any> {
         >
           <TextArea
             rows={5}
-            value={`{
-  "printWidth": 100,
-  "singleQuote": true
-}`}
+            value={JSON.stringify(data.prettier || {}, null, 2)}
+            onChange={() => {
+              // TODO workspace update prettier config
+            }}
           />
         </FormItem>
       </div>
@@ -176,10 +220,15 @@ class GeneralSettings extends React.Component<any, any> {
 }
 
 class Settings extends React.Component<any, any> {
+  public componentDidMount() {
+    workspace.on('metadataChanged', () => {
+      this.forceUpdate()
+    })
+  }
   public render() {
     return (
       <div style={{ padding: 40, width: '100%', height: '100%', overflow: 'auto' }}>
-        <Form onSubmit={() => console.log('foo')}>
+        <Form>
           <Collapse bordered={false} defaultActiveKey={['1', '2', '3', '4']}>
             <Panel
               showArrow={false}
