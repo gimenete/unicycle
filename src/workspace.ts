@@ -39,6 +39,7 @@ class Workspace extends EventEmitter {
       components: []
     }
     await Promise.all([
+      fse.mkdir(path.join(dir, 'assets')),
       fse.writeFile(path.join(dir, metadataFile), JSON.stringify(initialMetadata)),
       fse.writeFile(path.join(dir, paletteFile), ''),
       fse.mkdirp(path.join(dir, sourceDir))

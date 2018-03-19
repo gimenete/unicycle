@@ -110,6 +110,21 @@ class App extends React.Component<any, AppState> {
           {activeSelection === 'assets' && <Assets />}
           {activeSelection === 'git-log' && <GitLog />}
           {activeSelection === 'settings' && <Settings />}
+          {activeSelection === 'react-native' && (
+            <div style={{ marginTop: '10%', textAlign: 'center', width: '100%' }}>
+              <h1>Work in progress</h1>
+              <h3 style={{ color: '#aaa' }}>Here you will design React Native screens</h3>
+            </div>
+          )}
+          {activeSelection === 'email-templates' && (
+            <div style={{ marginTop: '10%', textAlign: 'center', width: '100%' }}>
+              <h1>Work in progress</h1>
+              <h3 style={{ color: '#aaa' }}>
+                Here you will design email templates and simulate how they look in different email
+                clients
+              </h3>
+            </div>
+          )}
         </Content>
       </Layout>
     )

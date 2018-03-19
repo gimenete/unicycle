@@ -89,7 +89,41 @@ class Editors extends React.Component<EditorsProps, EditorsState> {
         onTabClick={(selectedTabId: string) => this.handleTabChange(selectedTabId)}
       >
         <TabPane tab={`Markup ${key}1`} key="markup" forceRender>
-          <div className="editor" ref={element => element && this.initMarkupEditor(element)} />
+          <div
+            className="editor"
+            onDrop={e => {
+              const editor = Editors.markupEditor!.editor
+              const component = e.dataTransfer.getData('text/plain')
+              if (component) {
+                editor.trigger('keyboard', 'type', {
+                  text: `\n<include:${component}>$1</include:${component}>`
+                })
+              } else {
+                for (const item of Array.from(e.dataTransfer.items)) {
+                  const file = item.getAsFile()
+                  if (file) {
+                    // TODO
+                    editor.trigger('keyboard', 'type', {
+                      text: file.path
+                    })
+                  }
+                }
+              }
+            }}
+            onDragEnter={e => e.preventDefault()}
+            onDragOver={e => {
+              console.log('drag over!!')
+              e.preventDefault()
+              e.stopPropagation()
+              e.dataTransfer.dropEffect = 'copy'
+
+              const editor = Editors.markupEditor!.editor
+              editor.focus()
+              const position = editor.getTargetAtClientPoint(e.clientX, e.clientY).position
+              editor.setPosition(position)
+            }}
+            ref={element => element && this.initMarkupEditor(element)}
+          />
         </TabPane>
         <TabPane tab={`Style ${key}2`} key="style" forceRender>
           <div className="editor" ref={element => element && this.initStyleEditor(element)} />

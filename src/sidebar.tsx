@@ -65,7 +65,18 @@ class Sidebar extends React.Component<SidebarProps, any> {
             }
           >
             {components.map(component => (
-              <Menu.Item key={'c-' + component.name}>{component.name}</Menu.Item>
+              <Menu.Item key={'c-' + component.name}>
+                <span
+                  draggable
+                  onDragStart={e => {
+                    console.log('dragstart!')
+                    e.dataTransfer.setData('text/plain', component.name)
+                    e.dataTransfer.dropEffect = 'copy'
+                  }}
+                >
+                  {component.name}
+                </span>
+              </Menu.Item>
             ))}
           </SubMenu>
           <Menu.Item key="react-native">
