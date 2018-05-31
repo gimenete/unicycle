@@ -1,15 +1,14 @@
 import * as parse5 from 'parse5'
 import * as React from 'react'
-
 import Component from './component'
 import css2obj from './css2obj'
 import { evaluateExpression } from './eval'
 import {
-  componentDataAttribute,
   INCLUDE_PREFIX,
   ObjectStringToString,
   ReactAttributes,
-  State
+  State,
+  componentDataAttribute
 } from './types'
 import { toReactAttributeName } from './utils'
 import workspace from './workspace'
@@ -134,7 +133,7 @@ const renderComponent = (
         }
       })
       if (attrs.style && typeof attrs.style === 'string') {
-        attrs.style = css2obj(attrs.style)
+        attrs.style = css2obj(attrs.style as string)
       }
       const location = element.__location
       if (location) {

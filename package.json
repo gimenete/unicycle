@@ -9,8 +9,7 @@
     "lint": "eslint -- .",
     "lint:fix": "npm run lint -- --fix",
     "tsc": "tsc --watch",
-    "generate:react": "node lib/generator.js react",
-    "generate:vue": "node lib/generator.js vue"
+    "build": "tsc"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "author": "Level Apps S.L.",

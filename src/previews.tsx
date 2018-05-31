@@ -1,20 +1,18 @@
-import { Popover, Button, Slider, Tooltip, Popconfirm, Icon, Collapse } from 'antd'
+import { Button, Collapse, Icon, Popconfirm, Popover, Slider, Tooltip } from 'antd'
 import { throttle } from 'lodash'
 import * as React from 'react'
-
 import DiffImagePopover from './components/DiffImagePopover'
 import InputPopover from './components/InpuPopover'
 import MediaPopoverProps from './components/MediaPopover'
-import { DiffImage, Media, State, States } from './types'
-
 import editors from './editors'
+import { Message } from './editors/index'
 import errorHandler from './error-handler'
 import inspector from './inspector'
 import renderComponent from './preview-render'
+import { DiffImage, Media, State, States } from './types'
 import workspace from './workspace'
-import { Message } from './editors/index'
 
-const throttledGenerate = throttle(() => workspace.generate(errorHandler), 3000)
+// const throttledGenerate = throttle(() => workspace.generate(errorHandler), 3000)
 
 const ShadowDOM = require('react-shadow').default
 

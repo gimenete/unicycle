@@ -1,20 +1,17 @@
 import * as EventEmitter from 'events'
 import * as fse from 'fs-extra'
+import * as Git from 'nodegit'
 import * as path from 'path'
 import * as prettier from 'prettier'
-
 import Component from './component'
+import reactGenerator from './generators/react'
+import vueGenerator from './generators/vuejs'
 import sketch from './sketch'
 import StylePalette from './style-palette'
 import { ErrorHandler, GeneratedCode, Metadata, States } from './types'
-
-import reactGenerator from './generators/react'
-import vueGenerator from './generators/vuejs'
-
-import * as Git from 'nodegit'
 import { CSS_URL_REGEXP } from './utils'
 
-const { Repository, Reference } = Git
+const { Repository } = Git
 
 const metadataFile = 'unicycle.json'
 const paletteFile = 'palette.scss'

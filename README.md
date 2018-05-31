@@ -52,6 +52,7 @@ Unicycle encourages to use a design system. Thus, it provides tools for creating
 - Clone the repository
 - Run `npm install`
 - Run `./build-sass.sh` (required to rebuild native dependencies with electron as target and not Node.js)
+- Run `npm run build` (transpiles the TypeScript to JavaScript)
 - Run `npm start`
 
 # Markup templating engine

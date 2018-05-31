@@ -1,13 +1,12 @@
-import * as path from 'path'
 import * as crypto from 'crypto'
 import * as fs from 'fs-extra'
+import * as path from 'path'
 import * as React from 'react'
-
-import electron = require('electron')
-
 import errorHandler from './error-handler'
 import { isPackaged } from './utils'
 import workspace from './workspace'
+
+import electron = require('electron')
 
 const { BrowserWindow, dialog, app } = electron.remote
 
@@ -49,8 +48,7 @@ class OpenPage extends React.Component<any, any> {
         const loader = document.querySelector('#loading')
         if (loader) loader.parentNode!.removeChild(loader)
 
-        const window = BrowserWindow.getFocusedWindow()
-        // if (window) window.maximize()
+        BrowserWindow.getFocusedWindow()
       })
       .catch(errorHandler)
   }

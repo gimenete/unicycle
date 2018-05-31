@@ -1,11 +1,11 @@
-import { Form, Input, Radio, Icon, Switch, Collapse } from 'antd'
+import { Collapse, Form, Icon, Input, Radio, Switch } from 'antd'
 import * as React from 'react'
+import errorHandler from './error-handler'
 import workspace from './workspace'
 
 import electron = require('electron')
-import errorHandler from './error-handler'
 
-const { BrowserWindow, dialog, app } = electron.remote
+const { BrowserWindow, dialog } = electron.remote
 
 const FormItem = Form.Item
 const { Button: RadioButton, Group: RadioGroup } = Radio

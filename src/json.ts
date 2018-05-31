@@ -80,7 +80,7 @@ const coverable = (obj: any) => {
 let at: number // The index of the current character
 let line: number // line
 let col: number // collumn
-let ch: string // The current character
+let ch: any // The current character
 let previous = { line: 0, col: 0 }
 const escapee: { [index: string]: string } = {
   '"': '"',
@@ -382,7 +382,7 @@ const parseJSON = (source: string, reviver?: any) => {
     : result
 }
 
-if (module === require.main) {
+/* if (module === require.main) {
   const json = parseJSON(`{
     "hello": "world",
     "array": [
@@ -400,7 +400,7 @@ if (module === require.main) {
     }
   }
   // console.log(json)
-}
+} */
 
 export { locationsSymbol }
 
