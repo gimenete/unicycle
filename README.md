@@ -31,7 +31,7 @@ Unicycle is able to emulate media capabilities (e.g. media=print), orientation m
 
 ## Import from Sketch
 
-Unicycle provides a Sketch plugin to exoport a selection and convert it to a component. The result is not perfect but the CSS and the HTML structure is optimal and semantic to be as simple as possible to fine tune.
+Unicycle provides a Sketch plugin to export a selection and convert it to a component. The result is not perfect but the CSS and the HTML structure is optimal and semantic to be as simple as possible to fine tune.
 
 ![Import from Sketch](/screenshots/import-from-sketch.png?raw=true "Import from Sketch")
 
