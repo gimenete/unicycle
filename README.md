@@ -80,7 +80,7 @@ Another, more advanced, example:
 </div>
 ```
 
-## Conditionals
+## Conditionals
 
 You can implement conditional rendering by using the special `@if` attribute. Example:
 
