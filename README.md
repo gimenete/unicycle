@@ -2,13 +2,13 @@
 
 Unicycle is an Electron application built using TypeScript, React and ant.design. Its purpose is to unify the design / development cycle.
 
-![Main window](/screenshots/main.png?raw=true "Main window")
-
-Unicycle allows you to create, live edit and test presentational components and export them to different frameworks (React and Vue.js by now). Each component has three different parts:
+Unicycle allows you to *create, live edit and test presentational components and export them to different frameworks* (React and Vue.js by now). Each component has three different parts:
 
 - Markup: the markup, written in HTML with special attributes for conditional writing and loops
 - Style: SCSS for the component
 - Tests: JSON structure where you can define example values of the props the component accepts
+
+![Main window](/screenshots/main.png?raw=true "Main window")
 
 ## Benefits
 
@@ -41,3 +41,15 @@ Unicycle encourages to use a design system. Thus, it provides tools for creating
 
 ![Style palette](/screenshots/style-palette.png?raw=true "Style palette")
 
+# Installing and running
+
+- Clone the repository
+- Run `npm install`
+- Run `./build-sass.sh` (required to rebuild native dependencies with electron as target and not Node.js)
+- Run `npm start`
+
+# Roadmap
+
+- Generate React Native code. It will require to support XML as markup instead of HTML and re-think the way CSS is handled.
+- Support designing email templates through [Inky](https://foundation.zurb.com/emails/docs/inky.html)
+- Git integration. Right now there is initial code for that. The idea is to allow designers to contribute directly to git repositories to further improve the collaboration between designers and developers.
