@@ -48,8 +48,61 @@ Unicycle encourages to use a design system. Thus, it provides tools for creating
 - Run `./build-sass.sh` (required to rebuild native dependencies with electron as target and not Node.js)
 - Run `npm start`
 
+# Markup templating engine
+
+## String interpolation
+
+You can output values by using curly braces (`{expression}`). The content is a JavaScript expression. For example:
+
+```html
+<strong>{author.fullname}</strong>
+```
+
+## Dynamic attributes
+
+You can dynamically set an HTML attribute by prefixing it with `:`. The value of the attribute will be evaluated as a JavaScript expression.
+
+```html
+<img :src="author.image">
+```
+
+Another, more advanced, example:
+
+```html
+<div class="card-image" :style="`background-image: url(${card.image})`">
+  <img :src="card.image">
+</div>
+```
+
+## Conditionals
+
+You can implement conditional rendering by using the special `@if` attribute. Example:
+
+```html
+<p @if="author === null">
+  Renders the paragraph element if author is null
+</p>
+```
+
+## Loops
+
+```html
+<div @loop="messages" @as="message">
+  <div>{message.text}</div>
+</div>
+```
+
+## Including other components
+
+For including a component into another component use `<include:ComponentName ...>...</include:ComponentName>`
+
+
 # Roadmap
 
 - Generate React Native code. It will require to support XML as markup instead of HTML and re-think the way CSS is handled.
 - Support designing email templates through [Inky](https://foundation.zurb.com/emails/docs/inky.html)
 - Git integration. Right now there is initial code for that. The idea is to allow designers to contribute directly to git repositories to further improve the collaboration between designers and developers.
+
+# Status of the project
+
+This app is a mature experiment. It mostly works, but many options are not implemented yet (e.g. all the exporting options, support for React Native and support for email templates) or are basically a proof of concept (git integration). Also a few things could change in a backwards incompatible way in the near future, so don't.
