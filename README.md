@@ -23,6 +23,12 @@ Since Unicycle knows all the possible tests/states of a component it is able to 
 - SCSS coverage. If a selector is never used, you'll get noticed in the code editor
 - State coverage (WIP). If a value in your test data / state is not used, you'll get noticed in the code editor
 
+![Code coverage](/screenshots/code-coverage.png?raw=true "Code coverage")
+
+## Emulate browser capabilities
+
+Unicycle is able to emulate media capabilities (e.g. media=print), orientation media queries,... So you can test all scenarios without leaving the app.
+
 ## Import from Sketch
 
 Unicycle provides a Sketch plugin to exoport a selection and convert it to a component. The result is not perfect but the CSS and the HTML structure is optimal and semantic to be as simple as possible to fine tune.
