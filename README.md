@@ -23,7 +23,7 @@ Since Unicycle knows all the possible tests/states of a component it is able to 
 - SCSS coverage. If a selector is never used, you'll get noticed in the code editor
 - State coverage (WIP). If a value in your test data / state is not used, you'll get noticed in the code editor
 
-## Import from Sketch
+## Import from Sketch
 
 Unicycle provides a Sketch plugin to exoport a selection and convert it to a component. The result is not perfect but the CSS and the HTML structure is optimal and semantic to be as simple as possible to fine tune.
 
@@ -37,7 +37,7 @@ Unicycle provides an internal HTTP server that you can enable so you can test yo
 
 ## Style palette
 
-Unicycle encourages to use a design system. Thus, it provides tools for creating a global stylesheet for defining colors, shadows, fonts and animations.
+Unicycle encourages to use a design system. Thus, it provides tools for creating a global stylesheet for defining colors, shadows, fonts and animations. And like everything in Unicycle, you can edit it and see the changes in real time.
 
 ![Style palette](/screenshots/style-palette.png?raw=true "Style palette")
 
