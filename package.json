@@ -2,7 +2,7 @@
   "name": "unicycle",
   "private": true,
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "Unicycle is an Electron application built using TypeScript, React and ant.design. Its purpose is to unify the design / development cycle.",
   "main": "lib/main.js",
   "scripts": {
     "start": "electron .",
@@ -11,8 +11,8 @@
     "tsc": "tsc --watch",
     "build": "tsc"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
-  "author": "Level Apps S.L.",
+  "repository": "https://github.com/gimenete/unicycle",
+  "author": "Alberto Gimeno <gimenete@gimenete.net> (http://gimenete.net)",
   "devDependencies": {
     "@types/node": "^8.0.24",
     "electron": "^1.7.9",
