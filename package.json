@@ -50,7 +50,7 @@
     "fs-extra": "^4.0.1",
     "get-port": "^3.2.0",
     "localtunnel": "^1.8.3",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.19",
     "monaco-editor": "^0.10.1",
     "mousetrap": "^1.6.1",
     "node-sass": "^4.5.3",
