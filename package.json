@@ -15,7 +15,7 @@
   "author": "Alberto Gimeno <gimenete@gimenete.net> (http://gimenete.net)",
   "devDependencies": {
     "@types/node": "^8.0.24",
-    "electron": "^1.7.9",
+    "electron": "^11.5.0",
     "eslint": "4.4.1",
     "eslint-config-prettier": "2.3.0",
     "eslint-plugin-prettier": "2.1.2",
